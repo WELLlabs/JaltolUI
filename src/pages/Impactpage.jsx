@@ -62,6 +62,7 @@ const ImpactAssessmentPage = () => {
   const handleVillageChange = option => {
     setSelectedVillage(option);
   };
+  
 
 
   return (
