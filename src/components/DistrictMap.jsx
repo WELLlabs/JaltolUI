@@ -136,7 +136,6 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
     <div className="relative h-full w-full">
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
-        
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">

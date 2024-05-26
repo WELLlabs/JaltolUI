@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'https://jaltol.app/api'; // Your Django app URL
+//const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
 
 export const get_boundary_data = (stateName, districtName) => {
   return axios.get(`${API_URL}/get_boundary_data/`, {
@@ -45,7 +46,7 @@ export const get_control_village = (stateName, districtName, subdistrictName, vi
   }).then(response => response.data);
 };
 
-export const get_rainfall_data = (stateName, districtName, subdistrictName, villageName) => {
+export const get_rainfall_data = (stateName, districtName, subdistrictName, villageName) => { // Add more parameters as needed
   return axios.get(`${API_URL}/get_rainfall_data/`, {
     params: {
       state_name: stateName,
