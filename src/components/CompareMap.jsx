@@ -84,21 +84,22 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
       const districtValue = selectedDistrict.value;
       get_control_village(selectedState, districtValue, selectedSubdistrict, selectedVillage)
       .then(data => {
+        const controllVillageName = data.properties.village_na;
         console.log("Boundary data received:", data);
         setBoundaryData(data);
+  
+        // Fetch the LULC raster data using the selected district and control village name
+        return get_lulc_raster(selectedState, districtValue, selectedSubdistrict, controllVillageName, selectedYear);
+      })
+      .then(data => {
+        setLulcTilesUrl(data.tiles_url);
       })
       .catch(error => {
-        console.error('Error fetching the GeoJSON data:', error);
+        console.error('Error fetching data:', error);
+        setBoundaryData(null);
+        setLulcTilesUrl(null);
       });
-      
-      // Fetch the LULC raster data using the selected district
-      get_lulc_raster(selectedState, districtValue,selectedSubdistrict, selectedVillage, selectedYear)
-        .then(data => {
-          setLulcTilesUrl(data.tiles_url);
-        })
-        .catch(error => {
-          console.error('Error fetching the LULC raster data:', error);
-        });
+  
     } else {
       setBoundaryData(null);
       setLulcTilesUrl(null);
