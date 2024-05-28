@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'https://jaltol.app/api'; // Your Django app URL
+const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
 // const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
 
 export const get_boundary_data = (stateName, districtName) => {
