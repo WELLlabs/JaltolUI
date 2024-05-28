@@ -1,6 +1,5 @@
 // src/pages/ImpactAssessmentPage.jsx
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LandCoverChangeChart from '../components/LandCoverChangeChart';
 import SelectDistrict from '../components/SelectDistrict';
 import Navbar from '../components/Navbar';
@@ -37,6 +36,8 @@ const ImpactAssessmentPage = () => {
   const selectedState = 'Rajasthan'; // Hardcoded for now
   const selectedSubdistrict = 'todabhim'; // Hardcoded for now
 
+  const scrollTargetRef = useRef(null);
+
   const [selectedDistrict, setSelectedDistrict] = useState({ value: 'karauli', label: 'Karauli, RJ' });
   const [selectedVillage, setSelectedVillage] = useState('');
   const [villageOptions, setVillageOptions] = useState([]);
@@ -70,21 +71,21 @@ const ImpactAssessmentPage = () => {
       {/* Content Section */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Column */}
-        <div className="flex-1 bg-white p-6 rounded shadow-lg">
+        <div className="flex-1 bg-white p-6 rounded ">
           <div className="container text-left mb-8 text-neutral-800 ">
             <h1 className="text-5xl font-bold mb-2">Impact Assessment</h1>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
           </div>
           {/* Dropdown Section */}
           <div className="w-full max-w-xs">
-            <div className="mb-4 text-black"> {/* Add margin to the bottom of the district select */}
+            <div className="mb-6 text-black"> {/* Add margin to the bottom of the district select */}
               <SelectDistrict
                 options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
                 onChange={handleDistrictChange}
                 value={selectedDistrict} // Make sure selectedDistrict is an object { value: 'karauli', label: 'Karauli, RJ' }
               />
             </div>
-            <div className="mb-4"> {/* Add margin to the bottom of the village select if needed */}
+            <div className="mb-6"> {/* Add margin to the bottom of the village select if needed */}
               <SelectVillage
                 options={villageOptions}
                 onChange={handleVillageChange}
@@ -113,7 +114,7 @@ const ImpactAssessmentPage = () => {
 
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-3">Land Cover Change</h2>
-            <div className="w-full bg-gray-200 h-64 rounded shadow-inner flex items-center justify-center">
+            <div className="w-full bg-gray-200 h-80 rounded shadow-inner flex items-center justify-center">
               {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
                 loadingChartData ? (
                   <div className="flex items-center justify-center">
@@ -140,24 +141,19 @@ const ImpactAssessmentPage = () => {
         {/* Right Column */}
         <div className="flex-1">
           {/* Map Display Section */}
-          <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+          <div className="bg-gray-200 rounded shadow-lg h-screen flex items-center justify-center mb-8 m-5">
 
             <DistrictMap
               selectedState={selectedState}
               selectedDistrict={selectedDistrict}
               selectedSubdistrict={selectedSubdistrict}
               selectedVillage={selectedVillage}
+              scrollRef={scrollTargetRef}
             />
           </div>
         </div>
       </div>
 
-      {/* Compare Villages Button */}
-      <div className="text-center mt-8">
-        <Link to="/compare-villages" className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded block text-center no-underline">
-          COMPARE SIMILAR VILLAGES
-        </Link>
-      </div>
 
       <div className="flex flex-col lg:flex-row gap-6 p-8">
         {/* Left Column */}
@@ -187,7 +183,7 @@ const ImpactAssessmentPage = () => {
               />
             </div>
       </div>
-      <div className="flex flex-col h-full w-full lg:flex-row gap-6 p-8">
+      <div className="flex flex-col h-full w-full lg:flex-row gap-6 p-8" ref={scrollTargetRef} >
         {/* Left Column */}
         <div className="flex-1">
           {/* Map Display Section */}

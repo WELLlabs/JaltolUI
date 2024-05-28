@@ -65,7 +65,7 @@ FlyToFeature.propTypes = {
   featureData: PropTypes.object,
 };
 
-const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage }) => {
+const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage,scrollRef }) => {
   const position = [22.3511148, 78.6677428]; // Central point of India
   const zoom = 5;
 
@@ -137,6 +137,14 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
       </div>
+      <div className="absolute bottom-8 left-10 z-[9999] m-4">
+      <button 
+        onClick={() => scrollRef.current.scrollIntoView({ behavior: 'smooth' })}
+        className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded cursor-pointer"
+      >
+        Compare Villages
+      </button>
+      </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="OpenStreetMap">
@@ -183,6 +191,10 @@ DistrictMap.propTypes = {
   selectedDistrict: PropTypes.string,
   selectedSubdistrict: PropTypes.string,
   selectedVillage: PropTypes.string,
+  scrollRef: PropTypes.oneOfType([
+    PropTypes.func, 
+    PropTypes.shape({ current: PropTypes.any })
+  ]),
 };
 
 export default DistrictMap;
