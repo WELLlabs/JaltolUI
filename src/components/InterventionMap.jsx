@@ -88,8 +88,8 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
         console.log("Boundary data received:", data);
         if (selectedVillage) {
           // Normalize data if necessary or ensure exact match conditions are checked
-          const villageFeature = data.features.find(feature => feature.properties.tv_name.toLowerCase().trim() === selectedVillage.toLowerCase().trim());
-          console.log("Attempting to find village:", selectedVillage, "in data:", data.features.map(f => f.properties.tv_name));
+          const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === selectedVillage.toLowerCase().trim());
+          console.log("Attempting to find village:", selectedVillage, "in data:", data.features.map(f => f.properties.village_na));
           if (villageFeature) {
             console.log("Village feature found:", villageFeature);
             setBoundaryData({ ...data, features: [villageFeature] });
@@ -169,7 +169,7 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
         {boundaryData && (
           <FlyToFeature 
           featureData={boundaryData}
-          style={feature => feature.properties.tv_name === selectedVillage ? highlightStyle : normalStyle}
+          style={feature => feature.properties.village_na === selectedVillage ? highlightStyle : normalStyle}
           />
         )}
          <Legend />
