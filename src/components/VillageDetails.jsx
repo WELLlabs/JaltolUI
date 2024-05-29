@@ -40,7 +40,7 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
           <p><strong>District:</strong> {selectedDistrict.label}</p>
         </div>
         <div>
-          <p><strong>Population:</strong> {population !== null ? population : 'N/A'}</p>
+          <p><strong>Population:</strong> {population !== null ? population : 'Calculating...'}</p>
           <p><strong>State:</strong> {selectedState}</p>
         </div>
       </div>

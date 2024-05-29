@@ -85,7 +85,7 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
         if (stateName && districtName && subdistrictName && villageName) {
             console.log('Fetching control village data');
             const districtValue = districtName.value;
-    
+
             get_control_village(stateName, districtValue, subdistrictName, villageName)
                 .then(response => {
                     const controlVillageName = response.properties?.village_na;
@@ -97,7 +97,7 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
                 });
         }
     }, [stateName, districtName, subdistrictName, villageName]);  // Dependency array for the first effect
-    
+
     useEffect(() => {
         // This effect runs only when controllVillage is set
         if (controllVillage && stateName && districtName && subdistrictName && villageName) {
@@ -113,52 +113,53 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
                 .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {
                     const labels = Object.keys(landCoverData);
                     const datasets = [{
-                        label:`Single Cropland - ${villageName}`,
+                        label: `Single Cropland - ${villageName}`,
                         data: labels.map(label => landCoverData[label]['Single cropping cropland']),
-                        borderColor: '#8b9dc3',
-                        backgroundColor: 'rgba(139, 157, 195, 0.5)',
+                        borderColor: '#FF5733', // New color
+                        backgroundColor: 'rgba(255, 87, 51, 0.5)', // New color
                         yAxisID: 'y',
                     }, {
                         label: `Double Cropland - ${villageName}`,
                         data: labels.map(label => landCoverData[label]['Double cropping cropland']),
-                        borderColor: '#222f5b',
-                        backgroundColor: 'rgba(34, 47, 91, 0.5)',
+                        borderColor: '#C70039', // New color
+                        backgroundColor: 'rgba(199, 0, 57, 0.5)', // New color
                         yAxisID: 'y',
                     }, {
                         label: `Rainfall - ${villageName}`,
                         data: rainfallData.rainfall_data.map(entry => entry[1]),
-                        borderColor: 'blue',
-                        backgroundColor: 'rgba(0, 0, 255, 0.5)',
+                        borderColor: '#900C3F', // New color
+                        backgroundColor: 'rgba(144, 12, 63, 0.5)', // New color
                         yAxisID: 'y1',
                     },
                     {
-                        label:`Single Cropland - ${controllVillage}`,
+                        label: `Single Cropland - ${controllVillage}`,
                         data: labels.map(label => controlLandCoverData[label]['Single cropping cropland']),
-                        borderColor: '#8b9dc3',
-                        backgroundColor: 'rgba(139, 157, 195, 0.5)',
+                        borderColor: '#FFC300', // New color
+                        backgroundColor: 'rgba(255, 195, 0, 0.5)', // New color
                         yAxisID: 'y',
                     }, {
                         label: `Double Cropland - ${controllVillage}`,
                         data: labels.map(label => controlLandCoverData[label]['Double cropping cropland']),
-                        borderColor: '#222f5b',
-                        backgroundColor: 'rgba(34, 47, 91, 0.5)',
+                        borderColor: '#DAF7A6', // New color
+                        backgroundColor: 'rgba(218, 247, 166, 0.5)', // New color
                         yAxisID: 'y',
                     }, {
                         label: `Rainfall - ${controllVillage}`,
                         data: controlRainfallData.rainfall_data.map(entry => entry[1]),
-                        borderColor: 'blue',
-                        backgroundColor: 'rgba(0, 0, 255, 0.5)',
+                        borderColor: '#581845', // New color
+                        backgroundColor: 'rgba(88, 24, 69, 0.5)', // New color
                         yAxisID: 'y1',
                     }
-                ];
+                    ];
                     setChartData({ labels, datasets });
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                 });
+
         }
     }, [controllVillage, stateName, districtName, subdistrictName, villageName]);
-    
+
 
     return (
         <div className="w-full h-64">
