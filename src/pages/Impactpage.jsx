@@ -10,6 +10,7 @@ import SelectVillage2 from '../components/SelectVillage2';
 import CompareMap from '../components/CompareMap';
 import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
+import VillageDetails from '../components/VillageDetails';
 
 const ImpactAssessmentPage = () => {
   const districtDisplayNames = {
@@ -97,19 +98,14 @@ const ImpactAssessmentPage = () => {
           </div>
 
           {/* Village Details */}
-          <div className="mb-4 text-neutral-800">
-            <h2 className="text-lg font-semibold mb-2">Village Details</h2>
-            <div className="flex justify-between">
-              <div>
-                <p><strong>Name:</strong> Sariarukh</p>
-                <p><strong>District:</strong> Dhamtari</p>
-              </div>
-              <div>
-                <p><strong>Population:</strong> 192</p>
-                <p><strong>State:</strong> Chhattisgarh</p>
-              </div>
-            </div>
-          </div>
+          {selectedVillage && (
+            <VillageDetails
+              selectedState={selectedState}
+              selectedDistrict={selectedDistrict}
+              selectedSubdistrict={selectedSubdistrict}
+              selectedVillage={selectedVillage}
+            />
+          )}
 
 
           <div className="mb-8">

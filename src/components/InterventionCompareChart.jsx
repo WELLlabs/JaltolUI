@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import { get_area_change, get_control_village } from '../services/api'; // Assuming get_control_village is the function to fetch control village data
+import { get_area_change, get_control_village, get_rainfall_data } from '../services/api'; // Assuming get_control_village is the function to fetch control village data
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -102,39 +102,60 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
         // This effect runs only when controllVillage is set
         if (controllVillage && stateName && districtName && subdistrictName && villageName) {
             const districtValue = districtName.value;
-    
-            Promise.all([
-                get_area_change(stateName, districtValue, subdistrictName, villageName),
-                get_area_change(stateName, districtValue, subdistrictName, controllVillage)
-            ])
-            .then(([dataVillage, dataControlVillage]) => {
-                const labels = Object.keys(dataVillage);
-                const datasets = [{
-                    label: `Single Cropland - ${villageName}`,
-                    data: labels.map(label => dataVillage[label]['Single cropping cropland']),
-                    borderColor: '#8b9dc3',
-                    backgroundColor: 'rgba(139, 157, 195, 0.5)',
-                }, {
-                    label: `Double Cropland - ${villageName}`,
-                    data: labels.map(label => dataVillage[label]['Double cropping cropland']),
-                    borderColor: '#222f5b',
-                    backgroundColor: 'rgba(34, 47, 91, 0.5)',
-                }, {
-                    label: `Single Cropland - ${controllVillage}`,
-                    data: labels.map(label => dataControlVillage[label]['Single cropping cropland']),
-                    borderColor: '#e9c46a',
-                    backgroundColor: 'rgba(233, 196, 106, 0.5)',
-                }, {
-                    label: `Double Cropland - ${controllVillage}`,
-                    data: labels.map(label => dataControlVillage[label]['Double cropping cropland']),
-                    borderColor: '#f4a261',
-                    backgroundColor: 'rgba(244, 162, 97, 0.5)',
-                }];
-                setChartData({ labels, datasets });
-            })
-            .catch(error => {
-                console.error('Error fetching area change data:', error);
-            });
+            console.log('Making API call with:', stateName, districtName, subdistrictName, villageName);
+            const fetchLandCover = get_area_change(stateName, districtValue, subdistrictName, villageName);
+            const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictName, villageName);
+
+            const fetchControlLandCover = get_area_change(stateName, districtValue, subdistrictName, controllVillage);
+            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, subdistrictName, controllVillage);
+
+            Promise.all([fetchLandCover, fetchRainfall, fetchControlLandCover, fetchControlRainfall])
+                .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {
+                    const labels = Object.keys(landCoverData);
+                    const datasets = [{
+                        label:`Single Cropland - ${villageName}`,
+                        data: labels.map(label => landCoverData[label]['Single cropping cropland']),
+                        borderColor: '#8b9dc3',
+                        backgroundColor: 'rgba(139, 157, 195, 0.5)',
+                        yAxisID: 'y',
+                    }, {
+                        label: `Double Cropland - ${villageName}`,
+                        data: labels.map(label => landCoverData[label]['Double cropping cropland']),
+                        borderColor: '#222f5b',
+                        backgroundColor: 'rgba(34, 47, 91, 0.5)',
+                        yAxisID: 'y',
+                    }, {
+                        label: `Rainfall - ${villageName}`,
+                        data: rainfallData.rainfall_data.map(entry => entry[1]),
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0, 0, 255, 0.5)',
+                        yAxisID: 'y1',
+                    },
+                    {
+                        label:`Single Cropland - ${controllVillage}`,
+                        data: labels.map(label => controlLandCoverData[label]['Single cropping cropland']),
+                        borderColor: '#8b9dc3',
+                        backgroundColor: 'rgba(139, 157, 195, 0.5)',
+                        yAxisID: 'y',
+                    }, {
+                        label: `Double Cropland - ${controllVillage}`,
+                        data: labels.map(label => controlLandCoverData[label]['Double cropping cropland']),
+                        borderColor: '#222f5b',
+                        backgroundColor: 'rgba(34, 47, 91, 0.5)',
+                        yAxisID: 'y',
+                    }, {
+                        label: `Rainfall - ${controllVillage}`,
+                        data: controlRainfallData.rainfall_data.map(entry => entry[1]),
+                        borderColor: 'blue',
+                        backgroundColor: 'rgba(0, 0, 255, 0.5)',
+                        yAxisID: 'y1',
+                    }
+                ];
+                    setChartData({ labels, datasets });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
         }
     }, [controllVillage, stateName, districtName, subdistrictName, villageName]);
     
