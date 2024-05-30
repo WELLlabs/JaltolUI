@@ -5,6 +5,7 @@ import { get_boundary_data, get_lulc_raster } from '../services/api';
 import PropTypes from 'prop-types';
 import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
+import VillageDetails from './VillageDetails';
 
 const Legend = () => {
   const map = useMap();
@@ -136,6 +137,14 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
     <div className="relative h-full w-full">
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
+      </div>
+      <div className='absolute top-5 left-40 z-[9999] bg-white pl-10 pr-10 rounded-lg shadow-lg bg-opacity-70'>
+        <VillageDetails
+          selectedState={selectedState}
+          selectedDistrict={selectedDistrict}
+          selectedSubdistrict={selectedSubdistrict}
+          selectedVillage={selectedVillage}
+        />
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">

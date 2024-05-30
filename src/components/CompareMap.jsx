@@ -5,6 +5,7 @@ import { get_control_village, get_lulc_raster } from '../services/api';
 import PropTypes from 'prop-types';
 import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
+import VillageDetails from './VillageDetails';
 
 const Legend = () => {
   const map = useMap();
@@ -23,7 +24,7 @@ const Legend = () => {
 
       let legendHtml = '<div style="font-size:14px; font-weight:bold; margin-bottom:5px; color: black;">Legend</div>';
       labels.forEach(item => {
-        legendHtml += 
+        legendHtml +=
           `<div style="display: flex; align-items: center; margin-bottom: 4px; color: black;">` +
           `<i style="width: 18px; height: 18px; background:${item.color}; margin-right: 8px;"></i>` +
           `<span>${item.label}</span>` +
@@ -72,7 +73,8 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [boundaryData, setBoundaryData] = useState(null);
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2022');
-  
+  const [controllVillage, setControllVillageName] = useState(null);
+
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
     setSelectedYear(selectedOption.value);
@@ -80,26 +82,27 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
   useEffect(() => {
     if (selectedDistrict && selectedState && selectedVillage) {
+      setBoundaryData(null)
       // Fetch the boundary data using the selected district
       const districtValue = selectedDistrict.value;
       get_control_village(selectedState, districtValue, selectedSubdistrict, selectedVillage)
-      .then(data => {
-        const controllVillageName = data.properties.village_na;
-        console.log("Boundary data received:", data);
-        setBoundaryData(data);
-  
-        // Fetch the LULC raster data using the selected district and control village name
-        return get_lulc_raster(selectedState, districtValue, selectedSubdistrict, controllVillageName, selectedYear);
-      })
-      .then(data => {
-        setLulcTilesUrl(data.tiles_url);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-        setBoundaryData(null);
-        setLulcTilesUrl(null);
-      });
-  
+        .then(data => {
+          const controllVillageName = data.properties.village_na;
+          console.log("Boundary data received:", data);
+          setBoundaryData(data);
+          setControllVillageName(controllVillageName);
+          // Fetch the LULC raster data using the selected district and control village name
+          return get_lulc_raster(selectedState, districtValue, selectedSubdistrict, controllVillageName, selectedYear);
+        })
+        .then(data => {
+          setLulcTilesUrl(data.tiles_url);
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          setBoundaryData(null);
+          setLulcTilesUrl(null);
+        });
+
     } else {
       setBoundaryData(null);
       setLulcTilesUrl(null);
@@ -118,6 +121,14 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
     <div className="relative h-full w-full">
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
+      </div>
+      <div className='absolute top-5 left-40 z-[9999] bg-white pl-10 pr-10 rounded-lg shadow-lg bg-opacity-70'>
+        <VillageDetails
+          selectedState={selectedState}
+          selectedDistrict={selectedDistrict}
+          selectedSubdistrict={selectedSubdistrict}
+          selectedVillage={controllVillage}
+        />
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
@@ -149,9 +160,9 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           )}
         </LayersControl>
         {boundaryData && (
-          <FlyToFeature 
-          featureData={boundaryData}
-          style={normalStyle}
+          <FlyToFeature
+            featureData={boundaryData}
+            style={normalStyle}
           />
         )}
         <Legend />

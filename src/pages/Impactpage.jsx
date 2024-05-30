@@ -92,7 +92,7 @@ const ImpactAssessmentPage = () => {
                 onChange={handleVillageChange}
                 placeholder="Select Village..."
                 isDisabled={!selectedDistrict}
-                value={villageOptions.find(option => option.value === selectedVillage)}
+                value={villageOptions.find(option => option.value === selectedVillage?.value)}
               />
             </div>
           </div>
@@ -151,35 +151,34 @@ const ImpactAssessmentPage = () => {
       </div>
 
 
-      <div className="flex flex-col lg:flex-row gap-6 p-8">
+      <div className="flex flex-col lg:flex-row gap-6 ml-10">
         {/* Left Column */}
 
-          {/* Map Display Section */}
-          <div className=" mb-4"> {/* Add margin to the bottom of the district select */}
-              <SelectDistrict2
-                options={districtDisplayNames}
-                onChange={handleDistrictChange}
-                placeholder="Karauli, RJ "
-                value={selectedDistrict ? { value: selectedDistrict, label: districtDisplayNames[selectedDistrict] } : ''}
-              />
-            </div>
+        {/* Map Display Section */}
+        <div className=" mb-4"> {/* Add margin to the bottom of the district select */}
+          <SelectDistrict2
+            options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
+            onChange={handleDistrictChange}
+            value={selectedDistrict} 
+          />
+        </div>
 
 
 
         {/* Right Column */}
 
-          {/* Map Display Section */}
-          <div className="mb-4"> {/* Add margin to the bottom of the village select if needed */}
-              <SelectVillage2
-                options={villageOptions}
-                onChange={handleVillageChange}
-                placeholder="Select Village..."
-                isDisabled={!selectedDistrict}
-                value={villageOptions.find(option => option.value === selectedVillage)}
-              />
-            </div>
+        {/* Map Display Section */}
+        <div > {/* Add margin to the bottom of the village select if needed */}
+        <SelectVillage2
+            options={villageOptions}
+            onChange={handleVillageChange}
+            placeholder="Select Village..."
+            isDisabled={!selectedDistrict}
+            value={selectedVillage}
+          />
+        </div>
       </div>
-      <div className="flex flex-col h-full w-full lg:flex-row gap-6 p-8" ref={scrollTargetRef} >
+      <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef} >
         {/* Left Column */}
         <div className="flex-1">
           {/* Map Display Section */}
@@ -192,48 +191,52 @@ const ImpactAssessmentPage = () => {
             />
           </div>
 
-          
+
         </div>
 
         {/* Right Column */}
-        <div className="flex-1">
-          {/* Map Display Section */}
-          <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
-            <CompareMap
-              selectedState={selectedState}
-              selectedDistrict={selectedDistrict}
-              selectedSubdistrict={selectedSubdistrict}
-              selectedVillage={selectedVillage}
-            />
-          </div>
-
+        
+          {selectedVillage && (
+            <div className="flex-1">
+            {/* Map Display Section */}
+            <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+              <CompareMap
+                selectedState={selectedState}
+                selectedDistrict={selectedDistrict}
+                selectedSubdistrict={selectedSubdistrict}
+                selectedVillage={selectedVillage}
+              />
+            </div>
+            
         </div>
+          )}
+
       </div>
 
       <div className=" bg-gray-200 h-64 rounded shadow-inner flex items-center justify-center p-10">
-              {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
-                loadingChartData ? (
-                  <div className=" items-center justify-center">
-                    <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  </div>
-                ) : (
-                  <InterventionCompareChart
-                    stateName={selectedState}
-                    districtName={selectedDistrict}
-                    subdistrictName={selectedSubdistrict}
-                    villageName={selectedVillage}
-                    onChartDataLoaded={() => setLoadingChartData(false)} // Call this when data is loaded
-                  />
-                )
-              ) : (
-                <p>Select all fields to see the chart</p>
-              )}
+        {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
+          loadingChartData ? (
+            <div className=" items-center justify-center">
+              <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
             </div>
+          ) : (
+            <InterventionCompareChart
+              stateName={selectedState}
+              districtName={selectedDistrict}
+              subdistrictName={selectedSubdistrict}
+              villageName={selectedVillage}
+              onChartDataLoaded={() => setLoadingChartData(false)} // Call this when data is loaded
+            />
+          )
+        ) : (
+          <p>Select all fields to see the chart</p>
+        )}
+      </div>
     </div>
 
-    
+
   );
 };
 
