@@ -1,3 +1,4 @@
+// src/components/LandCoverChangeChart.jsx
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
@@ -7,7 +8,7 @@ import { get_area_change, get_rainfall_data } from '../services/api';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villageName }) => {
+const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villageName, onDataChange }) => {
     const [chartData, setChartData] = useState({
         labels: [],
         datasets: []
@@ -125,12 +126,13 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
                         yAxisID: 'y1',
                     }];
                     setChartData({ labels, datasets });
+                    onDataChange({ labels, datasets }); // Pass data to the parent component
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                 });
         }
-    }, [stateName, districtName, subdistrictName, villageName]);
+    }, [stateName, districtName, subdistrictName, villageName, onDataChange]);
 
     return (
         <div className="w-full h-64">
@@ -145,9 +147,10 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
 
 LandCoverChangeChart.propTypes = {
     stateName: PropTypes.string.isRequired,
-    districtName: PropTypes.string.isRequired,
+    districtName: PropTypes.object.isRequired,
     subdistrictName: PropTypes.string.isRequired,
-    villageName: PropTypes.string.isRequired
+    villageName: PropTypes.string.isRequired,
+    onDataChange: PropTypes.func.isRequired,
 };
 
 export default LandCoverChangeChart;

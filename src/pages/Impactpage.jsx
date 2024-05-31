@@ -11,27 +11,15 @@ import CompareMap from '../components/CompareMap';
 import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
+import DownloadCSVButton from '../components/DownloadCSVButton';
 
 const ImpactAssessmentPage = () => {
   const districtDisplayNames = {
-    // 'anantapur': 'Anantapur, AP',
-    // 'dhamtari': 'Dhamtari, CG',
-    // 'uttar bastar kanker': 'Kanker, CG',
     'karauli': 'Karauli, RJ',
-    // 'koppal': 'Koppal, KA',
-    // 'thane': 'Palghar, MH',
-    // 'raichur': 'Raichur, KA',
   };
 
   const villagesByDistrict = {
-    'karauli': [
-      'anatpura', 'bhanakpura', 'bhaiseena', 'tudawali', 'nisoora'
-    ],
-    'dhamtari': [
-      'li', 'agur', 'Amar', 'Ana', 'Atmakur',
-      'Bale', 'Beluguppa', 'Bommanhmasamudram',
-      'Bukkapatnam', 'Bukkaraya Saram', 'Chennepalle', 'Chir',
-    ],
+    'karauli': ['anatpura', 'bhanakpura', 'bhaiseena', 'tudawali', 'nisoora'],
   };
 
   const selectedState = 'Rajasthan'; // Hardcoded for now
@@ -42,20 +30,19 @@ const ImpactAssessmentPage = () => {
   const [selectedDistrict, setSelectedDistrict] = useState({ value: 'karauli', label: 'Karauli, RJ' });
   const [selectedVillage, setSelectedVillage] = useState('');
   const [villageOptions, setVillageOptions] = useState([]);
-  const [loadingChartData, setLoadingChartData] = useState(false);
+  const [loadingChartData, setLoadingChartData] = useState(false); // Correctly declare and use this state
+  const [landCoverChartData, setLandCoverChartData] = useState({ labels: [], datasets: [] });
+  const [interventionChartData, setInterventionChartData] = useState({ labels: [], datasets: [] });
 
-  // Function to handle changes in the district dropdown
   useEffect(() => {
-    // Load villages for the initially selected district
     const villages = villagesByDistrict[selectedDistrict.value];
     const options = villages.map(village => ({ value: village.toLowerCase(), label: village }));
     setVillageOptions(options);
-  }, [selectedDistrict]); // Empty dependency array ensures this runs only once on mount
+  }, [selectedDistrict]);
 
   const handleDistrictChange = option => {
     setSelectedDistrict(option);
     setSelectedVillage(null); // Reset the selected village
-    // Update villages based on the selected district
     const villages = villagesByDistrict[option.value];
     const options = villages.map(village => ({ value: village.toLowerCase(), label: village }));
     setVillageOptions(options);
@@ -65,28 +52,34 @@ const ImpactAssessmentPage = () => {
     setSelectedVillage(option);
   };
 
+  const handleLandCoverDataChange = data => {
+    setLandCoverChartData(data);
+    setLoadingChartData(false);
+  };
+
+  const handleInterventionDataChange = data => {
+    setInterventionChartData(data);
+    setLoadingChartData(false);
+  };
 
   return (
     <div className="font-sans bg-white h-screen w-screen overflow-x-hidden">
       <Navbar />
-      {/* Content Section */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column */}
-        <div className="flex-1 bg-white p-6 rounded ">
-          <div className="container text-left mb-8 text-neutral-800 ">
+        <div className="flex-1 bg-white p-6 rounded">
+          <div className="container text-left mb-8 text-neutral-800">
             <h1 className="text-5xl font-bold mb-2">Impact Assessment</h1>
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
           </div>
-          {/* Dropdown Section */}
           <div className="w-full max-w-xs">
-            <div className="mb-6 text-black"> {/* Add margin to the bottom of the district select */}
+            <div className="mb-6 text-black">
               <SelectDistrict
                 options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
                 onChange={handleDistrictChange}
-                value={selectedDistrict} // Make sure selectedDistrict is an object { value: 'karauli', label: 'Karauli, RJ' }
+                value={selectedDistrict}
               />
             </div>
-            <div className="mb-6"> {/* Add margin to the bottom of the village select if needed */}
+            <div className="mb-6">
               <SelectVillage
                 options={villageOptions}
                 onChange={handleVillageChange}
@@ -97,7 +90,6 @@ const ImpactAssessmentPage = () => {
             </div>
           </div>
 
-          {/* Village Details */}
           {selectedVillage && (
             <VillageDetails
               selectedState={selectedState}
@@ -107,10 +99,9 @@ const ImpactAssessmentPage = () => {
             />
           )}
 
-
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-3">Land Cover Change</h2>
-            <div className="w-full bg-gray-200 h-80 rounded shadow-inner flex items-center justify-center">
+            <div className="w-full bg-gray-200 h-70 rounded shadow-inner flex items-center justify-center">
               {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
                 loadingChartData ? (
                   <div className="flex items-center justify-center">
@@ -124,21 +115,24 @@ const ImpactAssessmentPage = () => {
                     districtName={selectedDistrict}
                     subdistrictName={selectedSubdistrict}
                     villageName={selectedVillage}
-                    onChartDataLoaded={() => setLoadingChartData(false)} // Call this when data is loaded
+                    onDataChange={handleLandCoverDataChange}
                   />
                 )
               ) : (
                 <p>Select all fields to see the chart</p>
               )}
             </div>
+            {!loadingChartData && landCoverChartData.labels.length > 0 && (
+              <DownloadCSVButton
+                data={landCoverChartData}
+                filename="land_cover_chart_data.csv"
+              />
+            )}
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="flex-1">
-          {/* Map Display Section */}
           <div className="bg-gray-200 rounded shadow-lg h-screen flex items-center justify-center mb-8 m-5">
-
             <DistrictMap
               selectedState={selectedState}
               selectedDistrict={selectedDistrict}
@@ -150,38 +144,28 @@ const ImpactAssessmentPage = () => {
         </div>
       </div>
 
-
       <div className="flex flex-col lg:flex-row gap-6 ml-10">
-        {/* Left Column */}
-
-        {/* Map Display Section */}
-        <div className=" mb-4"> {/* Add margin to the bottom of the district select */}
+        <div className="mb-4">
           <SelectDistrict2
             options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
             onChange={handleDistrictChange}
-            value={selectedDistrict} 
+            value={selectedDistrict}
           />
         </div>
 
-
-
-        {/* Right Column */}
-
-        {/* Map Display Section */}
-        <div > {/* Add margin to the bottom of the village select if needed */}
-        <SelectVillage2
+        <div>
+          <SelectVillage2
             options={villageOptions}
             onChange={handleVillageChange}
             placeholder="Select Village..."
             isDisabled={!selectedDistrict}
-            value={selectedVillage}
+            value={villageOptions.find(option => option.value === selectedVillage?.value)}
           />
         </div>
       </div>
-      <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef} >
-        {/* Left Column */}
+
+      <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef}>
         <div className="flex-1">
-          {/* Map Display Section */}
           <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
             <InterventionMap
               selectedState={selectedState}
@@ -190,33 +174,24 @@ const ImpactAssessmentPage = () => {
               selectedVillage={selectedVillage}
             />
           </div>
-
-
         </div>
 
-        {/* Right Column */}
-        
-          {selectedVillage && (
-            <div className="flex-1">
-            {/* Map Display Section */}
-            <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
-              <CompareMap
-                selectedState={selectedState}
-                selectedDistrict={selectedDistrict}
-                selectedSubdistrict={selectedSubdistrict}
-                selectedVillage={selectedVillage}
-              />
-            </div>
-            
+        <div className="flex-1">
+          <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+            <CompareMap
+              selectedState={selectedState}
+              selectedDistrict={selectedDistrict}
+              selectedSubdistrict={selectedSubdistrict}
+              selectedVillage={selectedVillage}
+            />
+          </div>
         </div>
-          )}
-
       </div>
 
-      <div className=" bg-gray-200 h-64 rounded shadow-inner flex items-center justify-center p-10">
+      <div className="bg-gray-200 h-64 rounded shadow-inner flex items-center justify-center p-10">
         {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
           loadingChartData ? (
-            <div className=" items-center justify-center">
+            <div className="items-center justify-center">
               <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
                 <span className="visually-hidden">Loading...</span>
               </div>
@@ -227,16 +202,20 @@ const ImpactAssessmentPage = () => {
               districtName={selectedDistrict}
               subdistrictName={selectedSubdistrict}
               villageName={selectedVillage}
-              onChartDataLoaded={() => setLoadingChartData(false)} // Call this when data is loaded
+              onDataChange={handleInterventionDataChange}
             />
           )
         ) : (
           <p>Select all fields to see the chart</p>
         )}
+        {!loadingChartData && interventionChartData.labels.length > 0 && (
+          <DownloadCSVButton
+            data={interventionChartData}
+            filename="intervention_chart_data.csv"
+          />
+        )}
       </div>
     </div>
-
-
   );
 };
 
