@@ -188,7 +188,7 @@ const ImpactAssessmentPage = () => {
         </div>
       </div>
 
-      <div className="bg-gray-200 h-64 rounded shadow-inner flex items-center justify-center p-10">
+      <div className="bg-gray-200 h-80 rounded shadow-inner flex items-center justify-center p-5">
         {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
           loadingChartData ? (
             <div className="items-center justify-center">
@@ -208,13 +208,14 @@ const ImpactAssessmentPage = () => {
         ) : (
           <p>Select all fields to see the chart</p>
         )}
-        {!loadingChartData && interventionChartData.labels.length > 0 && (
+
+      </div>
+      {!loadingChartData && interventionChartData.labels.length > 0 && (
           <DownloadCSVButton
             data={interventionChartData}
             filename="intervention_chart_data.csv"
           />
         )}
-      </div>
     </div>
   );
 };

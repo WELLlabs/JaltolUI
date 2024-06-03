@@ -108,18 +108,21 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
                     const labels = Object.keys(landCoverData);
                     const datasets = [{
                         label: 'Single Cropland',
+                        type: 'line',
                         data: labels.map(label => landCoverData[label]['Single cropping cropland']),
                         borderColor: '#8b9dc3',
                         backgroundColor: 'rgba(139, 157, 195, 0.5)',
                         yAxisID: 'y',
                     }, {
                         label: 'Double Cropland',
+                        type: 'line',
                         data: labels.map(label => landCoverData[label]['Double cropping cropland']),
                         borderColor: '#222f5b',
                         backgroundColor: 'rgba(34, 47, 91, 0.5)',
                         yAxisID: 'y',
                     }, {
                         label: 'Rainfall',
+                        type: 'bar',
                         data: rainfallData.rainfall_data.map(entry => entry[1]),
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0, 0, 255, 0.5)',

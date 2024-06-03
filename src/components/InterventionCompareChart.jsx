@@ -113,44 +113,60 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
             Promise.all([fetchLandCover, fetchRainfall, fetchControlLandCover, fetchControlRainfall])
                 .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {
                     const labels = Object.keys(landCoverData);
-                    const datasets = [{
-                        label: `Single Cropland - ${villageName}`,
-                        data: labels.map(label => landCoverData[label]['Single cropping cropland']),
-                        borderColor: '#8b9dc3',
-                        backgroundColor: 'rgba(139, 157, 195, 0.5)',
-                        yAxisID: 'y',
-                    }, {
-                        label: `Double Cropland - ${villageName}`,
-                        data: labels.map(label => landCoverData[label]['Double cropping cropland']),
-                        borderColor: '#222f5b',
-                        backgroundColor: 'rgba(34, 47, 91, 0.5)',
-                        yAxisID: 'y',
-                    }, {
-                        label: `Rainfall - ${villageName}`,
-                        data: rainfallData.rainfall_data.map(entry => entry[1]),
-                        borderColor: 'blue',
-                        backgroundColor: 'rgba(0, 0, 255, 0.5)',
-                        yAxisID: 'y1',
-                    },
-                    {
-                        label: `Single Cropland - ${controlVillage}`,
-                        data: labels.map(label => controlLandCoverData[label]['Single cropping cropland']),
-                        borderColor: '#FFC300', // New color
-                        backgroundColor: 'rgba(255, 195, 0, 0.5)', // New color
-                        yAxisID: 'y',
-                    }, {
-                        label: `Double Cropland - ${controlVillage}`,
-                        data: labels.map(label => controlLandCoverData[label]['Double cropping cropland']),
-                        borderColor: '#DAF7A6', // New color
-                        backgroundColor: 'rgba(218, 247, 166, 0.5)', // New color
-                        yAxisID: 'y',
-                    }, {
-                        label: `Rainfall - ${controlVillage}`,
-                        data: controlRainfallData.rainfall_data.map(entry => entry[1]),
-                        borderColor: '#581845', // New color
-                        backgroundColor: 'rgba(88, 24, 69, 0.5)', // New color
-                        yAxisID: 'y1',
-                    }];
+                    const datasets = [
+                        {
+                            label: `Single Cropland - ${villageName}`,
+                            type: 'line',  // Line chart for single cropland
+                            data: labels.map(label => landCoverData[label]['Single cropping cropland']),
+                            borderColor: '#8b9dc3',
+                            backgroundColor: 'rgba(139, 157, 195, 0.2)',  // Lighter and more transparent
+                            yAxisID: 'y',
+                        },
+                        {
+                            label: `Double Cropland - ${villageName}`,
+                            type: 'line',  // Line chart for double cropland
+                            data: labels.map(label => landCoverData[label]['Double cropping cropland']),
+                            borderColor: '#222f5b',
+                            backgroundColor: 'rgba(34, 47, 91, 0.2)',  // Lighter and more transparent
+                            yAxisID: 'y',
+                        },
+                        {
+                            label: `Rainfall - ${villageName}`,
+                            type: 'bar',  // Bar chart for rainfall
+                            data: rainfallData.rainfall_data.map(entry => entry[1]),
+                            borderColor: '#00BFFF',
+                            backgroundColor: 'rgba(0, 191, 255, 0.5)',  // Matching light blue, more vivid
+                            yAxisID: 'y1',
+                        },
+                        {
+                            label: `Single Cropland - ${controlVillage}`,
+                            type: 'line',  // Line chart for control village single cropland
+                            data: labels.map(label => controlLandCoverData[label]['Single cropping cropland']),
+                            borderColor: '#FFA07A',  // Salmon color
+                            backgroundColor: 'rgba(255, 160, 122, 0.2)',  // Lighter salmon, transparent
+                            yAxisID: 'y',
+                            borderDash: [10, 5],  // Dotted line
+                        },
+                        {
+                            label: `Double Cropland - ${controlVillage}`,
+                            type: 'line',  // Line chart for control village double cropland
+                            data: labels.map(label => controlLandCoverData[label]['Double cropping cropland']),
+                            borderColor: '#20B2AA',  // Light Sea Green
+                            backgroundColor: 'rgba(32, 178, 170, 0.2)',  // Matching color, more transparent
+                            yAxisID: 'y',
+                            borderDash: [10, 5],  // Dotted line
+                        },
+                        {
+                            label: `Rainfall - ${controlVillage}`,
+                            type: 'bar',  // Bar chart for control village rainfall
+                            data: controlRainfallData.rainfall_data.map(entry => entry[1]),
+                            borderColor: '#C71585',  // Medium Violet Red
+                            backgroundColor: 'rgba(199, 21, 133, 0.5)',  // Matching color, more vivid
+                            yAxisID: 'y1',
+                            borderDash: [10, 5],  // Dotted line, though typically not noticeable on bars
+                        }
+                    ];                   
+                    
                     setChartData({ labels, datasets });
                     onDataChange({ labels, datasets }); // Pass data to the parent component
                 })
