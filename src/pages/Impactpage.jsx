@@ -13,22 +13,9 @@ import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
+import {selectedState ,districtDisplayNames, subdistrictByDistrict, villagesBySubDistrict } from '../data/locationData';
 
 const ImpactAssessmentPage = () => {
-  const districtDisplayNames = {
-    'karauli': 'Karauli, RJ',
-  };
-
-  const subdistrictByDistrict = {
-    'karauli' : ['Todabhim']
-  }
-
-  const villagesBySubDistrict = {
-    'todabhim': ['anatpura', 'bhanakpura', 'bhaiseena', 'tudawali', 'nisoora'],
-  };
-
-  const selectedState = 'Rajasthan'; // Hardcoded for now
-  // const selectedSubdistrict = 'todabhim'; // Hardcoded for now
 
   const scrollTargetRef = useRef(null);
 
