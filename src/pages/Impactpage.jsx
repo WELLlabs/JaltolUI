@@ -20,7 +20,7 @@ const ImpactAssessmentPage = () => {
   };
 
   const subdistrictByDistrict = {
-    'karauli' : ['Todabhim', 'Anatpura']
+    'karauli' : ['Todabhim']
   }
 
   const villagesBySubDistrict = {
@@ -41,9 +41,12 @@ const ImpactAssessmentPage = () => {
   // Initialize states for subdistrict and its options
   const [selectedSubdistrict, setSelectedSubdistrict] = useState(null);
   const [subdistrictOptions, setSubdistrictOptions] = useState([]);
+  const [district_name, setDistrictName] = useState(null)
 
   useEffect(() => {
+    console.log(selectedDistrict.value)
     if (selectedDistrict) {
+      console.log("new district:",district_name)
       const subdistricts = subdistrictByDistrict[selectedDistrict.value] || [];
       setSubdistrictOptions(subdistricts.map(subdistrict => ({ value: subdistrict.toLowerCase(), label: subdistrict })));
       setSelectedSubdistrict(null);  // Reset subdistrict when district changes
@@ -67,6 +70,7 @@ const ImpactAssessmentPage = () => {
 
   const handleDistrictChange = option => {
     setSelectedDistrict(option);
+    setDistrictName(selectedDistrict.value)
   };
 
   const handleSubdistrictChange = option => {
@@ -146,7 +150,7 @@ const ImpactAssessmentPage = () => {
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-3">Land Cover Change</h2>
             <div className="w-full bg-gray-200 h-70 rounded shadow-inner flex items-center justify-center">
-              {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
+              {selectedState && selectedDistrict.value && selectedSubdistrict && selectedVillage ? (
                 loadingChartData ? (
                   <div className="flex items-center justify-center">
                     <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
