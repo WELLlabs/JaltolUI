@@ -7,6 +7,7 @@ import SelectVillage from '../components/SelectVillage';
 import DistrictMap from '../components/DistrictMap';
 import SelectDistrict2 from '../components/SelectDistrict2';
 import SelectVillage2 from '../components/SelectVillage2';
+import SelectSubdistrict from '../components/SelectSubdistrict';
 import CompareMap from '../components/CompareMap';
 import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
@@ -18,12 +19,16 @@ const ImpactAssessmentPage = () => {
     'karauli': 'Karauli, RJ',
   };
 
-  const villagesByDistrict = {
-    'karauli': ['anatpura', 'bhanakpura', 'bhaiseena', 'tudawali', 'nisoora'],
+  const subdistrictByDistrict = {
+    'karauli' : ['Todabhim', 'Anatpura']
+  }
+
+  const villagesBySubDistrict = {
+    'todabhim': ['anatpura', 'bhanakpura', 'bhaiseena', 'tudawali', 'nisoora'],
   };
 
   const selectedState = 'Rajasthan'; // Hardcoded for now
-  const selectedSubdistrict = 'todabhim'; // Hardcoded for now
+  // const selectedSubdistrict = 'todabhim'; // Hardcoded for now
 
   const scrollTargetRef = useRef(null);
 
@@ -33,24 +38,53 @@ const ImpactAssessmentPage = () => {
   const [loadingChartData, setLoadingChartData] = useState(false); // Correctly declare and use this state
   const [landCoverChartData, setLandCoverChartData] = useState({ labels: [], datasets: [] });
   const [interventionChartData, setInterventionChartData] = useState({ labels: [], datasets: [] });
+  // Initialize states for subdistrict and its options
+  const [selectedSubdistrict, setSelectedSubdistrict] = useState(null);
+  const [subdistrictOptions, setSubdistrictOptions] = useState([]);
 
   useEffect(() => {
-    const villages = villagesByDistrict[selectedDistrict.value];
-    const options = villages.map(village => ({ value: village.toLowerCase(), label: village }));
-    setVillageOptions(options);
+    if (selectedDistrict) {
+      const subdistricts = subdistrictByDistrict[selectedDistrict.value] || [];
+      setSubdistrictOptions(subdistricts.map(subdistrict => ({ value: subdistrict.toLowerCase(), label: subdistrict })));
+      setSelectedSubdistrict(null);  // Reset subdistrict when district changes
+      setVillageOptions([]);  // Also reset villages
+    }
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    console.log("Selected Subdistrict:", selectedSubdistrict);
+    if (selectedSubdistrict) {
+        console.log("Fetching villages for:", selectedSubdistrict);
+        const villages = villagesBySubDistrict[selectedSubdistrict] || [];
+        console.log("Villages found:", villages);
+        setVillageOptions(villages.map(village => ({ value: village.toLowerCase(), label: village })));
+        setSelectedVillage(null);
+    } else {
+        setVillageOptions([]);
+    }
+}, [selectedSubdistrict]);
+
 
   const handleDistrictChange = option => {
     setSelectedDistrict(option);
-    setSelectedVillage(null); // Reset the selected village
-    const villages = villagesByDistrict[option.value];
-    const options = villages.map(village => ({ value: village.toLowerCase(), label: village }));
-    setVillageOptions(options);
   };
+
+  const handleSubdistrictChange = option => {
+    console.log("Subdistrict selected:", option);
+    setSelectedSubdistrict(option); // Ensure option is the full object, not just the value
+};
+
 
   const handleVillageChange = option => {
     setSelectedVillage(option);
   };
+
+  const options = Object.keys(districtDisplayNames).map(key => ({
+    value: key,  // Ensure this key corresponds to the actual keys in `districtDisplayNames`
+    label: districtDisplayNames[key]
+  }));
+  
+  console.log("Options in Parent before passing to SelectDistrict:", options);
 
   const handleLandCoverDataChange = data => {
     setLandCoverChartData(data);
@@ -72,21 +106,31 @@ const ImpactAssessmentPage = () => {
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
           </div>
           <div className="w-full max-w-xs">
-            <div className="mb-6 text-black">
-              <SelectDistrict
+            <div className="mb-4 text-black">
+            <SelectDistrict
                 options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
                 onChange={handleDistrictChange}
                 value={selectedDistrict}
               />
             </div>
-            <div className="mb-6">
-              <SelectVillage
-                options={villageOptions}
-                onChange={handleVillageChange}
-                placeholder="Select Village..."
+            <div className="mb-4">
+              <SelectSubdistrict
+                options={subdistrictOptions}
+                onChange={handleSubdistrictChange}
+                placeholder="Select Subdistrict..."
                 isDisabled={!selectedDistrict}
-                value={villageOptions.find(option => option.value === selectedVillage?.value)}
+                value={selectedSubdistrict}
               />
+            </div>
+            <div className="mb-4">
+            <SelectVillage
+  options={villageOptions}
+  onChange={handleVillageChange}
+  placeholder="Select Village..."
+  isDisabled={!selectedSubdistrict || villageOptions.length === 0} // Disable if no subdistrict is selected or no villages are available
+  value={villageOptions.find(option => option.value === selectedVillage?.value)}
+/>
+
             </div>
           </div>
 

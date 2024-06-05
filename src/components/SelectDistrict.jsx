@@ -54,25 +54,22 @@ const DropdownIndicator = (props) => {
 };
 
 const SelectDistrict = ({ options, onChange, placeholder, value }) => {
-  // Convert the options from object to array format for react-select
-  const selectOptions = Object.entries(options).map(([key, label]) => ({
-    value: key,
-    label: label,
-  }));
+  console.log("Options received:", options);
 
   const animatedComponents = makeAnimated();
 
   return (
     <Select
-    components={{ ...animatedComponents, DropdownIndicator }}
-    styles={customStyles}
-    options={selectOptions}
-    value={value}
-    placeholder={placeholder}
-    onChange={onChange}
+      components={{ ...animatedComponents, DropdownIndicator }}
+      styles={customStyles}
+      options={options}
+      value={value}  // Ensure the structure or use null
+      placeholder={placeholder}
+      onChange={onChange}
     />
   );
 };
+
 
 SelectDistrict.propTypes = {
     options: PropTypes.object.isRequired,
