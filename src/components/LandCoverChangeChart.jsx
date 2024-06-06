@@ -11,7 +11,7 @@ import {
     landCoverChartDataAtom
 } from '../recoil/selectAtoms';
 import { get_area_change, get_rainfall_data } from '../services/api';
-import { CircularProgressbar } from 'react-circular-progressbar';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -152,10 +152,15 @@ const LandCoverChangeChart = ({ onDataChange }) => {
     }, [stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
 
     return (
-        <div className="w-full h-64 bg-white ">
+        <div className="w-full h-64 bg-white flex justify-center items-center ">
             {isLoading ? (
-                <div className="flex justify-center items-center" style={{ width: 100, height: 100 }}>
-                    <CircularProgressbar value={100} text={`Loading...`} />
+                <div style={{ width: 120, height: 120 }}>
+                    <CircularProgressbar
+                    styles={buildStyles({
+                        textSize: '16px',
+                    })} 
+                    value={100} 
+                    text={`Loading...`} />
                 </div>
             ) : chartData.datasets.length > 0 ? (
                 <Line data={chartData} options={options} />

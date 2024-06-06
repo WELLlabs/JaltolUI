@@ -11,7 +11,7 @@ import {
     selectedSubdistrictAtom, selectedVillageAtom,
     interventionChartDataAtom
 } from '../recoil/selectAtoms';
-import { CircularProgressbar } from 'react-circular-progressbar';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
 
@@ -196,11 +196,16 @@ const InterventionCompareChart = ({ onDataChange }) => {
     }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange,setChartData]);
 
     return (
-        <div className="w-full h-64 bg-white ">
-            {isLoading ? (
-                <div className="flex justify-center items-center" style={{ width: 100, height: 100 }}>
-                    <CircularProgressbar value={100} text={`Loading...`} />
-                </div>
+        <div className="w-full h-64 bg-white flex justify-center items-center ">
+        {isLoading ? (
+            <div style={{ width: 120, height: 120 }}>
+                <CircularProgressbar
+                styles={buildStyles({
+                    textSize: '16px',
+                })} 
+                value={100} 
+                text={`Loading...`} />
+            </div>
             ) : chartData.datasets.length > 0 ? (
                 <Line data={chartData} options={options} />
             ) : (
