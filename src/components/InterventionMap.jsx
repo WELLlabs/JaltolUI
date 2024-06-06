@@ -84,7 +84,8 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
 
       const districtValue = selectedDistrict.value;
       // Fetch the boundary data using the selected district
-      get_boundary_data(selectedState, districtValue, selectedSubdistrict, selectedVillage)
+      const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.value : null;
+      get_boundary_data(selectedState, districtValue, subdistrictValue, selectedVillage)
       .then(data => {
         console.log("Boundary data received:", data);
         if (selectedVillage) {
@@ -106,7 +107,7 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
       });
       
       // Fetch the LULC raster data using the selected district
-      get_lulc_raster(selectedState, districtValue,selectedSubdistrict, selectedVillage, selectedYear)
+      get_lulc_raster(selectedState, districtValue,subdistrictValue, selectedVillage, selectedYear)
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
         })

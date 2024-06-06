@@ -2,6 +2,8 @@ import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import { components } from 'react-select';
 import PropTypes from 'prop-types';
+import { selectedDistrictAtom } from '../recoil/selectAtoms';
+import { useRecoilState } from 'recoil';
 
 const customStyles = {
   control: (provided) => ({
@@ -53,9 +55,8 @@ const DropdownIndicator = (props) => {
   );
 };
 
-const SelectDistrict = ({ options, onChange, placeholder, value }) => {
-  console.log("Options received:", options);
-
+const SelectDistrict = ({ options, placeholder }) => {
+  const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
   const animatedComponents = makeAnimated();
 
   return (
@@ -63,22 +64,16 @@ const SelectDistrict = ({ options, onChange, placeholder, value }) => {
       components={{ ...animatedComponents, DropdownIndicator }}
       styles={customStyles}
       options={options}
-      value={value}  // Ensure the structure or use null
+      value={selectedDistrict}
       placeholder={placeholder}
-      onChange={onChange}
+      onChange={setSelectedDistrict}
     />
   );
 };
 
-
 SelectDistrict.propTypes = {
-    options: PropTypes.object.isRequired,
-    onChange: PropTypes.func.isRequired,
-    placeholder: PropTypes.string,
-    value: PropTypes.shape({ // This prop-type should match the expected object shape
-      value: PropTypes.string,
-      label: PropTypes.string,
-    }),
-  };
+  options: PropTypes.array.isRequired,
+  placeholder: PropTypes.string,
+};
 
 export default SelectDistrict;

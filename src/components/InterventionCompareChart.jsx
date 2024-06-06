@@ -87,7 +87,7 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
             console.log('Fetching control village data');
             const districtValue = districtName.value;
 
-            get_control_village(stateName, districtValue, subdistrictName, villageName)
+            get_control_village(stateName, districtValue, subdistrictName.value, villageName)
                 .then(response => {
                     const controlVillageName = response.properties?.village_na;
                     console.log('Control Village:', controlVillageName);
@@ -103,12 +103,13 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
         // This effect runs only when controlVillage is set
         if (controlVillage && stateName && districtName && subdistrictName && villageName) {
             const districtValue = districtName.value;
+            const subdistrictValue = subdistrictName.value
             console.log('Making API call with:', stateName, districtName, subdistrictName, villageName);
-            const fetchLandCover = get_area_change(stateName, districtValue, subdistrictName, villageName);
-            const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictName, villageName);
+            const fetchLandCover = get_area_change(stateName, districtValue, subdistrictValue, villageName);
+            const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, villageName);
 
-            const fetchControlLandCover = get_area_change(stateName, districtValue, subdistrictName, controlVillage);
-            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, subdistrictName, controlVillage);
+            const fetchControlLandCover = get_area_change(stateName, districtValue, subdistrictValue, controlVillage);
+            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, controlVillage);
 
             Promise.all([fetchLandCover, fetchRainfall, fetchControlLandCover, fetchControlRainfall])
                 .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {

@@ -5,8 +5,6 @@ import SelectDistrict from '../components/SelectDistrict';
 import Navbar from '../components/Navbar';
 import SelectVillage from '../components/SelectVillage';
 import DistrictMap from '../components/DistrictMap';
-import SelectDistrict2 from '../components/SelectDistrict2';
-import SelectVillage2 from '../components/SelectVillage2';
 import SelectSubdistrict from '../components/SelectSubdistrict';
 import CompareMap from '../components/CompareMap';
 import InterventionMap from '../components/InterventionMap';
@@ -14,26 +12,28 @@ import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
 import {selectedState ,districtDisplayNames, subdistrictByDistrict, villagesBySubDistrict } from '../data/locationData';
+import { useRecoilState } from 'recoil';
+import { selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom} from '../recoil/selectAtoms';
+import Footer from '../components/Footer';
+
 
 const ImpactAssessmentPage = () => {
 
   const scrollTargetRef = useRef(null);
 
-  const [selectedDistrict, setSelectedDistrict] = useState({ value: 'karauli', label: 'Karauli, RJ' });
-  const [selectedVillage, setSelectedVillage] = useState('');
-  const [villageOptions, setVillageOptions] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
+  const [selectedSubdistrict, setSelectedSubdistrict] = useRecoilState(selectedSubdistrictAtom);
+  const [selectedVillage, setSelectedVillage] = useRecoilState(selectedVillageAtom);
+  const [subdistrictOptions, setSubdistrictOptions] = useRecoilState(subdistrictOptionsAtom);
+  const [villageOptions, setVillageOptions] = useRecoilState(villageOptionsAtom);
   const [loadingChartData, setLoadingChartData] = useState(false); // Correctly declare and use this state
   const [landCoverChartData, setLandCoverChartData] = useState({ labels: [], datasets: [] });
   const [interventionChartData, setInterventionChartData] = useState({ labels: [], datasets: [] });
   // Initialize states for subdistrict and its options
-  const [selectedSubdistrict, setSelectedSubdistrict] = useState(null);
-  const [subdistrictOptions, setSubdistrictOptions] = useState([]);
-  const [district_name, setDistrictName] = useState(null)
 
   useEffect(() => {
     console.log(selectedDistrict.value)
     if (selectedDistrict) {
-      console.log("new district:",district_name)
       const subdistricts = subdistrictByDistrict[selectedDistrict.value] || [];
       setSubdistrictOptions(subdistricts.map(subdistrict => ({ value: subdistrict.toLowerCase(), label: subdistrict })));
       setSelectedSubdistrict(null);  // Reset subdistrict when district changes
@@ -44,8 +44,9 @@ const ImpactAssessmentPage = () => {
   useEffect(() => {
     console.log("Selected Subdistrict:", selectedSubdistrict);
     if (selectedSubdistrict) {
-        console.log("Fetching villages for:", selectedSubdistrict);
-        const villages = villagesBySubDistrict[selectedSubdistrict] || [];
+        const key = selectedSubdistrict.value.toLowerCase();
+        console.log(`Fetching villages for key: '${key}' in villagesBySubDistrict`, villagesBySubDistrict);
+        const villages = villagesBySubDistrict[key] || [];
         console.log("Villages found:", villages);
         setVillageOptions(villages.map(village => ({ value: village.toLowerCase(), label: village })));
         setSelectedVillage(null);
@@ -55,14 +56,16 @@ const ImpactAssessmentPage = () => {
 }, [selectedSubdistrict]);
 
 
+
   const handleDistrictChange = option => {
     setSelectedDistrict(option);
-    setDistrictName(selectedDistrict.value)
+
   };
 
   const handleSubdistrictChange = option => {
     console.log("Subdistrict selected:", option);
-    setSelectedSubdistrict(option); // Ensure option is the full object, not just the value
+    setSelectedSubdistrict(option);
+    setSelectedDistrict(null) // Ensure option is the full object, not just the value
 };
 
 
@@ -98,7 +101,7 @@ const ImpactAssessmentPage = () => {
           </div>
           <div className="w-full max-w-xs">
             <div className="mb-4 text-black">
-            <SelectDistrict
+              <SelectDistrict
                 options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
                 onChange={handleDistrictChange}
                 value={selectedDistrict}
@@ -114,14 +117,13 @@ const ImpactAssessmentPage = () => {
               />
             </div>
             <div className="mb-4">
-            <SelectVillage
-  options={villageOptions}
-  onChange={handleVillageChange}
-  placeholder="Select Village..."
-  isDisabled={!selectedSubdistrict || villageOptions.length === 0} // Disable if no subdistrict is selected or no villages are available
-  value={villageOptions.find(option => option.value === selectedVillage?.value)}
-/>
-
+              <SelectVillage
+                options={villageOptions}
+                onChange={handleVillageChange}
+                placeholder="Select Village..."
+                isDisabled={!selectedSubdistrict}
+                value={selectedVillage}
+              />
             </div>
           </div>
 
@@ -179,29 +181,41 @@ const ImpactAssessmentPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 ml-10">
-        <div className="mb-4">
-          <SelectDistrict2
-            options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
-            onChange={handleDistrictChange}
-            value={selectedDistrict}
-          />
-        </div>
+      <div className="flex flex-col lg:flex-row gap-6 ml-10 z-[9999]">
+         <div className="mb-4 text-black z-[9999]">
+            <SelectDistrict
+             key={selectedDistrict?.value}
+                options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
+                onChange={handleDistrictChange}
+                value={selectedDistrict}
+              />
+            </div>
+            <div className="mb-4">
+              <SelectSubdistrict
+                key={`subdistrict-${selectedSubdistrict?.value || 'none'}`}
+                options={subdistrictOptions}
+                onChange={handleSubdistrictChange}
+                placeholder="Select Subdistrict..."
+                isDisabled={!selectedDistrict}
+                value={selectedSubdistrict}
+              />
+            </div>
+            <div className="mb-4">
+            <SelectVillage
+             key={`village-${selectedVillage?.value || 'none'}`}
+                options={villageOptions}
+                onChange={handleVillageChange}
+                placeholder="Select Village..."
+                isDisabled={!selectedSubdistrict}
+                value={selectedVillage}
+              />
 
-        <div>
-          <SelectVillage2
-            options={villageOptions}
-            onChange={handleVillageChange}
-            placeholder="Select Village..."
-            isDisabled={!selectedDistrict}
-            value={villageOptions.find(option => option.value === selectedVillage?.value)}
-          />
-        </div>
-      </div>
+            </div>
+          </div>
 
       <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef}>
         <div className="flex-1">
-          <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+          <div className="bg-gray-200 z-[0] rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
             <InterventionMap
               selectedState={selectedState}
               selectedDistrict={selectedDistrict}
@@ -251,6 +265,7 @@ const ImpactAssessmentPage = () => {
             filename="intervention_chart_data.csv"
           />
         )}
+        <Footer/>
     </div>
   );
 };

@@ -85,14 +85,15 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
       setBoundaryData(null)
       // Fetch the boundary data using the selected district
       const districtValue = selectedDistrict.value;
-      get_control_village(selectedState, districtValue, selectedSubdistrict, selectedVillage)
+      const subdistrictValue = selectedSubdistrict.value;
+      get_control_village(selectedState, districtValue, subdistrictValue, selectedVillage)
         .then(data => {
           const controllVillageName = data.properties.village_na;
           console.log("Boundary data received:", data);
           setBoundaryData(data);
           setControllVillageName(controllVillageName);
           // Fetch the LULC raster data using the selected district and control village name
-          return get_lulc_raster(selectedState, districtValue, selectedSubdistrict, controllVillageName, selectedYear);
+          return get_lulc_raster(selectedState, districtValue, subdistrictValue, controllVillageName, selectedYear);
         })
         .then(data => {
           setLulcTilesUrl(data.tiles_url);

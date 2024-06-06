@@ -98,10 +98,11 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
     };
 
     useEffect(() => {
-        if (stateName && districtName) {
-            console.log('Making API call with:', stateName, districtName, subdistrictName, villageName);
-            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName, villageName);
-            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName, villageName);
+        if (stateName && districtName && subdistrictName) {
+            const subdistrictValue = subdistrictName ? subdistrictName.value : null;
+            console.log('Making API call with:', stateName, districtName, subdistrictValue, villageName);
+            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictValue, villageName);
+            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictValue, villageName);
 
             Promise.all([fetchLandCover, fetchRainfall])
                 .then(([landCoverData, rainfallData]) => {

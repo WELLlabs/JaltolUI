@@ -11,6 +11,13 @@ export const selectedDistrictAtom = atom({
     default: { value: 'karauli', label: 'Karauli, RJ' }, // Provide a valid default value
   });
 
+  // Recoil atom initialization
+export const selectedSubdistrictAtom = atom({
+    key: 'selectedSubdistrict',
+    default: { value: '', label: '' },  // Ensure proper default initialization
+});
+
+
 export const selectedVillageAtom = atom({
   key: 'selectedVillage',
   default: '',
@@ -30,3 +37,8 @@ export const interventionChartDataAtom = atom({
   key: 'interventionChartData',
   default: { labels: [], datasets: [] },
 });
+
+export const subdistrictOptionsAtom = atom({
+    key: 'subdistrictOptions',  // Unique ID with respect to other atoms/selectors
+    default: [],  // Default value (initial state)
+  });

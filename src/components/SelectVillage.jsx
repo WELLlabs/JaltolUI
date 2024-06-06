@@ -1,6 +1,8 @@
 import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import PropTypes from 'prop-types';
+import { useRecoilState } from 'recoil';
+import { selectedVillageAtom } from '../recoil/selectAtoms'; 
 
 
 const customStyles = {
@@ -22,6 +24,7 @@ const customStyles = {
     menuList: (provided) => ({
       ...provided,
       padding: 0,
+    
     }),
     placeholder: (provided) => ({
       ...provided,
@@ -43,37 +46,37 @@ const customStyles = {
       }),
   };
 
-const SelectVillage = ({ options, onChange, placeholder, isDisabled }) => {
-  const animatedComponents = makeAnimated();
+const SelectVillage = ({ options, placeholder }) => {
+    const [selectedVillage, setSelectedVillage] = useRecoilState(selectedVillageAtom);
+    const animatedComponents = makeAnimated();
 
-  return (
-    <Select
-      components={animatedComponents}
-      styles={customStyles}
-      options={options}
-      onChange={(selectedOption) => onChange(selectedOption.value)}
-      placeholder={placeholder}
-      isDisabled={isDisabled}
-    />
-  );
+    const handleChange = (selectedOption) => {
+        console.log("Village selected:", selectedOption);
+        // If you are storing the whole object in the Recoil state:
+        setSelectedVillage(selectedOption.value);
+        // If you are only storing the value in the Recoil state:
+        // setSelectedVillage(selectedOption.value);
+    };
+
+    return (
+        <Select
+            components={animatedComponents}
+            styles={customStyles}
+            options={options}
+            // Ensure the value corresponds to one of the options
+            value={options.find(option => option.value === (selectedVillage?.value || selectedVillage))}
+            placeholder={placeholder}
+            isDisabled={!options.length}
+            onChange={handleChange}
+        />
+    );
 };
 
-SelectVillage.propTypes = {
-  options: PropTypes.arrayOf(
-    PropTypes.shape({
-      value: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-    })
-  ),
-  onChange: PropTypes.func.isRequired,
-  placeholder: PropTypes.string,
-  isDisabled: PropTypes.bool,
-};
 
-SelectVillage.defaultProps = {
-  options: [],
-  placeholder: 'Select Village...',
-  isDisabled: true, // Disabled by default
-};
-
-export default SelectVillage;
+  
+  SelectVillage.propTypes = {
+    options: PropTypes.array.isRequired,
+    placeholder: PropTypes.string,
+  };
+  
+  export default SelectVillage;
