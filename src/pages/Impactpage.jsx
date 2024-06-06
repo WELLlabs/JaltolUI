@@ -12,9 +12,10 @@ import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
 import {selectedState ,districtDisplayNames, subdistrictByDistrict, villagesBySubDistrict } from '../data/locationData';
-import { useRecoilState } from 'recoil';
-import { selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom} from '../recoil/selectAtoms';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom,landCoverChartDataAtom , interventionChartDataAtom } from '../recoil/selectAtoms';
 import Footer from '../components/Footer';
+
 
 
 const ImpactAssessmentPage = () => {
@@ -26,10 +27,12 @@ const ImpactAssessmentPage = () => {
   const [selectedVillage, setSelectedVillage] = useRecoilState(selectedVillageAtom);
   const [subdistrictOptions, setSubdistrictOptions] = useRecoilState(subdistrictOptionsAtom);
   const [villageOptions, setVillageOptions] = useRecoilState(villageOptionsAtom);
-  const [loadingChartData, setLoadingChartData] = useState(false); // Correctly declare and use this state
-  const [landCoverChartData, setLandCoverChartData] = useState({ labels: [], datasets: [] });
-  const [interventionChartData, setInterventionChartData] = useState({ labels: [], datasets: [] });
+  const [loadingChartData] = useState(false); // Correctly declare and use this state
+  // const [landCoverChartData, setLandCoverChartData] = useState({ labels: [], datasets: [] });
+  // const [interventionChartData, setInterventionChartData] = useState({ labels: [], datasets: [] });
   // Initialize states for subdistrict and its options
+  const landCoverChartData = useRecoilValue(landCoverChartDataAtom)
+  const interventionChartData = useRecoilValue(interventionChartDataAtom)
 
   useEffect(() => {
     console.log(selectedDistrict.value)
@@ -80,15 +83,15 @@ const ImpactAssessmentPage = () => {
   
   console.log("Options in Parent before passing to SelectDistrict:", options);
 
-  const handleLandCoverDataChange = data => {
-    setLandCoverChartData(data);
-    setLoadingChartData(false);
-  };
+  // const handleLandCoverDataChange = data => {
+  //   setLandCoverChartData(data);
+  //   setLoadingChartData(false);
+  // };
 
-  const handleInterventionDataChange = data => {
-    setInterventionChartData(data);
-    setLoadingChartData(false);
-  };
+  // const handleInterventionDataChange = data => {
+  //   setInterventionChartData(data);
+  //   setLoadingChartData(false);
+  // };
 
   return (
     <div className="font-sans bg-white h-screen w-screen overflow-x-hidden">
@@ -148,11 +151,6 @@ const ImpactAssessmentPage = () => {
                   </div>
                 ) : (
                   <LandCoverChangeChart
-                    stateName={selectedState}
-                    districtName={selectedDistrict}
-                    subdistrictName={selectedSubdistrict}
-                    villageName={selectedVillage}
-                    onDataChange={handleLandCoverDataChange}
                   />
                 )
               ) : (
@@ -237,7 +235,7 @@ const ImpactAssessmentPage = () => {
         </div>
       </div>
 
-      <div className="bg-gray-200 h-80 rounded shadow-inner flex items-center justify-center p-5">
+      <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5">
         {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
           loadingChartData ? (
             <div className="items-center justify-center">
@@ -246,13 +244,7 @@ const ImpactAssessmentPage = () => {
               </div>
             </div>
           ) : (
-            <InterventionCompareChart
-              stateName={selectedState}
-              districtName={selectedDistrict}
-              subdistrictName={selectedSubdistrict}
-              villageName={selectedVillage}
-              onDataChange={handleInterventionDataChange}
-            />
+            <InterventionCompareChart            />
           )
         ) : (
           <p>Select all fields to see the chart</p>

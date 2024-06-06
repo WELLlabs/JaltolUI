@@ -4,19 +4,31 @@ import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+    selectedStateAtom, selectedDistrictAtom,
+    selectedSubdistrictAtom, selectedVillageAtom,
+    landCoverChartDataAtom
+} from '../recoil/selectAtoms';
 import { get_area_change, get_rainfall_data } from '../services/api';
+import { CircularProgressbar } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villageName, onDataChange }) => {
-    const [chartData, setChartData] = useState({
-        labels: [],
-        datasets: []
-    });
+const LandCoverChangeChart = ({ onDataChange }) => {
+    const stateName = useRecoilValue(selectedStateAtom);
+    const districtName = useRecoilValue(selectedDistrictAtom);
+    const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
+    const villageName = useRecoilValue(selectedVillageAtom);
+    const setChartData = useSetRecoilState(landCoverChartDataAtom);
+    const [isLoading, setLoading] = useState(false);
+    const chartData = useRecoilValue(landCoverChartDataAtom);
+
 
     const options = {
         scales: {
-            y: { // Left y-axis for cropland data
+            y: {
                 beginAtZero: true,
                 position: 'left',
                 ticks: {
@@ -31,14 +43,14 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
                     color: 'black',
                 },
             },
-            y1: { // Right y-axis for rainfall data
+            y1: {
                 beginAtZero: true,
                 position: 'right',
                 ticks: {
                     color: 'blue',
                 },
                 grid: {
-                    drawOnChartArea: false, // Only draw grid for this axis on the right
+                    drawOnChartArea: false,
                 },
                 title: {
                     display: true,
@@ -98,11 +110,10 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
     };
 
     useEffect(() => {
-        if (stateName && districtName && subdistrictName) {
-            const subdistrictValue = subdistrictName ? subdistrictName.value : null;
-            console.log('Making API call with:', stateName, districtName, subdistrictValue, villageName);
-            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictValue, villageName);
-            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictValue, villageName);
+        setLoading(true);  // Set loading to true when API call starts
+        if (stateName && districtName && subdistrictName && villageName) {
+            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.value, villageName);
+            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.value, villageName);
 
             Promise.all([fetchLandCover, fetchRainfall])
                 .then(([landCoverData, rainfallData]) => {
@@ -130,17 +141,23 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
                         yAxisID: 'y1',
                     }];
                     setChartData({ labels, datasets });
-                    onDataChange({ labels, datasets }); // Pass data to the parent component
+                    onDataChange({ labels, datasets });
+                    setLoading(false);  // Set loading to false once data is fetched
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
+                    setLoading(false);  // Ensure loading is set to false on error
                 });
         }
-    }, [stateName, districtName, subdistrictName, villageName, onDataChange]);
+    }, [stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
 
     return (
-        <div className="w-full h-64">
-            {chartData.datasets.length > 0 ? (
+        <div className="w-full h-64 bg-white ">
+            {isLoading ? (
+                <div className="flex justify-center items-center" style={{ width: 100, height: 100 }}>
+                    <CircularProgressbar value={100} text={`Loading...`} />
+                </div>
+            ) : chartData.datasets.length > 0 ? (
                 <Line data={chartData} options={options} />
             ) : (
                 <p className="text-center">No data available to display the chart.</p>
@@ -149,11 +166,8 @@ const LandCoverChangeChart = ({ stateName, districtName, subdistrictName, villag
     );
 };
 
+
 LandCoverChangeChart.propTypes = {
-    stateName: PropTypes.string.isRequired,
-    districtName: PropTypes.object.isRequired,
-    subdistrictName: PropTypes.string.isRequired,
-    villageName: PropTypes.string.isRequired,
     onDataChange: PropTypes.func.isRequired,
 };
 

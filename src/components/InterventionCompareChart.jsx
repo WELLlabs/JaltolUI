@@ -5,14 +5,28 @@ import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { get_area_change, get_control_village, get_rainfall_data } from '../services/api';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import {
+    selectedStateAtom, selectedDistrictAtom,
+    selectedSubdistrictAtom, selectedVillageAtom,
+    interventionChartDataAtom
+} from '../recoil/selectAtoms';
+import { CircularProgressbar } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const InterventionCompareChart = ({ stateName, districtName, subdistrictName, villageName, onDataChange }) => {
-    const [chartData, setChartData] = useState({
-        labels: [],
-        datasets: []
-    });
+const InterventionCompareChart = ({ onDataChange }) => {
+    const stateName = useRecoilValue(selectedStateAtom);
+    const districtName = useRecoilValue(selectedDistrictAtom);
+    const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
+    const villageName = useRecoilValue(selectedVillageAtom);
+    const [isLoading, setLoading] = useState(false);
+    const chartData = useRecoilValue(interventionChartDataAtom);
+    const setChartData = useSetRecoilState(interventionChartDataAtom);
+
+
     const [controlVillage, setControlVillage] = useState(null);
 
     const options = {
@@ -83,6 +97,7 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
     };
 
     useEffect(() => {
+        setLoading(true);
         if (stateName && districtName && subdistrictName && villageName) {
             console.log('Fetching control village data');
             const districtValue = districtName.value;
@@ -169,18 +184,24 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
                     ];                   
                     
                     setChartData({ labels, datasets });
-                    onDataChange({ labels, datasets }); // Pass data to the parent component
+                    onDataChange({ labels, datasets });
+                    setLoading(false); // Pass data to the parent component
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
+                    setLoading(false);
                 });
 
         }
-    }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange]);
+    }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange,setChartData]);
 
     return (
-        <div className="w-full h-64">
-            {chartData.datasets.length > 0 ? (
+        <div className="w-full h-64 bg-white ">
+            {isLoading ? (
+                <div className="flex justify-center items-center" style={{ width: 100, height: 100 }}>
+                    <CircularProgressbar value={100} text={`Loading...`} />
+                </div>
+            ) : chartData.datasets.length > 0 ? (
                 <Line data={chartData} options={options} />
             ) : (
                 <p className="text-center">No data available to display the chart.</p>
@@ -190,10 +211,6 @@ const InterventionCompareChart = ({ stateName, districtName, subdistrictName, vi
 };
 
 InterventionCompareChart.propTypes = {
-    stateName: PropTypes.string.isRequired,
-    districtName: PropTypes.object.isRequired,
-    subdistrictName: PropTypes.string.isRequired,
-    villageName: PropTypes.string.isRequired,
     onDataChange: PropTypes.func.isRequired,
 };
 
