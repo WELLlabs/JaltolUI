@@ -18,6 +18,7 @@
     "axios": "^1.6.8",
     "chart.js": "^4.4.2",
     "leaflet": "^1.9.4",
+    "leaflet-spin": "^1.1.2",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
@@ -26,7 +27,8 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.23.0",
     "react-select": "^5.8.0",
-    "recoil": "^0.7.7"
+    "recoil": "^0.7.7",
+    "spin.js": "^4.1.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

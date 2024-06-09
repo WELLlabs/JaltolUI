@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import VillageDetails from './VillageDetails';
+import Spinner from './Spinner';
 
 const Legend = () => {
   const map = useMap();
@@ -19,7 +20,7 @@ const Legend = () => {
         { color: "#397d49", label: "Tree/Forests" },
         { color: "#8b9dc3", label: "Single cropping cropland" },
         { color: "#222f5b", label: "Double cropping cropland" },
-        { color: "#946b2d", label: "Shrub_Scrub" }
+        { color: "#946b2d", label: "Shrub/Scrub" }
       ];
 
       let legendHtml = '<div style="font-size:14px; font-weight:bold; margin-bottom:5px; color: black;">Legend</div>';
@@ -43,12 +44,12 @@ const Legend = () => {
     return () => {
       legend.remove();
     };
-  }, [map]);  // Ensure it only runs once unless the map instance changes
+  }, [map]);
 
   return null;
 };
 
-function FlyToFeature({ featureData }) {
+function FlyToFeature({ featureData, onFlyToComplete }) {
   const map = useMap();
 
   useEffect(() => {
@@ -56,14 +57,18 @@ function FlyToFeature({ featureData }) {
       const geoJsonLayer = L.geoJSON(featureData);
       const bounds = geoJsonLayer.getBounds();
       map.flyToBounds(bounds, { padding: [50, 50] });
+      map.once('moveend', () => {
+        onFlyToComplete();
+      });
     }
-  }, [featureData, map]);
+  }, [featureData, map, onFlyToComplete]);
 
   return null;
 }
 
 FlyToFeature.propTypes = {
   featureData: PropTypes.object,
+  onFlyToComplete: PropTypes.func,
 };
 
 const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage }) => {
@@ -73,7 +78,11 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [boundaryData, setBoundaryData] = useState(null);
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2022');
-  const [controllVillage, setControllVillageName] = useState(null);
+  const [controlVillage, setControlVillageName] = useState(null);
+  const [isLoading, setLoading] = useState(false);
+  const [boundaryLoaded, setBoundaryLoaded] = useState(false);
+  const [rasterLoaded, setRasterLoaded] = useState(false);
+  const [flyToComplete, setFlyToComplete] = useState(false);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -82,34 +91,49 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
   useEffect(() => {
     if (selectedDistrict && selectedState && selectedVillage) {
-      setBoundaryData(null)
+      setLoading(true);
+      setBoundaryLoaded(false); // Reset boundary loaded state
+      setRasterLoaded(false); // Reset raster loaded state
+      setFlyToComplete(false); // Reset fly to complete state
+
       // Fetch the boundary data using the selected district
       const districtValue = selectedDistrict.value;
       const subdistrictValue = selectedSubdistrict.value;
+
       get_control_village(selectedState, districtValue, subdistrictValue, selectedVillage)
         .then(data => {
-          const controllVillageName = data.properties.village_na;
+          const controlVillageName = data.properties.village_na;
           console.log("Boundary data received:", data);
           setBoundaryData(data);
-          setControllVillageName(controllVillageName);
+          setControlVillageName(controlVillageName);
+
           // Fetch the LULC raster data using the selected district and control village name
-          return get_lulc_raster(selectedState, districtValue, subdistrictValue, controllVillageName, selectedYear);
+          return get_lulc_raster(selectedState, districtValue, subdistrictValue, controlVillageName, selectedYear);
         })
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
+          setRasterLoaded(true);
         })
         .catch(error => {
           console.error('Error fetching data:', error);
           setBoundaryData(null);
           setLulcTilesUrl(null);
+          setBoundaryLoaded(true); // Stop loading even if there's an error
+          setRasterLoaded(true); // Stop loading even if there's an error
         });
 
     } else {
       setBoundaryData(null);
       setLulcTilesUrl(null);
+      setLoading(false);
     }
   }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
 
+  useEffect(() => {
+    if (boundaryLoaded && rasterLoaded && flyToComplete) {
+      setLoading(false);
+    }
+  }, [boundaryLoaded, rasterLoaded, flyToComplete]);
 
   const normalStyle = {
     color: '#4a83ec',
@@ -118,8 +142,17 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
     fillOpacity: 0.1
   };
 
+  const onEachFeature = (feature, layer) => {
+    layer.setStyle(normalStyle);
+  };
+
+  const handleBoundaryLoad = () => {
+    setBoundaryLoaded(true);
+  };
+
   return (
     <div className="relative h-full w-full">
+      {isLoading && <Spinner />}
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
       </div>
@@ -128,7 +161,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           selectedState={selectedState}
           selectedDistrict={selectedDistrict}
           selectedSubdistrict={selectedSubdistrict}
-          selectedVillage={controllVillage}
+          selectedVillage={controlVillage}
         />
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
@@ -150,11 +183,10 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
                 data={boundaryData}
-                style={{
-                  color: '#4a83ec',
-                  weight: 0.5,
-                  fillColor: '#1a1d62',
-                  fillOpacity: 0.1,
+                style={normalStyle}
+                onEachFeature={onEachFeature}
+                eventHandlers={{
+                  add: handleBoundaryLoad,
                 }}
               />
             </LayersControl.Overlay>
@@ -163,7 +195,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
         {boundaryData && (
           <FlyToFeature
             featureData={boundaryData}
-            style={normalStyle}
+            onFlyToComplete={() => setFlyToComplete(true)}
           />
         )}
         <Legend />

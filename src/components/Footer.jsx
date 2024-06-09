@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTwitter, faFacebookF, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
+import { faTwitter, faYoutube, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
 
 const Footer = () => {
   return (
@@ -17,8 +17,8 @@ const Footer = () => {
         </div>
         {/* Contact Section */}
         <div>
-          <p>Phone: <span className="text-gray-400">(+)1 123 456 7893</span></p>
-          <p>Email: <span className="text-gray-400">name@email.com</span></p>
+          {/* <p>Phone: <span className="text-gray-400">(+)1 123 456 7893</span></p> */}
+          <p>Email: <span className="text-gray-400">welllabs.jaltol@ifmr.ac.in</span></p>
         </div>
         {/* Subscription Section */}
         <div>
@@ -27,14 +27,20 @@ const Footer = () => {
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Subscribe</button>
           </div>
           <div className="flex justify-center space-x-4">
-            <FontAwesomeIcon icon={faTwitter} className="h-6 w-6" />
-            <FontAwesomeIcon icon={faFacebookF} className="h-6 w-6" />
-            <FontAwesomeIcon icon={faLinkedinIn} className="h-6 w-6" />
-          </div>
+      <a href="https://twitter.com/WELLLabs_org" target="_blank" rel="noopener noreferrer">
+        <FontAwesomeIcon icon={faTwitter} className="h-6 w-6" />
+      </a>
+      <a href="https://www.youtube.com/@WellLabs" target="_blank" rel="noopener noreferrer">
+        <FontAwesomeIcon icon={faYoutube} className="h-6 w-6" />
+      </a>
+      <a href="https://www.linkedin.com/company/75552076/" target="_blank" rel="noopener noreferrer">
+        <FontAwesomeIcon icon={faLinkedinIn} className="h-6 w-6" />
+      </a>
+    </div>
         </div>
       </div>
       <div className="text-center text-gray-400 mt-4">
-        © 2022 Brand, Inc. · 
+        © WellLabs Org · 
         {/* <a href="/privacy" className="hover:text-gray-300">Privacy</a> · <a href="/terms" className="hover:text-gray-300">Terms</a> · <a href="/sitemap" className="hover:text-gray-300">Sitemap</a> */}
       </div>
     </footer>

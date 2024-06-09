@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap} from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { get_boundary_data, get_lulc_raster } from '../services/api';
 import PropTypes from 'prop-types';
 import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import VillageDetails from './VillageDetails';
+import Spinner from './Spinner'; // Import Spinner
 
 const Legend = () => {
   const map = useMap();
@@ -19,7 +20,7 @@ const Legend = () => {
         { color: "#397d49", label: "Tree/Forests" },
         { color: "#8b9dc3", label: "Single cropping cropland" },
         { color: "#222f5b", label: "Double cropping cropland" },
-        { color: "#946b2d", label: "Shrub_Scrub" }
+        { color: "#946b2d", label: "Shrub/Scrub" }
       ];
 
       let legendHtml = '<div style="font-size:14px; font-weight:bold; margin-bottom:5px; color: black;">Legend</div>';
@@ -43,12 +44,12 @@ const Legend = () => {
     return () => {
       legend.remove();
     };
-  }, [map]);  // Ensure it only runs once unless the map instance changes
+  }, [map]);
 
   return null;
 };
 
-function FlyToFeature({ featureData }) {
+function FlyToFeature({ featureData, onFlyToComplete }) {
   const map = useMap();
 
   useEffect(() => {
@@ -56,14 +57,18 @@ function FlyToFeature({ featureData }) {
       const geoJsonLayer = L.geoJSON(featureData);
       const bounds = geoJsonLayer.getBounds();
       map.flyToBounds(bounds, { padding: [50, 50] });
+      map.once('moveend', () => {
+        onFlyToComplete();
+      });
     }
-  }, [featureData, map]);
+  }, [featureData, map, onFlyToComplete]);
 
   return null;
 }
 
 FlyToFeature.propTypes = {
   featureData: PropTypes.object,
+  onFlyToComplete: PropTypes.func,
 };
 
 const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage }) => {
@@ -73,7 +78,11 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
   const [boundaryData, setBoundaryData] = useState(null);
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2022');
-  
+  const [isLoading, setLoading] = useState(false);
+  const [boundaryLoaded, setBoundaryLoaded] = useState(false);
+  const [rasterLoaded, setRasterLoaded] = useState(false);
+  const [flyToComplete, setFlyToComplete] = useState(false);
+
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
     setSelectedYear(selectedOption.value);
@@ -81,44 +90,60 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
 
   useEffect(() => {
     if (selectedDistrict && selectedState) {
+      setLoading(true);
+      setBoundaryLoaded(false); // Reset boundary loaded state
+      setRasterLoaded(false); // Reset raster loaded state
+      setFlyToComplete(false); // Reset fly to complete state
 
       const districtValue = selectedDistrict.value;
-      // Fetch the boundary data using the selected district
       const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.value : null;
+
+      // Fetch boundary data
       get_boundary_data(selectedState, districtValue, subdistrictValue, selectedVillage)
-      .then(data => {
-        console.log("Boundary data received:", data);
-        if (selectedVillage) {
-          // Normalize data if necessary or ensure exact match conditions are checked
-          const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === selectedVillage.toLowerCase().trim());
-          console.log("Attempting to find village:", selectedVillage, "in data:", data.features.map(f => f.properties.village_na));
-          if (villageFeature) {
-            console.log("Village feature found:", villageFeature);
-            setBoundaryData({ ...data, features: [villageFeature] });
+        .then(data => {
+          console.log("Boundary data received:", data);
+          if (selectedVillage) {
+            // Normalize data if necessary or ensure exact match conditions are checked
+            const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === selectedVillage.toLowerCase().trim());
+            console.log("Attempting to find village:", selectedVillage, "in data:", data.features.map(f => f.properties.village_na));
+            if (villageFeature) {
+              console.log("Village feature found:", villageFeature);
+              setBoundaryData({ ...data, features: [villageFeature] });
+            } else {
+              console.log("No village feature found for:", selectedVillage);
+            }
           } else {
-            console.log("No village feature found for:", selectedVillage);
+            setBoundaryData(data);
           }
-        } else {
-          setBoundaryData(data);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching the GeoJSON data:', error);
-      });
-      
-      // Fetch the LULC raster data using the selected district
-      get_lulc_raster(selectedState, districtValue,subdistrictValue, selectedVillage, selectedYear)
+          setBoundaryLoaded(true);
+        })
+        .catch(error => {
+          console.error('Error fetching the GeoJSON data:', error);
+          setBoundaryLoaded(true); // Even if there's an error, we need to stop loading
+        });
+
+      // Fetch LULC raster data
+      get_lulc_raster(selectedState, districtValue, subdistrictValue, selectedVillage, selectedYear)
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
+          setRasterLoaded(true);
         })
         .catch(error => {
           console.error('Error fetching the LULC raster data:', error);
+          setRasterLoaded(true); // Even if there's an error, we need to stop loading
         });
     } else {
       setBoundaryData(null);
       setLulcTilesUrl(null);
+      setLoading(false);
     }
   }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
+
+  useEffect(() => {
+    if (boundaryLoaded && rasterLoaded && flyToComplete) {
+      setLoading(false);
+    }
+  }, [boundaryLoaded, rasterLoaded, flyToComplete]);
 
   const highlightStyle = {
     color: '#ff7800',
@@ -134,8 +159,17 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
     fillOpacity: 0.1
   };
 
+  const onEachFeature = (feature, layer) => {
+    if (feature.properties.village_na === selectedVillage) {
+      layer.setStyle(highlightStyle);
+    } else {
+      layer.setStyle(normalStyle);
+    }
+  };
+
   return (
     <div className="relative h-full w-full">
+      {isLoading && <Spinner />} {/* Display spinner while loading */}
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
       </div>
@@ -166,11 +200,10 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
                 data={boundaryData}
-                style={{
-                  color: '#FF4433',
-                  weight: 1,
-                  fillColor: '#1a1d62',
-                  fillOpacity: 0.1,
+                style={normalStyle}
+                onEachFeature={onEachFeature}
+                eventHandlers={{
+                  add: () => setBoundaryLoaded(true), // Set boundaryLoaded state when boundary data is fully loaded
                 }}
               />
             </LayersControl.Overlay>
@@ -178,11 +211,11 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
         </LayersControl>
         {boundaryData && (
           <FlyToFeature 
-          featureData={boundaryData}
-          style={feature => feature.properties.village_na === selectedVillage ? highlightStyle : normalStyle}
+            featureData={boundaryData}
+            onFlyToComplete={() => setFlyToComplete(true)}
           />
         )}
-         <Legend />
+        <Legend />
       </MapContainer>
     </div>
   );
