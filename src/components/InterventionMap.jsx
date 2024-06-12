@@ -127,6 +127,12 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);
+          if (selectedSubdistrict && selectedVillage) {
+            get_lulc_raster(selectedState, districtValue, subdistrictValue, selectedVillage, selectedYear)
+            .then(data => {
+              setLulcTilesUrl(data.tiles_url);
+              setRasterLoaded(true);})
+            ;}
         })
         .catch(error => {
           console.error('Error fetching the LULC raster data:', error);
