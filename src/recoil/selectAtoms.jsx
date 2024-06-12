@@ -42,3 +42,8 @@ export const subdistrictOptionsAtom = atom({
     key: 'subdistrictOptions',  // Unique ID with respect to other atoms/selectors
     default: [],  // Default value (initial state)
   });
+
+export const compareVillagesClickedAtom = atom({
+    key: 'compareVillagesClicked',
+    default: false,
+  });

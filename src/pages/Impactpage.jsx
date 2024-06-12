@@ -13,7 +13,7 @@ import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
 import {selectedState ,districtDisplayNames, subdistrictByDistrict, villagesBySubDistrict } from '../data/locationData';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom,landCoverChartDataAtom , interventionChartDataAtom } from '../recoil/selectAtoms';
+import { selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom,landCoverChartDataAtom , interventionChartDataAtom, compareVillagesClickedAtom } from '../recoil/selectAtoms';
 import Footer from '../components/Footer';
 
 
@@ -28,11 +28,10 @@ const ImpactAssessmentPage = () => {
   const [subdistrictOptions, setSubdistrictOptions] = useRecoilState(subdistrictOptionsAtom);
   const [villageOptions, setVillageOptions] = useRecoilState(villageOptionsAtom);
   const [loadingChartData] = useState(false); // Correctly declare and use this state
-  // const [landCoverChartData, setLandCoverChartData] = useState({ labels: [], datasets: [] });
-  // const [interventionChartData, setInterventionChartData] = useState({ labels: [], datasets: [] });
   // Initialize states for subdistrict and its options
   const landCoverChartData = useRecoilValue(landCoverChartDataAtom)
   const interventionChartData = useRecoilValue(interventionChartDataAtom)
+  const compareVillagesClicked = useRecoilValue(compareVillagesClickedAtom);
 
   useEffect(() => {
     console.log(selectedDistrict.value)
@@ -179,10 +178,12 @@ const ImpactAssessmentPage = () => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 ml-10 z-[9999]">
-         <div className="mb-4 text-black z-[9999]">
-            <SelectDistrict
-             key={selectedDistrict?.value}
+      {compareVillagesClicked && (
+        <>
+          <div className="flex flex-col lg:flex-row gap-6 ml-10 z-[9999]">
+            <div className="mb-4 text-black z-[9999]">
+              <SelectDistrict
+                key={selectedDistrict?.value}
                 options={Object.keys(districtDisplayNames).map(key => ({ value: key, label: districtDisplayNames[key] }))}
                 onChange={handleDistrictChange}
                 value={selectedDistrict}
@@ -199,67 +200,68 @@ const ImpactAssessmentPage = () => {
               />
             </div>
             <div className="mb-4">
-            <SelectVillage
-             key={`village-${selectedVillage?.value || 'none'}`}
+              <SelectVillage
+                key={`village-${selectedVillage?.value || 'none'}`}
                 options={villageOptions}
                 onChange={handleVillageChange}
                 placeholder="Select Village..."
                 isDisabled={!selectedSubdistrict}
                 value={selectedVillage}
               />
-
             </div>
           </div>
 
-      <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef}>
-        <div className="flex-1">
-          <div className="bg-gray-200 z-[0] rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
-            <InterventionMap
-              selectedState={selectedState}
-              selectedDistrict={selectedDistrict}
-              selectedSubdistrict={selectedSubdistrict}
-              selectedVillage={selectedVillage}
-            />
-          </div>
-        </div>
-
-        <div className="flex-1">
-          <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
-            <CompareMap
-              selectedState={selectedState}
-              selectedDistrict={selectedDistrict}
-              selectedSubdistrict={selectedSubdistrict}
-              selectedVillage={selectedVillage}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5">
-        {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
-          loadingChartData ? (
-            <div className="items-center justify-center">
-              <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
-                <span className="visually-hidden">Loading...</span>
+          <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef}>
+            <div className="flex-1">
+              <div className="bg-gray-200 z-[0] rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+                <InterventionMap
+                  selectedState={selectedState}
+                  selectedDistrict={selectedDistrict}
+                  selectedSubdistrict={selectedSubdistrict}
+                  selectedVillage={selectedVillage}
+                />
               </div>
             </div>
-          ) : (
-            <InterventionCompareChart            />
-          )
-        ) : (
-          <p>Select all fields to see the chart</p>
-        )}
 
-      </div>
-      {!loadingChartData && interventionChartData.labels.length > 0 && (
-          <DownloadCSVButton
-            data={interventionChartData}
-            filename="intervention_chart_data.csv"
-          />
-        )}
-        <Footer/>
+            <div className="flex-1">
+              <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+                <CompareMap
+                  selectedState={selectedState}
+                  selectedDistrict={selectedDistrict}
+                  selectedSubdistrict={selectedSubdistrict}
+                  selectedVillage={selectedVillage}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5">
+            {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
+              loadingChartData ? (
+                <div className="items-center justify-center">
+                  <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : (
+                <InterventionCompareChart />
+              )
+            ) : (
+              <p>Select all fields to see the chart</p>
+            )}
+          </div>
+          {!loadingChartData && interventionChartData.labels.length > 0 && (
+            <DownloadCSVButton
+              data={interventionChartData}
+              filename="intervention_chart_data.csv"
+            />
+          )}
+        </>
+      )}
+      <Footer />
     </div>
   );
 };
+
 
 export default ImpactAssessmentPage;

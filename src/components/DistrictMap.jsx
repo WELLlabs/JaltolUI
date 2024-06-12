@@ -1,3 +1,4 @@
+// src/components/DistrictMap.jsx
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import { get_boundary_data, get_lulc_raster } from '../services/api';
@@ -6,6 +7,8 @@ import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import Spinner from './Spinner';
 import 'leaflet/dist/leaflet.css';
+import { useSetRecoilState } from 'recoil';
+import { compareVillagesClickedAtom } from '../recoil/selectAtoms';
 
 const Legend = () => {
   const map = useMap();
@@ -81,6 +84,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
   const [boundaryLoaded, setBoundaryLoaded] = useState(false);
   const [rasterLoaded, setRasterLoaded] = useState(false);
   const [flyToComplete, setFlyToComplete] = useState(false);
+  const setCompareVillagesClicked = useSetRecoilState(compareVillagesClickedAtom);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -179,7 +183,11 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
       </div>
       <div className="absolute bottom-8 left-10 z-[9999] m-4">
         <button 
-          onClick={() => scrollRef.current.scrollIntoView({ behavior: 'smooth' })}
+          onClick={() => {
+            setCompareVillagesClicked(true);
+            console.log("Compare Villages button clicked");
+            scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+          }}
           className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded cursor-pointer"
         >
           Compare Villages
