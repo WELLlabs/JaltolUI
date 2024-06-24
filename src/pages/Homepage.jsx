@@ -1,28 +1,69 @@
-
-
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import aboutBackground from '../assets/HomePage.svg';
+import mapsImage from '../assets/maps.svg';
+import methodologyImage from '../assets/methodology.svg'; // Ensure correct path
 
 const Homepage = () => {
   return (
-    <div className="font-sans bg-white min-h-screen w-screen">
+    <>
       <Navbar />
-      <div className="container mx-auto px-10 py-10">
-        <div className="flex flex-wrap md:flex-nowrap">
-          <div className="md:w-2/3">
-            <h1 className="text-6xl text-black font-bold mb-6">Jaltol</h1>
-            <p className="text-gray-700 text-lg mb-4">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+      <div className="bg-white text-gray-800">
+        {/* About Section */}
+        <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
+          <div className="lg:w-1/2 text-left p-8 lg:p-16">
+            <h1 className="text-4xl font-bold text-black">What is Jaltol</h1>
+            <p className="text-xl mt-4 text-black">
+              Jaltol uses novel high spatial resolution agricultural land use maps to help quantify plot level changes in agricultural patterns in peninsular India over the last two decades.
             </p>
-            <button className="bg-gray-800 text-white px-6 py-2 rounded bg-neutral-800 hover:bg-neutral-500">Read more</button>
+            <button className="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              See more
+            </button>
           </div>
-          <div className="md:w-1/3 flex justify-center md:justify-end mt-8 md:mt-0">
-            <div className="w-64 h-48 bg-gray-300 flex items-center justify-center">
-              <span className="text-gray-700">PLACEHOLDER IMAGE</span>
+          <div className="lg:w-1/2 h-screen relative flex-shrink-0">
+            <div className="absolute top-0 left-0 w-full h-full bg-jaltol-blue"></div>
+            <div className="relative z-10 pt-2 pr-16">
+              <img src={aboutBackground} alt="About Jaltol" className="w-full h-full object-cover border-t-20 border-r-8 border-transparent " />
+            </div>
+          </div>
+        </div>
+        {/* Maps Section */}
+        <div className="py-16 px-4 flex flex-col items-center bg-white">
+          <div className="flex flex-col md:flex-row items-center mt-6 mb-6 px-8">
+            <div className="md:w-1/3 p-4 pl-10">
+              <img src={mapsImage} alt="Agricultural Maps" className="w-full h-auto shadow-lg rounded" />
+            </div>
+            <div className="md:w-2/3 p-20">
+              <h2 className="text-5xl font-semibold text-black">Maps</h2>
+              <p className="text-2xl text-gray-700 mt-4">
+                Developed by IITD and WLI Labs in partnership, these high resolution (10-30m) land use maps are produced annually since 2000. They show plot level land use categories important for agriculture, namely - Single and Double cropping.
+              </p>
+              <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                View more
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Methodology Section */}
+        <div className="py-16 px-8 flex flex-col items-center bg-white">
+          <div className="flex flex-col md:flex-row items-center mt-6 mb-6 ml-10">
+            <div className="md:w-1/2 p-4">
+              <h2 className="text-3xl font-semibold text-black">Methodology</h2>
+              <p className="text-lg text-gray-700 mt-4">
+                Interpreting changes in cropping patterns from land use maps is not simple. Annual precipitation is the major driver of crop choices. At times however, land and water interventions undertaken by CSOs and Government drive change. We share how the Treatment and Control Difference in Difference methodology can be employed, along with the land use maps to assess the impact of interventions.
+              </p>
+              <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Learn more
+              </button>
+            </div>
+            <div className="md:w-1/3 p-4 ml-20">
+              <img src={methodologyImage} alt="Methodology" className="w-full h-auto shadow-lg rounded" />
             </div>
           </div>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

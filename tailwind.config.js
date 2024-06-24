@@ -7,7 +7,11 @@ const config = {
   purge: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   darkMode: false, // or 'media' or 'class'
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'jaltol-blue': '#4A69BC',
+      },
+    },
   },
   variants: {
     extend: {},

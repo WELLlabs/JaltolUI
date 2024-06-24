@@ -152,28 +152,25 @@ This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT ove
 
 
         {/* Validation Section */}
-        <div className="max-w-4xl flex  items-center justify-around text-center">
-    <div className="md:w-1/2 p-4">
-      <h2 className="text-2xl font-semibold text-black">Validation of the IndiaSAT map</h2>
-      <p className="text-lg text-gray-700 leading-relaxed mt-4">
-        Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources, with this method we could validate the accuracy of LULC images at the national level and also for images that date back in time.
-      </p>
-    </div>
-    <div className="md:w-1/2 p-4">
-      <h2 className="text-2xl font-semibold text-black">Invitation to collaborate</h2>
-      <p className="text-lg text-gray-700 leading-relaxed mt-4">
-        Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or IITD email address. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
-      </p>
+        <div className="flex justify-center">
+  <div className="py-16 px-8 flex flex-col items-center bg-white text-center">
+
+    <div className="max-w-6xl flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+      <div className="md:w-1/2 p-4">
+        <h2 className="text-2xl font-semibold text-black">Validation of the IndiaSAT map</h2>
+        <p className="text-lg text-gray-700 leading-relaxed mt-4">
+          Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources, with this method we could validate the accuracy of LULC images at the national level and also for images that date back in time.
+        </p>
+      </div>
+      <div className="md:w-1/2 p-4">
+        <h2 className="text-2xl font-semibold text-black">Invitation to collaborate</h2>
+        <p className="text-lg text-gray-700 leading-relaxed mt-4">
+          Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or IITD email address. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
+        </p>
+      </div>
     </div>
   </div>
-
-        {/* Invitation to Collaborate Section */}
-        <div className="py-8 px-4 text-center">
-          <h2 className="text-2xl font-semibold">Invitation to Collaborate</h2>
-          <p className="mt-2">
-            We invite partners to help validate the maps with primary data collection. Partners get priority access to maps for their regions for purposes such as impact assessment. Contact us at <a href="mailto:welllabs.jaltol@ifmr.ac.in">welllabs.jaltol@ifmr.ac.in</a> or IITD email address.
-          </p>
-        </div>
+</div>
       </div>
       <Footer />
     </>
