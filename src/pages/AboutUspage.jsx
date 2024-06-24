@@ -1,9 +1,8 @@
-// src/pages/AboutUsPage.jsx
-
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import aboutBackground from '../assets/Aboutus.png'; // Ensure correct path
-import mapImage from '../assets/Maps.png'; // Ensure correct path
+import aboutBackground from '../assets/HomePage.svg';
+import mapsImage from '../assets/maps.svg';
+import methodologyImage from '../assets/methodology.svg'; // Ensure correct path
 
 const AboutUsPage = () => {
   return (
@@ -11,44 +10,56 @@ const AboutUsPage = () => {
       <Navbar />
       <div className="bg-white text-gray-800">
         {/* About Section */}
-        <div 
-          style={{ backgroundImage: `url(${aboutBackground})` }}
-          className="bg-no-repeat bg-cover bg-center h-screen flex items-center justify-center text-white p-8"
-        >
-           <div className="p-10 text-black rounded-lg  mx-auto text-left">
-            <h1 className="text-7xl font-bold">What is Jaltol</h1>
-            <div>
-            <p className="text-2xl mt-4">
+        <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
+          <div className="lg:w-1/2 text-left p-8 lg:p-16">
+            <h1 className="text-4xl font-bold text-black">What is Jaltol</h1>
+            <p className="text-xl mt-4 text-black">
               Jaltol uses novel high spatial resolution agricultural land use maps to help quantify plot level changes in agricultural patterns in peninsular India over the last two decades.
             </p>
-            </div>
-            <button className="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded text-lg">
+            <button className="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               See more
             </button>
           </div>
+          <div className="lg:w-1/2 h-screen relative flex-shrink-0">
+            <div className="absolute top-0 left-0 w-full h-full bg-blue-900"></div>
+            <div className="relative z-10 pt-8 pr-16">
+              <img src={aboutBackground} alt="About Jaltol" className="w-full h-full object-cover border-t-8 border-r-8 border-transparent" />
+            </div>
+          </div>
         </div>
-
         {/* Maps Section */}
-        <div className="py-8 px-4 text-center">
-          <h2 className="text-2xl font-semibold">Maps</h2>
-          <p className="mt-2 mb-4">
-            Developed by ITO and WLI Labs in partnership, these high resolution (30m) land use maps are produced annually since 2000. They show plot level land use categories important for agriculture, namely - Single and Double cropping.
-          </p>
-          <img src={mapImage} alt="Agricultural Maps" className="w-full h-auto shadow-lg rounded"/>
-          <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            View more
-          </button>
+        <div className="py-16 px-4 flex flex-col items-center bg-white">
+          <div className="flex flex-col md:flex-row items-center mt-6 mb-6 px-8">
+            <div className="md:w-1/3 p-4 pl-10">
+              <img src={mapsImage} alt="Agricultural Maps" className="w-full h-auto shadow-lg rounded" />
+            </div>
+            <div className="md:w-2/3 p-20">
+              <h2 className="text-5xl font-semibold text-black">Maps</h2>
+              <p className="text-2xl text-gray-700 mt-4">
+                Developed by IITD and WLI Labs in partnership, these high resolution (10-30m) land use maps are produced annually since 2000. They show plot level land use categories important for agriculture, namely - Single and Double cropping.
+              </p>
+              <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                View more
+              </button>
+            </div>
+          </div>
         </div>
-
         {/* Methodology Section */}
-        <div className="py-8 px-4 text-center">
-          <h2 className="text-2xl font-semibold">Methodology</h2>
-          <p className="mt-2">
-            Interpreting changes in cropping patterns from land use maps is not simple. Annual precipitation is the major driver of crop choices. At ITO CSO however, land and water interventions undertaken by NGOs and Government drive change. We share how the Treatment and Control Difference in Difference methodology can be employed, along with the land use maps to assess the impact of interventions.
-          </p>
-          <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Learn more
-          </button>
+        <div className="py-16 px-8 flex flex-col items-center bg-white">
+          <div className="flex flex-col md:flex-row items-center mt-6 mb-6 ml-10">
+            <div className="md:w-1/2 p-4">
+              <h2 className="text-3xl font-semibold text-black">Methodology</h2>
+              <p className="text-lg text-gray-700 mt-4">
+                Interpreting changes in cropping patterns from land use maps is not simple. Annual precipitation is the major driver of crop choices. At times however, land and water interventions undertaken by CSOs and Government drive change. We share how the Treatment and Control Difference in Difference methodology can be employed, along with the land use maps to assess the impact of interventions.
+              </p>
+              <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Learn more
+              </button>
+            </div>
+            <div className="md:w-1/3 p-4 ml-20">
+              <img src={methodologyImage} alt="Methodology" className="w-full h-auto shadow-lg rounded" />
+            </div>
+          </div>
         </div>
       </div>
       <Footer />
