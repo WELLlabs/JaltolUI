@@ -11,6 +11,9 @@ const config = {
       colors: {
         'jaltol-blue': '#4A69BC',
       },
+      fontFamily: {
+        poppins: ['Poppins', 'sans-serif'],
+      },
     },
   },
   variants: {

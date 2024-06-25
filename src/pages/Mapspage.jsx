@@ -2,7 +2,7 @@
 
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import mapsBackground from '../assets/MapsLanding.svg';
+import mapsBackground from '../assets/mapsnew.svg';
 import lulcImage from '../assets/LulcClasses.svg';
 // import aboutBackground from '../assets/Aboutus.png'; // Ensure correct path
 // import mapImage from '../assets/Maps.png'; // Ensure correct path
@@ -12,47 +12,47 @@ const IndiaSATPage = () => {
     <>
       <Navbar />
       <div className="bg-white text-gray-800 flex-col">
-        {/* About Section */}
-        <div 
-          style={{ backgroundImage: `url(${mapsBackground})` }}
-          className="bg-no-repeat bg-cover bg-center h-screen flex items-center justify-center text-white p-8"
-        >
-           <div className="p-10 text-black rounded-lg  mx-auto text-center">
-            <h1 className="text-6xl font-bold">The IndiaSAT Land Use, Land Cover (LULC) map</h1>
+
+      {/* About Section */}
+      <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
+      <div className="p-10 flex flex-col justify-center">
+            <h1 className="text-4xl font-bold">The IndiaSAT Land Use, Land Cover (LULC) map</h1>
             <div>
-            <p className="text-3xl mt-10 pt-5 font-bold">
-            What are LULC maps?
-            </p>
-            <p className="text-2xl mt-4">
-            Land Use Land Cover (LULC) maps provide information to help users understand the current landscape, Land cover indicates the physical land type such as forest or open water whereas land use documents how people are using the land. These maps establish the baseline information for activities like thematic mapping and change detection analysis, which are important for global monitoring studies, resource management, and planning activities.
-            </p>
+              <p className="text-2xl mt-5 font-bold">
+                What are LULC maps?
+              </p>
+              <p className="text-lg mt-4">
+                Land Use Land Cover (LULC) maps provide information to help users understand the current landscape. Land cover indicates the physical land type such as forest or open water, whereas land use documents how people are using the land. These maps establish the baseline information for activities like thematic mapping and change detection analysis, which are important for global monitoring studies, resource management, and planning activities.
+              </p>
             </div>
+          </div>
+          <div className="lg:w-1/2 h-screen relative flex-shrink-0">
+            <img src={mapsBackground} alt="LULC Map" className="absolute top-0 left-0 w-full h-full" />
           </div>
         </div>
 
-        {/* Uniqueness Section */}
-        <div className='bg-blue-800 h-96'>
-        <div className="py-10 px-4 text-center text-white">
+      {/* Uniqueness Section */}
+      <div className='bg-white py-16'>
+        <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl">
           <h2 className="text-4xl font-semibold mb-10">Uniqueness of IndiaSAT</h2>
-          <p className="mt-2 mb-4 m-20 text-xl">
-          While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. 
-This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis, it is seasonal thereby showing cropping frequency in the agriculture fields and seasonal waterbody extents and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
+          <p className="mt-2 mb-4 text-lg mx-20">
+            While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis. It is seasonal, thereby showing cropping frequency in the agricultural fields and seasonal waterbody extents, and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
           </p>
         </div>
-        </div>
+      </div>
 
         {/* Co-creators Section */}
-        <div className="py-16 px-8 flex flex-col items-center bg-white">
+        <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
           <div className="flex flex-col md:flex-row items-center mt-6 mb-6">
-            <div className="md:w-2/3 p-4 m-20 pr-20">
-              <h2 className="text-3xl font-semibold text-black">Co-creators of India SAT</h2>
-              <p className="text-lg text-gray-700 mt-4 text-left">
+            <div className="md:w-2/3 p-4 m-20 pr-20 text-white">
+              <h2 className="text-4xl font-semibold ">Co-creators of India SAT</h2>
+              <p className="text-lg mt-4 text-left">
                 IndiaSAT is a research work spearheaded by the Indian Institute of Technology-Delhi focusing on improving land use land cover (LULC) classification, an open-source methodology to capture landscape changes annually to mine valuable insights that can prepare the community for sustainability.
               </p>
-              <p className="text-lg text-gray-700 mt-4 text-left">
+              <p className="text-lg mt-4 text-left">
                 Other partners in this effort include WELL Labs as a Research Partner, Gram Vaani as an Engineering and Product Development Partner, and NYAS Research as a Data Collection Partner.
               </p>
-              <p className="text-lg text-gray-700 mt-4 text-left">
+              <p className="text-lg mt-4 text-left">
                 The current version of the IndiaSAT model is version 3, which includes the generation of maps from the year 2000 and temporal correction for increased accuracy.
               </p>
             </div>

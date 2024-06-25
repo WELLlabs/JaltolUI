@@ -12,11 +12,11 @@ const Homepage = () => {
         {/* About Section */}
         <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
           <div className="lg:w-1/2 text-left p-8 lg:p-16">
-            <h1 className="text-4xl font-bold text-black">What is Jaltol</h1>
-            <p className="text-xl mt-4 text-black">
+            <h1 className="text-6xl font-bold text-black">What is Jaltol</h1>
+            <p className="text-2xl mt-4 text-black">
               Jaltol uses novel high spatial resolution agricultural land use maps to help quantify plot level changes in agricultural patterns in peninsular India over the last two decades.
             </p>
-            <button className="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <button className="mt-6 bg-jaltol-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
               See more
             </button>
           </div>
@@ -27,6 +27,8 @@ const Homepage = () => {
             </div>
           </div>
         </div>
+
+        
         {/* Maps Section */}
         <div className="py-16 px-4 flex flex-col items-center bg-white">
           <div className="flex flex-col md:flex-row items-center mt-6 mb-6 px-8">
@@ -38,7 +40,7 @@ const Homepage = () => {
               <p className="text-2xl text-gray-700 mt-4">
                 Developed by IITD and WLI Labs in partnership, these high resolution (10-30m) land use maps are produced annually since 2000. They show plot level land use categories important for agriculture, namely - Single and Double cropping.
               </p>
-              <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              <button className="mt-4 bg-jaltol-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 View more
               </button>
             </div>
@@ -52,7 +54,7 @@ const Homepage = () => {
               <p className="text-lg text-gray-700 mt-4">
                 Interpreting changes in cropping patterns from land use maps is not simple. Annual precipitation is the major driver of crop choices. At times however, land and water interventions undertaken by CSOs and Government drive change. We share how the Treatment and Control Difference in Difference methodology can be employed, along with the land use maps to assess the impact of interventions.
               </p>
-              <button className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              <button className="mt-4 bg-jaltol-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Learn more
               </button>
             </div>

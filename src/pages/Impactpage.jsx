@@ -99,7 +99,7 @@ const ImpactAssessmentPage = () => {
         <div className="flex-1 bg-white p-6 rounded">
           <div className="container text-left mb-8 text-neutral-800">
             <h1 className="text-5xl font-bold mb-2">Impact Assessment</h1>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
+            {/* <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p> */}
           </div>
           <div className="w-full max-w-xs">
             <div className="mb-4 text-black">
