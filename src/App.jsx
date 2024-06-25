@@ -5,11 +5,13 @@ import CompareVillagesPage from "./pages/CompareVillagespage";
 // import AboutUsPage from "./pages/AboutUspage";
 import IndiaSATPage from "./pages/Mapspage";
 import MethodologyPage from "./pages/Methodologypage";
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
       <div className="App">
+      <ScrollToTop />
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/impact-assessment" element={<ImpactAssessmentPage />} />

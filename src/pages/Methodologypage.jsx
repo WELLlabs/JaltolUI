@@ -9,7 +9,7 @@ const MethodologyPage = () => {
         <div className="container mx-auto py-16 px-4">
           {/* About Section */}
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-semibold text-center">The Methodology for Impact Assessment</h2>
+            <h2 className="text-3xl font-semibold text-center">The Methodology for Impact Assessment</h2>
             <p className="text-lg text-gray-700 mt-4 text-justify">
               Watershed management programmes primarily seek to optimize for multiple concerns: water access & resilience and economic prosperity. Many approaches exist for impact assessment of watershed programmes. The primary indicator we chose is the increase in Rabi acreage.
               <br /><br />
@@ -36,7 +36,7 @@ const MethodologyPage = () => {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-semibold text-center">The Difference in Difference Estimator</h2>
+            <h2 className="text-3xl font-semibold text-center">The Difference in Difference Estimator</h2>
             <ol className="text-lg text-gray-700 mt-4 list-decimal list-inside">
               <li>Pre-Intervention Period: Collect data on the outcome {`{rabi acreage}`} of interest for both the intervention and control villages before the intervention is implemented.</li>
               <li>Post-Intervention Period: Collect similar data {`{rabi acreage}`} for both villages after the intervention.</li>
@@ -72,8 +72,8 @@ const MethodologyPage = () => {
           </div>
 
           {/* Advantages and Limitations */}
-          <div className="w-full py-8 px-4 flex flex-col md:flex-row justify-around bg-white">
-            <div className="max-w-md mx-auto mb-8 md:mb-0">
+          <div className="w-full py-8 px-4 flex flex-col justify-around bg-white">
+            <div className="lg:w-2/3 mx-auto mb-8 md:mb-0">
               <div className="bg-white shadow-lg rounded-lg p-6">
                 <h3 className="text-xl font-semibold text-green-600">Advantages</h3>
                 <p className="text-lg text-gray-700 mt-4">
@@ -84,7 +84,7 @@ const MethodologyPage = () => {
                 </p>
               </div>
             </div>
-            <div className="max-w-md mx-auto">
+            <div className="lg:w-2/3 mt-10 mx-auto">
               <div className="bg-white shadow-lg rounded-lg p-6">
                 <h3 className="text-xl font-semibold text-red-600">Limitations</h3>
                 <p className="text-lg text-gray-700 mt-4">

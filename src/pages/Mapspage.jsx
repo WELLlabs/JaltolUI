@@ -8,15 +8,17 @@ import creators from '../assets/creators.svg';
 // import aboutBackground from '../assets/Aboutus.png'; // Ensure correct path
 // import mapImage from '../assets/Maps.png'; // Ensure correct path
 
+
 const IndiaSATPage = () => {
+
   return (
     <>
       <Navbar />
       <div className="bg-white text-gray-800 flex-col">
 
-      {/* About Section */}
-      <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
-      <div className="p-10 flex flex-col justify-center">
+        {/* About Section */}
+        <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
+          <div className="ml-20 flex flex-col justify-center">
             <h1 className="text-4xl font-bold">The IndiaSAT Land Use, Land Cover (LULC) map</h1>
             <div>
               <p className="text-2xl mt-5 font-bold">
@@ -32,15 +34,15 @@ const IndiaSATPage = () => {
           </div>
         </div>
 
-      {/* Uniqueness Section */}
-      <div className='bg-white py-16'>
-        <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl border border-gray-600">
-          <h2 className="text-4xl font-semibold mb-10">Uniqueness of IndiaSAT</h2>
-          <p className="mt-2 mb-4 text-lg mx-20">
-            While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis. It is seasonal, thereby showing cropping frequency in the agricultural fields and seasonal waterbody extents, and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
-          </p>
+        {/* Uniqueness Section */}
+        <div className='bg-white py-16'>
+          <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl border border-gray-600">
+            <h2 className="text-4xl font-semibold mb-10">Uniqueness of IndiaSAT</h2>
+            <p className="mt-2 mb-4 text-lg mx-20">
+              While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis. It is seasonal, thereby showing cropping frequency in the agricultural fields and seasonal waterbody extents, and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
+            </p>
+          </div>
         </div>
-      </div>
 
         {/* Co-creators Section */}
         <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
@@ -119,57 +121,57 @@ const IndiaSATPage = () => {
 
         {/* Methodology Section */}
         <div className="py-16 px-8 flex flex-col items-center bg-white">
-  {/* Top divider */}
-  <div className="w-full flex justify-center items-center mb-8">
-    <div className="border-t border-gray-300 flex-grow"></div>
-    <div className="mx-4 text-gray-300">•</div>
-    <div className="border-t border-gray-300 flex-grow"></div>
-  </div>
+          {/* Top divider */}
+          <div className="w-full flex justify-center items-center mb-8">
+            <div className="border-t border-gray-300 flex-grow"></div>
+            <div className="mx-4 text-gray-300">•</div>
+            <div className="border-t border-gray-300 flex-grow"></div>
+          </div>
 
-  <h2 className="text-3xl font-semibold text-black text-center">The IndiaSAT Methodology</h2>
+          <h2 className="text-3xl font-semibold text-black text-center">The IndiaSAT Methodology</h2>
 
-  <div className="max-w-4xl text-center">
-    <p className="text-lg text-gray-700 leading-relaxed">
-      To achieve the Level-1 classification, multi-spectral data is subjected to classification by a random forest classifier trained using data from OSM and manual marking of polygons for different classes throughout the nation, this per-pixel classifier is combined with Dynamic World, an object-based classifier, and further subjected to a rule-based method to achieve Level-1 classification.
-    </p>
-    <p className="text-lg text-gray-700 leading-relaxed mt-4">
-      At Level-2, to perform cropland and forest classification, Sentinel-1 SAR data time series, both VV and VH bands are used as input for the Random Forest Classifier. Further Slope information from SRTM DEM and a threshold of 30 degrees is used to correct misclassifications in croplands. For the seasonality of water bodies, a combination of SAR data (threshold over VV-band) and Dynamic World&apos;s water output for prediction, followed by a rule-based error correction using NDWI and NDVI on derived bands.
-    </p>
-    <p className="text-lg text-gray-700 leading-relaxed mt-4">
-      To perform Level-3 classification, there is no existing dataset with a significant amount of data, so the input considered for this classification is 8-16 day NDVI time series that is derived from a combination of Landsat-7, Landsat-8, Sentinel-2, and MODIS data based on QCI-30 paper methodology, subject to unsupervised classification using k-nearest neighbor algorithm to achieve Single, Double and Triple cropping class.
-    </p>
-  </div>
-</div>
+          <div className="max-w-4xl text-center">
+            <p className="text-lg text-gray-700 leading-relaxed">
+              To achieve the Level-1 classification, multi-spectral data is subjected to classification by a random forest classifier trained using data from OSM and manual marking of polygons for different classes throughout the nation, this per-pixel classifier is combined with Dynamic World, an object-based classifier, and further subjected to a rule-based method to achieve Level-1 classification.
+            </p>
+            <p className="text-lg text-gray-700 leading-relaxed mt-4">
+              At Level-2, to perform cropland and forest classification, Sentinel-1 SAR data time series, both VV and VH bands are used as input for the Random Forest Classifier. Further Slope information from SRTM DEM and a threshold of 30 degrees is used to correct misclassifications in croplands. For the seasonality of water bodies, a combination of SAR data (threshold over VV-band) and Dynamic World&apos;s water output for prediction, followed by a rule-based error correction using NDWI and NDVI on derived bands.
+            </p>
+            <p className="text-lg text-gray-700 leading-relaxed mt-4">
+              To perform Level-3 classification, there is no existing dataset with a significant amount of data, so the input considered for this classification is 8-16 day NDVI time series that is derived from a combination of Landsat-7, Landsat-8, Sentinel-2, and MODIS data based on QCI-30 paper methodology, subject to unsupervised classification using k-nearest neighbor algorithm to achieve Single, Double and Triple cropping class.
+            </p>
+          </div>
+        </div>
 
-{/* Bottom divider */}
-<div className="w-full flex justify-center items-center mt-8 mb-16">
-    <div className="border-t border-gray-300 flex-grow"></div>
-    <div className="mx-4 text-gray-300">•</div>
-    <div className="border-t border-gray-300 flex-grow"></div>
-  </div>
+        {/* Bottom divider */}
+        <div className="w-full flex justify-center items-center mt-8 mb-16">
+          <div className="border-t border-gray-300 flex-grow"></div>
+          <div className="mx-4 text-gray-300">•</div>
+          <div className="border-t border-gray-300 flex-grow"></div>
+        </div>
 
 
 
         {/* Validation Section */}
         <div className="flex justify-center">
-  <div className="py-16 px-8 flex flex-col items-center bg-white text-center">
+          <div className="py-16 px-8 flex flex-col items-center bg-white text-center">
 
-    <div className="max-w-6xl flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-      <div className="md:w-1/2 p-4">
-        <h2 className="text-2xl font-semibold text-black">Validation of the IndiaSAT map</h2>
-        <p className="text-lg text-gray-700 leading-relaxed mt-4">
-          Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources, with this method we could validate the accuracy of LULC images at the national level and also for images that date back in time.
-        </p>
-      </div>
-      <div className="md:w-1/2 p-4">
-        <h2 className="text-2xl font-semibold text-black">Invitation to collaborate</h2>
-        <p className="text-lg text-gray-700 leading-relaxed mt-4">
-          Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or contact@core-stack.org. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
+            <div className="max-w-6xl flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+              <div className="md:w-1/2 p-4">
+                <h2 className="text-2xl font-semibold text-black">Validation of the IndiaSAT map</h2>
+                <p className="text-lg text-gray-700 leading-relaxed mt-4">
+                  Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources, with this method we could validate the accuracy of LULC images at the national level and also for images that date back in time.
+                </p>
+              </div>
+              <div className="md:w-1/2 p-4">
+                <h2 className="text-2xl font-semibold text-black">Invitation to collaborate</h2>
+                <p className="text-lg text-gray-700 leading-relaxed mt-4">
+                  Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or contact@core-stack.org. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <Footer />
     </>

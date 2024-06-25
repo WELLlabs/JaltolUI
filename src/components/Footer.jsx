@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTwitter, faYoutube, faLinkedinIn } from '@fortawesome/free-brands-svg-icons';
 
+
 const Footer = () => {
   return (
     <footer className="bg-jaltol-blue text-white p-10">
@@ -12,7 +13,8 @@ const Footer = () => {
             {/* <li><a href="/faqs" className="hover:text-gray-300">FAQs</a></li>
             <li><a href="/statistics" className="hover:text-gray-300">Statistics</a></li> */}
             <li><a href="/impact-assessment" className="text-white hover:text-gray-300">Impact Assessment</a></li>
-            <li><a href="/about-us" className="text-white hover:text-gray-300">About Us</a></li>
+            <li><a href="/maps-page" className="text-white hover:text-gray-300">Maps</a></li>
+            <li><a href="/methodology" className="text-white hover:text-gray-300">Methodology</a></li>
           </ul>
         </div>
         {/* Contact Section */}
