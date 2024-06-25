@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import mapsBackground from '../assets/mapsnew.svg';
 import lulcImage from '../assets/LulcClasses.svg';
+import creators from '../assets/creators.svg';
 // import aboutBackground from '../assets/Aboutus.png'; // Ensure correct path
 // import mapImage from '../assets/Maps.png'; // Ensure correct path
 
@@ -33,7 +34,7 @@ const IndiaSATPage = () => {
 
       {/* Uniqueness Section */}
       <div className='bg-white py-16'>
-        <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl">
+        <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl border border-gray-600">
           <h2 className="text-4xl font-semibold mb-10">Uniqueness of IndiaSAT</h2>
           <p className="mt-2 mb-4 text-lg mx-20">
             While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis. It is seasonal, thereby showing cropping frequency in the agricultural fields and seasonal waterbody extents, and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
@@ -45,7 +46,7 @@ const IndiaSATPage = () => {
         <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
           <div className="flex flex-col md:flex-row items-center mt-6 mb-6">
             <div className="md:w-2/3 p-4 m-20 pr-20 text-white">
-              <h2 className="text-4xl font-semibold ">Co-creators of India SAT</h2>
+              <h2 className="text-5xl font-semibold ">Co-creators of India SAT</h2>
               <p className="text-lg mt-4 text-left">
                 IndiaSAT is a research work spearheaded by the Indian Institute of Technology-Delhi focusing on improving land use land cover (LULC) classification, an open-source methodology to capture landscape changes annually to mine valuable insights that can prepare the community for sustainability.
               </p>
@@ -57,9 +58,7 @@ const IndiaSATPage = () => {
               </p>
             </div>
             <div className="md:w-1/3 p-4 mr-20">
-              <div className="bg-gray-300 w-full h-96 rounded shadow-lg"></div> {/* Placeholder for image */}
-              {/* Uncomment the following line and provide the correct path if you have an actual image */}
-              {/* <img src={indiaSatImage} alt="Co-creators of India SAT" className="w-full h-auto shadow-lg rounded" /> */}
+              <img src={creators} alt="Co-creators of India SAT" className="w-full h-auto shadow-lg rounded" />
             </div>
           </div>
         </div>
@@ -77,7 +76,7 @@ const IndiaSATPage = () => {
         <div className="py-16 px-16 flex flex-col items-center bg-white">
           <h2 className="text-3xl font-semibold text-black">The LULC classes of IndiaSAT</h2>
           <div className="flex flex-col md:flex-row items-start justify-center mt-6 mb-6 space-y-6 md:space-y-0 md:space-x-6">
-            <div className="bg-green-100 p-6 rounded-lg shadow-lg flex-1 h-full">
+            <div className="bg-green-100 p-6 rounded-lg shadow-lg flex-1 h-96">
               <h3 className="text-xl font-semibold text-black">Level-1 classification</h3>
               <p className="mt-4 text-gray-700">
                 In level-1 classification, the first stage, four high-level classes are classified.
@@ -89,7 +88,7 @@ const IndiaSATPage = () => {
                 <li>Barren land: These areas are non-vegetative patches of rocky, wastelands, and barren areas.</li>
               </ul>
             </div>
-            <div className="bg-green-200 p-6 rounded-lg shadow-lg flex-1 h-full">
+            <div className="bg-green-200 p-6 rounded-lg shadow-lg flex-1 h-96">
               <h3 className="text-xl font-semibold text-black">Level-2 classification</h3>
               <p className="mt-4 text-gray-700">
                 In level-2 classification, the level-1 classes are further classified into:
@@ -101,7 +100,7 @@ const IndiaSATPage = () => {
                 <li>Perennial water body: These water bodies hold water for more than three agricultural seasons in a year.</li>
               </ul>
             </div>
-            <div className="bg-blue-100 p-6 rounded-lg shadow-lg flex-1 h-full">
+            <div className="bg-blue-100 p-6 rounded-lg shadow-lg flex-1 h-96">
               <h3 className="text-xl font-semibold text-black">Level-3 classification</h3>
               <p className="mt-4 text-gray-700">
                 In level-3 classification, the cropland class is further classified based on their cropping frequency in a year:
@@ -165,7 +164,7 @@ const IndiaSATPage = () => {
       <div className="md:w-1/2 p-4">
         <h2 className="text-2xl font-semibold text-black">Invitation to collaborate</h2>
         <p className="text-lg text-gray-700 leading-relaxed mt-4">
-          Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or IITD email address. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
+          Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or contact@core-stack.org. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
         </p>
       </div>
     </div>
