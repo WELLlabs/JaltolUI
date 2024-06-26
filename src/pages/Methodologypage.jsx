@@ -1,14 +1,15 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Difference from '../assets/difference.svg';
 
 const MethodologyPage = () => {
   return (
     <>
       <Navbar />
       <div className="bg-white text-gray-800 w-screen">
-        <div className="container mx-auto py-16 px-4">
+        <div className=" mx-auto py-16">
           {/* About Section */}
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <h2 className="text-3xl font-semibold text-center">The Methodology for Impact Assessment</h2>
             <p className="text-lg text-gray-700 mt-4 text-justify">
               Watershed management programmes primarily seek to optimize for multiple concerns: water access & resilience and economic prosperity. Many approaches exist for impact assessment of watershed programmes. The primary indicator we chose is the increase in Rabi acreage.
@@ -35,37 +36,48 @@ const MethodologyPage = () => {
             <div className="border-t border-gray-300 flex-grow"></div>
           </div>
 
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-semibold text-center">The Difference in Difference Estimator</h2>
-            <ol className="text-lg text-gray-700 mt-4 list-decimal list-inside">
-              <li>Pre-Intervention Period: Collect data on the outcome {`{rabi acreage}`} of interest for both the intervention and control villages before the intervention is implemented.</li>
-              <li>Post-Intervention Period: Collect similar data {`{rabi acreage}`} for both villages after the intervention.</li>
-            </ol>
-            <p className="text-lg text-gray-700 mt-4 text-justify">
-              The figure below illustrates the four sets of data collected, P1 and P2 represent the `rabi acreage` in the intervention village before and after intervention and S1 and S2 the `rabi acreage` in the control village during the same time period. The difference between P2 and Q can be said to be the effect of the intervention.
-              <br /><br />
-              The DiD approach calculates the effect of the intervention by comparing the difference in outcomes between the pre-intervention and post-intervention periods for both villages. Specifically, it involves a two-step differencing process:
-            </p>
-            <ol className="text-lg text-gray-700 mt-4 list-decimal list-inside">
-              <li>First Difference (Time): Calculate the difference in the outcome for each village (intervention and control) from before to after the intervention. This step controls for time effects that affect both villages.</li>
-              <li>Second Difference (Village): Subtract the change observed in the control village from the change observed in the intervention village. This difference in differences is the DiD estimator, which aims to isolate the effect of the intervention by removing factors that affect both villages equally over time.</li>
-            </ol>
+          <div className="max-w-7xl mx-auto py-8 px-4">
+            <h2 className="text-3xl font-semibold text-center mb-6">The Difference in Difference Estimator</h2>
+            <div className="flex flex-col md:flex-row items-start md:space-x-6">
+              <div className="flex-1">
+                <ol className="text-lg text-gray-700 list-decimal list-inside space-y-4">
+                  <li>Pre-Intervention Period: Collect data on the outcome {`{rabi acreage}`} of interest for both the intervention and control villages before the intervention is implemented.</li>
+                  <li>Post-Intervention Period: Collect similar data {`{rabi acreage}`} for both villages after the intervention.</li>
+                </ol>
+                <p className="text-lg text-gray-700 mt-4 text-justify">
+                  The figure below illustrates the four sets of data collected, P1 and P2 represent the `rabi acreage` in the intervention village before and after intervention and S1 and S2 the `rabi acreage` in the control village during the same time period. The difference between P2 and Q can be said to be the effect of the intervention.
+                </p>
+                <p className="text-lg text-gray-700 mt-4 text-justify">
+                  The DiD approach calculates the effect of the intervention by comparing the difference in outcomes between the pre-intervention and post-intervention periods for both villages. Specifically, it involves a two-step differencing process:
+                </p>
+                <ol className="text-lg text-gray-700 mt-4 list-decimal list-inside space-y-4">
+                  <li>First Difference (Time): Calculate the difference in the outcome for each village (intervention and control) from before to after the intervention. This step controls for time effects that affect both villages.</li>
+                  <li>Second Difference (Village): Subtract the change observed in the control village from the change observed in the intervention village. This difference in differences is the DiD estimator, which aims to isolate the effect of the intervention by removing factors that affect both villages equally over time.</li>
+                </ol>
+              </div>
+              <div className="flex-1 mt-6 md:mt-0">
+                <img src={Difference} alt="DiD Estimator Illustration" className="rounded shadow-lg mx-auto w-full max-w-md" />
+              </div>
+            </div>
           </div>
 
+
+
+
           {/* Assumptions and Control Village */}
-          <div className="w-full bg-blue-50 py-8 mt-20">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-semibold text-blue-800">Assumptions</h2>
-              <p className="text-lg text-gray-700 mt-4 text-justify">
+          <div className="w-full bg-jaltol-blue py-8 mt-20">
+            <div className="max-w-5xl mx-auto text-white">
+              <h2 className="text-2xl font-semibold text-white">Assumptions</h2>
+              <p className="text-lg text-white mt-4 text-justify">
                 The key assumption behind the DiD approach is the Parallel Trends Assumption. It assumes that, in the absence of the intervention, the outcomes for both the intervention and control villages would have followed parallel paths over time. This means that any difference in the trend of outcomes between the two villages can be attributed to the intervention.
               </p>
             </div>
           </div>
 
-          <div className="w-full bg-blue-50 py-8">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-semibold text-blue-800">Selection of Control Village</h2>
-              <p className="text-lg text-gray-700 mt-4 text-justify">
+          <div className="w-full bg-jaltol-blue text-white py-8">
+            <div className="max-w-5xl mx-auto">
+              <h2 className="text-2xl font-semibold ">Selection of Control Village</h2>
+              <p className="text-lg mt-4 text-justify">
                 Thus a big component of the methodology is matching each intervention village to its control which is as similar as possible to the intervention village. In Jaltol we have implemented a rudimentary rule, where once a user selects the intervention village, a control village of similar topography is automatically detected from within the vicinity of a 5km radius. Critically this controls for the biggest confounding variable, rainfall. We can safely assume that the long term trend in rainfall in neighbouring villages is relatively similar as compared to two villages located further apart.
               </p>
             </div>
@@ -74,28 +86,34 @@ const MethodologyPage = () => {
           {/* Advantages and Limitations */}
           <div className="w-full py-8 px-4 flex flex-col justify-around bg-white">
             <div className="lg:w-2/3 mx-auto mb-8 md:mb-0">
-              <div className="bg-white shadow-lg rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-green-600">Advantages</h3>
-                <p className="text-lg text-gray-700 mt-4">
-                  <ul className="list-disc list-inside">
-                    <li>Controls for Confounding: By comparing changes over time between villages, DiD can control for unobserved confounding variables that are constant over time.</li>
-                    <li>Flexibility: DiD can be applied to a variety of data types.</li>
-                  </ul>
-                </p>
+              <div className="bg-green-100 shadow-lg rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-black flex items-center">
+                  <span className="mr-2">✔</span> Advantages
+                </h3>
+                <ul className="list-disc list-inside text-lg text-gray-700 mt-4">
+                  <li>Controls for Confounding: By comparing changes over time between villages, DiD can control for unobserved confounding variables that are constant over time.</li>
+                  <li>Flexibility: DiD can be applied to a variety of data types.</li>
+                </ul>
               </div>
             </div>
             <div className="lg:w-2/3 mt-10 mx-auto">
-              <div className="bg-white shadow-lg rounded-lg p-6">
-                <h3 className="text-xl font-semibold text-red-600">Limitations</h3>
-                <p className="text-lg text-gray-700 mt-4">
-                  <ul className="list-disc list-inside">
-                    <li>Selection of control village: The DiD methodology is only as good as our ability to identify a similar control village. If our control village differs a lot from the intervention village in rainfall or nature of interventions then the comparison is not valid. It is easier to find control villages with similar rainfall since rainfall data is simpler to work with and easier to access. It is harder to know for sure that the control village also didn&apos;t have any similar interventions conducted.</li>
-                    <li>The accuracy of the outcome metric {`{rabi acreage}`}: The methodology discussed here also relies on reasonably accurate maps that are sensitive to changes in rabi acreage over time. We discuss the maps we have used on the Maps page.</li>
-                  </ul>
-                </p>
+              <div className="bg-red-100 shadow-lg rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-black flex items-center">
+                  <span className="mr-2">⚠️</span> Limitations
+                </h3>
+                <ul className="list-disc list-inside text-lg text-gray-700 mt-4">
+                  <li>Selection of control village: The DiD methodology is only as good as our ability to identify a similar control village. If our control village differs a lot from the intervention village in rainfall or nature of interventions then the comparison is not valid. It is easier to find control villages with similar rainfall since rainfall data is simpler to work with and easier to access. It is harder to know for sure that the control village also didn&apos;t have any similar interventions conducted.</li>
+                  <li>The accuracy of the outcome metric {`{rabi acreage}`}: The methodology discussed here also relies on reasonably accurate maps that are sensitive to changes in rabi acreage over time. We discuss the maps we have used on the Maps page.</li>
+                </ul>
               </div>
             </div>
+            <div className="lg:w-2/3 mx-auto mt-8">
+              <p className="text-gray-700 text-center">
+                The methodology implemented in Jalmitra is not meant to be the final word on impact assessment but instead a reasonably accurate quick assessment tool which can be pointed to regions where more attention or primary data collection is needed for a comprehensive impact assessment.
+              </p>
+            </div>
           </div>
+
         </div>
       </div>
       <Footer />

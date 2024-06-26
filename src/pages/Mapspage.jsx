@@ -78,7 +78,7 @@ const IndiaSATPage = () => {
         <div className="py-16 px-16 flex flex-col items-center bg-white">
           <h2 className="text-3xl font-semibold text-black">The LULC classes of IndiaSAT</h2>
           <div className="flex flex-col md:flex-row items-start justify-center mt-6 mb-6 space-y-6 md:space-y-0 md:space-x-6">
-            <div className="bg-green-100 p-6 rounded-lg shadow-lg flex-1 h-96">
+            <div className="bg-green-100 p-6 rounded-lg shadow-lg flex-1 h-96 overflow-auto">
               <h3 className="text-xl font-semibold text-black">Level-1 classification</h3>
               <p className="mt-4 text-gray-700">
                 In level-1 classification, the first stage, four high-level classes are classified.
@@ -90,7 +90,7 @@ const IndiaSATPage = () => {
                 <li>Barren land: These areas are non-vegetative patches of rocky, wastelands, and barren areas.</li>
               </ul>
             </div>
-            <div className="bg-green-200 p-6 rounded-lg shadow-lg flex-1 h-96">
+            <div className="bg-green-200 p-6 rounded-lg shadow-lg flex-1 h-96 overflow-auto">
               <h3 className="text-xl font-semibold text-black">Level-2 classification</h3>
               <p className="mt-4 text-gray-700">
                 In level-2 classification, the level-1 classes are further classified into:
@@ -102,7 +102,7 @@ const IndiaSATPage = () => {
                 <li>Perennial water body: These water bodies hold water for more than three agricultural seasons in a year.</li>
               </ul>
             </div>
-            <div className="bg-blue-100 p-6 rounded-lg shadow-lg flex-1 h-96">
+            <div className="bg-blue-100 p-6 rounded-lg shadow-lg flex-1 h-96 overflow-auto">
               <h3 className="text-xl font-semibold text-black">Level-3 classification</h3>
               <p className="mt-4 text-gray-700">
                 In level-3 classification, the cropland class is further classified based on their cropping frequency in a year:
@@ -114,6 +114,7 @@ const IndiaSATPage = () => {
               </ul>
             </div>
           </div>
+
           <p className="text-lg text-gray-700 mt-8 text-center">
             The Level-3 classification carried out by IndiaSAT shows deep classification into croplands as “single-cropped”, “double-cropped” and “triple-cropped”; this level of classification at a finer level enables Panchayats and NGOs to track the impact of their watershed interventions.
           </p>
@@ -153,25 +154,24 @@ const IndiaSATPage = () => {
 
 
         {/* Validation Section */}
-        <div className="flex justify-center">
-          <div className="py-16 px-8 flex flex-col items-center bg-white text-center">
-
-            <div className="max-w-6xl flex flex-col md:flex-row justify-between items-center text-center md:text-left">
-              <div className="md:w-1/2 p-4">
-                <h2 className="text-2xl font-semibold text-black">Validation of the IndiaSAT map</h2>
-                <p className="text-lg text-gray-700 leading-relaxed mt-4">
-                  Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources, with this method we could validate the accuracy of LULC images at the national level and also for images that date back in time.
-                </p>
-              </div>
-              <div className="md:w-1/2 p-4">
-                <h2 className="text-2xl font-semibold text-black">Invitation to collaborate</h2>
-                <p className="text-lg text-gray-700 leading-relaxed mt-4">
-                  Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or contact@core-stack.org. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
-                </p>
-              </div>
+        <div className="flex justify-center py-16 px-8 bg-white">
+          <div className="max-w-6xl w-full flex flex-col md:flex-row justify-between items-start space-y-6 md:space-y-0 md:space-x-6">
+            <div className="md:w-1/2 bg-white p-8 rounded-lg shadow-md border border-gray-200">
+              <h2 className="text-2xl font-semibold text-center text-black">Validation of the IndiaSAT map</h2>
+              <p className="text-lg text-gray-700 leading-relaxed mt-4 text-justify">
+                Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources. With this method, we could validate the accuracy of LULC images at the national level and also for images that date back in time.
+              </p>
+            </div>
+            <div className="md:w-1/2 bg-white p-8 rounded-lg shadow-md border border-gray-200">
+              <h2 className="text-2xl font-semibold text-center text-black">Invitation to collaborate</h2>
+              <p className="text-lg text-gray-700 leading-relaxed mt-4 text-justify">
+                Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or contact@core-stack.org. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
+              </p>
             </div>
           </div>
         </div>
+
+
       </div>
       <Footer />
     </>
