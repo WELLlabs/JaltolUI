@@ -195,10 +195,28 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="OpenStreetMap">
+        <LayersControl.BaseLayer checked name="Google Maps">
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+              attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a> contributors'
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Google Satellite">
+            <TileLayer
+              url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+              attribution='&copy; <a href="https://www.google.com/maps">Google Satellite</a> contributors'
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Google Terrain">
+            <TileLayer
+              url="https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}"
+              attribution='&copy; <a href="https://www.google.com/maps">Google Terrain</a> contributors'
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Google Satellite Hybrid">
+            <TileLayer
+              url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+              attribution='&copy; <a href="https://www.google.com/maps">Google Satellite Hybrid</a> contributors'
             />
           </LayersControl.BaseLayer>
 
