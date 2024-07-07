@@ -82,6 +82,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
         backgroundColor: 'white',
     };
 
+    
     useEffect(() => {
         setLoading(true);
         if (stateName && districtName && subdistrictName && villageName) {
