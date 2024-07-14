@@ -9,7 +9,6 @@ const Navbar = () => {
           <Link to="/impact-assessment" className="text-xl text-white hover:text-gray-300">Assess Impact</Link>
           <Link to="/maps-page" className="text-xl text-white hover:text-gray-300">Maps</Link>
           <Link to="/methodology" className="text-xl text-white hover:text-gray-300">Methodology</Link>
-          <Link to="/api-documentation" className="text-xl text-white hover:text-gray-300">API Documentation</Link>
         </div>
       </nav>
     );
