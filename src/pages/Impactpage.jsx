@@ -11,9 +11,9 @@ import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
-import {selectedState ,districtDisplayNames, subdistrictByDistrict, villagesBySubDistrict } from '../data/locationData';
+import {districtDisplayNames, subdistrictByDistrict, villagesBySubDistrict,  districtToStateMap } from '../data/locationData';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom,landCoverChartDataAtom , interventionChartDataAtom, compareVillagesClickedAtom } from '../recoil/selectAtoms';
+import { selectedStateAtom, selectedDistrictAtom, selectedSubdistrictAtom, selectedVillageAtom, subdistrictOptionsAtom, villageOptionsAtom,landCoverChartDataAtom , interventionChartDataAtom, compareVillagesClickedAtom } from '../recoil/selectAtoms';
 import Footer from '../components/Footer';
 
 
@@ -32,6 +32,7 @@ const ImpactAssessmentPage = () => {
   const landCoverChartData = useRecoilValue(landCoverChartDataAtom)
   const interventionChartData = useRecoilValue(interventionChartDataAtom)
   const compareVillagesClicked = useRecoilValue(compareVillagesClickedAtom);
+  const [selectedState, setSelectedState] = useRecoilState(selectedStateAtom);
 
   useEffect(() => {
     console.log(selectedDistrict.value)
@@ -59,10 +60,16 @@ const ImpactAssessmentPage = () => {
 
 
 
-  const handleDistrictChange = option => {
-    setSelectedDistrict(option);
-
-  };
+const handleDistrictChange = option => {
+  setSelectedDistrict(option);
+  console.log("District selected:", option);
+  // Update the selectedState based on the selected district
+  const state = districtToStateMap[option.value];
+  if (state) {
+    console.log("STATE selected:", option);
+    setSelectedState(state);
+  }
+};
 
   const handleSubdistrictChange = option => {
     console.log("Subdistrict selected:", option);
@@ -235,7 +242,7 @@ const ImpactAssessmentPage = () => {
             </div>
           </div>
 
-          <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5">
+          <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5 mb-5">
             {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
               loadingChartData ? (
                 <div className="items-center justify-center">

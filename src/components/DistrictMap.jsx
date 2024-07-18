@@ -46,7 +46,7 @@ const Legend = () => {
     return () => {
       legend.remove();
     };
-  }, [map]);  // Ensure it only runs once unless the map instance changes
+  }, [map]);
 
   return null;
 };
@@ -129,12 +129,6 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);
-          if (selectedSubdistrict && selectedVillage) {
-            get_lulc_raster(selectedState, districtValue, subdistrictValue, selectedVillage, selectedYear)
-            .then(data => {
-              setLulcTilesUrl(data.tiles_url);
-              setRasterLoaded(true);})
-            ;}
         })
         .catch(error => {
           console.error('Error fetching the LULC raster data:', error);
@@ -195,7 +189,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Google Maps">
+          <LayersControl.BaseLayer checked name="Google Maps">
             <TileLayer
               url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
               attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a> contributors'
@@ -229,6 +223,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
           {boundaryData && (
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
+                key={JSON.stringify(boundaryData)} // Force re-render by using a unique key
                 data={boundaryData}
                 style={{
                   color: '#FF4433',
