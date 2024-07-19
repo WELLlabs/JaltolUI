@@ -1,5 +1,4 @@
-// src/components/InterventionCompareChart.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
@@ -23,9 +22,9 @@ const InterventionCompareChart = ({ onDataChange }) => {
     const [isLoading, setLoading] = useState(false);
     const chartData = useRecoilValue(interventionChartDataAtom);
     const setChartData = useSetRecoilState(interventionChartDataAtom);
-
-
     const [controlVillage, setControlVillage] = useState(null);
+    const [datasetVisibility, setDatasetVisibility] = useState({});
+    const chartRef = useRef(null);
 
     const options = {
         scales: {
@@ -54,21 +53,10 @@ const InterventionCompareChart = ({ onDataChange }) => {
         },
         plugins: {
             legend: {
-                position: 'top',
-                labels: {
-                    color: 'black',
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 20
-                }
+                display: false, // Hide the default legend
             },
             title: {
-                display: true,
-                text: 'Land Cover Change Over Time',
-                color: 'black',
-                font: {
-                    size: 18,
-                }
+                display: false, // Hide the default title
             },
             tooltip: {
                 enabled: true,
@@ -94,6 +82,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
         backgroundColor: 'white',
     };
 
+    
     useEffect(() => {
         setLoading(true);
         if (stateName && districtName && subdistrictName && villageName) {
@@ -179,9 +168,13 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             yAxisID: 'y1',
                             borderDash: [10, 5],  // Dotted line, though typically not noticeable on bars
                         }
-                    ];                   
-                    
+                    ];
+
                     setChartData({ labels, datasets });
+                    setDatasetVisibility(datasets.reduce((acc, dataset, index) => {
+                        acc[index] = true;
+                        return acc;
+                    }, {}));
                     onDataChange({ labels, datasets });
                     setLoading(false); // Pass data to the parent component
                 })
@@ -191,16 +184,58 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 });
 
         }
-    }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange,setChartData]);
+    }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
+
+    const toggleDatasetVisibility = (index) => {
+        setDatasetVisibility(prev => {
+            const newVisibility = { ...prev, [index]: !prev[index] };
+            const newDatasets = chartData.datasets.map((dataset, i) => ({
+                ...dataset,
+                hidden: !newVisibility[i],
+            }));
+            setChartData({ ...chartData, datasets: newDatasets });
+            return newVisibility;
+        });
+    };
+
+    const renderLegend = () => {
+        return (
+            <ul className="flex flex-wrap justify-center mb-2">
+                {chartData.datasets.map((dataset, index) => (
+                    <li key={index} className="flex items-center mr-4 mb-2 cursor-pointer" onClick={() => toggleDatasetVisibility(index)}>
+                        <span
+                            style={{
+                                display: 'inline-block',
+                                width: '20px',
+                                height: '10px',
+                                borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
+                                marginRight: '8px',
+                                opacity: datasetVisibility[index] ? 1 : 0.5,
+                            }}
+                        ></span>
+                        <span style={{ color: 'black', opacity: datasetVisibility[index] ? 1 : 0.5 }}>
+                            {dataset.label}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+        );
+    };
 
     return (
-        <div className="w-full h-64 bg-white flex justify-center items-center relative ">
-        {isLoading ? (
-             <div className="absolute inset-0 flex justify-center items-center">
-             <Spinner />
-         </div>
+        <div className="w-full bg-white flex flex-col items-center relative z-9999">
+            <h2 className="text-center text-black text-2xl mt-4">Land Cover Change Over Time</h2>
+            {isLoading ? (
+                <div className="absolute inset-0 flex justify-center items-center">
+                    <Spinner />
+                </div>
             ) : chartData.datasets.length > 0 ? (
-                <Line data={chartData} options={options} />
+                <>
+                    <div className="w-full mt-4">{renderLegend()}</div>
+                    <div className="w-full h-64">
+                        <Line ref={chartRef} data={chartData} options={options} />
+                    </div>
+                </>
             ) : (
                 <p className="text-center">No data available to display the chart.</p>
             )}

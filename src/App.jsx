@@ -6,6 +6,7 @@ import CompareVillagesPage from "./pages/CompareVillagespage";
 import IndiaSATPage from "./pages/Mapspage";
 import MethodologyPage from "./pages/Methodologypage";
 import ScrollToTop from './components/ScrollToTop';
+import ApiDocumentationPage from "./pages/ApiDocumentationPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/compare-villages" element={<CompareVillagesPage />} />
           <Route path="/methodology" element={<MethodologyPage/>} />
           <Route path="/maps-page" element={<IndiaSATPage/>} />
+          <Route path="/api-documentation" element={<ApiDocumentationPage/>} />
         </Routes>
       </div>
     </Router>

@@ -3,10 +3,17 @@ export const selectedState = 'Rajasthan'; // Hardcoded for now
 
 export const districtDisplayNames = {
     'karauli': 'Karauli, RJ',
+    'adilabad': 'Adilabad, AP',
+};
+
+export const districtToStateMap = {
+    'karauli': 'Rajasthan',
+    'adilabad': 'Andhra Pradesh',
 };
 
 export const subdistrictByDistrict = {
-    'karauli': ['Todabhim', 'Nadoti', 'Hindaun', 'Karauli', 'Mandrail', 'Sapotra']
+    'karauli': ['Todabhim', 'Nadoti', 'Hindaun', 'Karauli', 'Mandrail', 'Sapotra'],
+    'adilabad': ['Tamsi', 'Adilabad', 'Jainad', 'Bela', 'Talamadugu', 'Gudihathnoor', 'Inderavelly','Narnoor', 'Kerameri','Wankdi', 'Sirpur town', 'Kouthala', 'Bejjur', 'Kagaznagar', 'Asifabad', 'Jainoor', 'Utnoor', 'Ichoda', 'Bazarhathnoor', 'Boath', 'Neradigonda', 'Sirpur', 'Rebbana', 'Bhimini', 'Dahegaon', 'Vemanpalle', 'Nennal', 'Tandur', 'Tiryani', 'Jannaram', 'Kaddam Peddur', 'Sarangapur', 'Kuntala', 'Kubeer', 'Bhainsa', 'Tanoor', 'Mudhole', 'Lokeswaram', 'Dilawarpur', 'Nirmal', 'Laxmanchanda', 'Mamda', 'Khanapur', 'Dandepalle', 'Kasipet', 'Bellampalle', 'Kotapalle', 'Mandamarri', 'Luxettipet', 'Mancherial', 'Jaipur', 'Chennur' ]
 }
 
 export const villagesBySubDistrict = {
@@ -105,7 +112,329 @@ export const villagesBySubDistrict = {
         'nanpur', 'chirchiri', 'manki', 'kamokhari', 'dongri', 'dangariya', 'kankra', 'karanpur', 'ghusai', 'garhi ka gaon', 'karai',
         'rahir', 'alwat ki guwari', 'chaube ki guwari', 'bahadarpur', 'mandi bhat', 'sonpura', 'raibeli mathuraki', 'amre ki guwari',
         'koorat ki guwari', 'chirmil', 'arora', 'manikpura', 'toda', 'simara', 'kased'
-    ]
+    ],
+
+    'tamsi': [
+    'karanji t','guledi', 'gomutri', 'antargaon', 'arli t', 'wadoor', 'dhanora', 'kamathwada', 'gona', 'gunjala', 'gollaghat',
+    'tamsi k', 'nipani', 'dabbakuchi', 'bheempoor', 'belsari rampur', 'anderband', 'girgaon', 'ambugaon', 'palodi ramnagar',
+    'wadgaon', 'khapperla', 'pippalkhoti', 'ghotkuri', 'savargaon', 'bandalnagapur', 'jamdi', 'tamsi b', 'waddadi',
+    'hasnapur', 'ponnari'
+    ],
+
+    'adilabad': [
+    'jamdapur','dimma', 'pochara', 'rampoor royati', 'bheemseri', 'chanda', 'landasangvi', 'nishanghat', 'arli buzurg', 'takli',
+    'kumbhajheri', 'ramai', 'jamuldhari', 'yapalguda', 'anukunta', 'battisawargaon', 'mavala', 'kachkanti', 'tontoli',
+    'kottur nevegaon', 'borenur', 'lokari', 'ankoli', 'waghapur', 'maleborgaon', 'chinchughat', 'ankapoor', 'asodabhurki',
+    'pippaldhari', 'wanwat', 'belluri', 'khandala', 'lohara', 'hathigutta', 'tippa', 'maregaon', 'khanapoor', 'chichadhari',
+    'dasnapur', 'adilabad'
+    ],
+
+    'jainad': [
+    'hathighat','guda', 'rampurtaraf', 'korta', 'kedarpur', 'akoli', 'gimma khurd', 'sirsonna', 'bhoraj', 'fouzpur', 'poosai',
+    'pipparwada', 'moudagada', 'kamai', 'dollara', 'pendalwada', 'lekarwadi', 'savapur', 'hashampur', 'tarada buzurg',
+    'nizampur', 'nirala', 'balapur', 'akurla', 'sangvi k', 'deepaiguda', 'kowtha', 'bahadurpur', 'kura', 'karanji',
+    'khapri', 'umri', 'belgaon', 'ballori', 'makoda', 'jainad', 'muktapur', 'ada', 'kamtha', 'pardi buzurg', 'pardi khurd',
+    'pippalgaon', 'laxmipur uligan', 'jamini', 'kanpa mediguda', 'mangurla'
+    ],
+
+    'bela': [
+    'sangdi','bhedoda', 'guda', 'kamgarpur', 'manyarpur', 'khagdur', 'mangrool', 'kobhai', 'dehegaon', 'mohabatpur',
+    'bhodod kopsi', 'shamshabad', 'awalpur', 'sirsanna', 'takli', 'dhoptala', 'bela', 'patan', 'ramkam', 'ponnala',
+    'chandpalle', 'chaprala', 'warur', 'junoni', 'karoni k', 'ekori', 'masala buzurg', 'bhadi', 'masala khurd',
+    'syedpur', 'toyaguda kora', 'sahej', 'sangvi', 'douna', 'boregaon', 'pohar', 'karoni b', 'sadarpur', 'sonkhos',
+    'khadki', 'pitgaon'
+    ],
+
+    'talamadugu': [
+    'kosai','palasi buzurg', 'palasi khurd', 'kuchalapoor', 'lingi', 'sunkidi', 'umadam', 'khodad', 'kajjarla', 'ruyyadi', 
+    'kothur', 'talamadugu', 'dorli', 'kappardevi', 'dehegaon', 'umrei', 'ratnapur', 'jhari', 'saknapoor', 'arli khurd',
+    'devapur', 'lachampur', 'palle buzurg', 'bharampur', 'nandigaon', 'palle khurd'
+    ],
+
+    'gudihathnoor': [
+    'vaijapur','kamalapur', 'seetagondi', 'malkapur', 'tosham', 'lingapur', 'gudihathinur', 'machapur', 'dhampur', 'muthnur',
+    'neradigonda', 'mannur', 'dongargaon', 'kolhari', 'umri b', 'guruj', 'gondharkapur', 'rendlabori', 'shantapur',
+    'belluri', 'tejapur'
+     ],
+
+    'inderavelly': [
+    'pipri','devapur', 'ginnera', 'indervelly k', 'bursanpatar', 'gattepalle', 'dodanda', 'indervelly b', 'yamaikunta', 'muthnur',
+    'dhannura b', 'dhannura k', 'goureepur', 'mendapalle', 'keslapur', 'heerapur', 'harkapur', 'anji', 'mamidiguda',
+    'dasnapur', 'keslaguda', 'mallapur', 'dharmasagar', 'tejapur', 'lakampur', 'rampur b', 'kondapur', 'pochampalle',
+    'lachimpur k', 'waipet', 'lachimpur b', 'walganda heerapur', 'dongargaon', 'wadagaon'
+    ],
+
+    'narnoor': [
+    'kondi','rampur', 'khandow', 'dongargaon', 'sedwai', 'kadodi', 'kouthala', 'kothapalle g', 'rupapur', 'warkwai', 'ademeyon',
+    'sawari', 'pipri', 'arjuni', 'paraswada k', 'lokari k', 'jhari', 'dhaba k', 'dhaba buzurg', 'punaguda', 'maregaon',
+    'gadiguda', 'kunikasa', 'kolama', 'parswada b', 'gouri', 'pownur', 'lokari b', 'khadki', 'sungapur', 'chorgaon',
+    'manjari', 'babjhari', 'dhupapur', 'empalle', 'sangvi', 'umri', 'bheempur', 'narnoor', 'khairdatwa', 'gundala',
+    'mahadapur', 'khampur', 'mahagaon', 'mankapur', 'gangapur', 'gunjala', 'tadihadapnur', 'balanpur', 'sonapur',
+    'nagolkonda', 'malepur', 'malangi'
+    ],
+
+    'kerameri': [
+    'lakhmapur','kotha', 'parandoli', 'karanjiwada', 'anthapur', 'isapur', 'gouri', 'devadpalle', 'agarwada', 'keli buzurg', 'sangvi',
+    'keli khurd', 'bholepathur', 'sankaraguda', 'paraswada', 'anarpalle', 'devapur', 'kerameri', 'sakada', 'modi', 'khairi',
+    'surdapur', 'swarkheda', 'indapur', 'nishani', 'kothari', 'pipri', 'goyagaon', 'bheemangondi', 'dhanora', 'narsapur',
+    'parda', 'jhari', 'hatti', 'mettapipri', 'chintakarra', 'tukyanmovad', 'chalbordi', 'patnapur', 'babejheri',
+    'murikilanka', 'kallegaon', 'jodaghat'
+    ],
+
+    'wankdi': [
+     'dhaba','sawathi', 'goagaon', 'chichpalle', 'gunjada', 'arli', 'bambara', 'sonapur', 'mahagaon', 'jambuldhari', 'lanjanveera',
+    'wankdi khurd', 'neemgaon', 'akini', 'chavpanguda', 'navegaon', 'indhani', 'narlapur', 'wankdi kalan', 'khamana',
+    'sarandi', 'khirdi', 'chincholi', 'ghatjangaon', 'tejapur', 'jaithpur', 'bendera', 'samela', 'borda', 'kanneragaon',
+    'komatiguda', 'khedegaon', 'velgi', 'sarkepalle'
+    ],
+
+    'sirpur town' : [
+    'makidi','jakkapur', 'hudkili', 'navegaon', 'venkatraopet', 'laxmipur', 'tonkini', 'parigaon', 'loanvelly', 'dhorpalle',
+    'bhupalapatnam', 'sirpur', 'rudraram', 'cheelapalle', 'medpalle', 'garlapet', 'vempalle', 'achalli', 'chunchupalle',
+    'chintakunta', 'heerapur', 'dabba', 'adepalle'
+    ],
+
+    'kouthala' : [
+        'veervalli', 'sandgaon', 'pardi', 'tatipalle', 'veerdandi', 'bhalepalle', 'gundaipeta', 'thumbadihatti', 'ranvalli',
+        'gudlabori', 'mogadagad', 'kumbari', 'muthampet', 'kouthala', 'talodi', 'nagepalle', 'babapur', 'ravindranagar',
+        'gurudpeta', 'kanki', 'kannepalle', 'chipurudubba', 'babasagar', 'chintala manepalle', 'balaji ankoda', 'gangapur',
+        'burepalle', 'korisini'
+    ],
+
+    'bejjur' : [
+        'rebbena', 'rudrapur', 'munjampalle', 'karjavelli', 'kethini', 'dimda', 'chittam', 'gudem', 'buruguda', 'koyapalle',
+        'nagepalle', 'mogavelly', 'shivapalle', 'ambhaghat', 'katepalle', 'pothepalle', 'marthadi', 'kukuda', 'rechini',
+        'kushnepalle', 'gabbai', 'bejjur', 'chinnasiddapur', 'outsarangipalle', 'kondapalle', 'lodpalle', 'bombaiguda',
+        'yelkapalle', 'yellur', 'penchikalpet', 'koyachichal', 'agarguda', 'gundepalle', 'papanpet', 'sushmeer', 'somini',
+        'talai', 'muraliguda', 'kammergaon', 'nandigaon', 'jilleda'
+    ],
+
+    'kagaznagar' : [
+        'malni', 'metindhani', 'marepalle', 'regulguda', 'kosni', 'boregaon', 'gondi', 'narapur', 'metpalle', 'dubbaguda',
+        'ankusapur', 'nandiguda', 'vanjiri', 'bareguda', 'chinthaguda', 'easgaon', 'nazrulnagar', 'ankhoda', 'mandva',
+        'gannaram', 'vallakonda', 'andavelli', 'bhatpalle', 'jagannathpur', 'bodepalle', 'boregaon', 'seetanagar', 'jambuga',
+        'nagampet', 'mosam', 'raspalle', 'sarsala', 'kadamba', 'guntlapet', 'kagaznagar'
+    ],
+
+    'asifabad' : [
+        'wadiguda', 'ada', 'danapur', 'ippalnavegaon', 'saleguda', 'govindapur', 'gundi', 'cherpalle', 'nandupa', 'rahapalle',
+        'rajura', 'yellaram', 'kommuguda', 'dadpapur', 'khapri', 'babapur', 'ankusapur', 'buruguda', 'mothuguda', 'appepalle',
+        'kommuguda', 'edulwada', 'singaraopet', 'chilatiguda', 'samela', 'tumpalle', 'dagleshwar', 'kosara', 'itukyal',
+        'balegaon', 'demmidiguda', 'wavudham', 'mankapur', 'kutoda', 'malan gondi', 'ada dasnapur', 'wadigondi', 'mowad',
+        'siryan mowad', 'balahanpur', 'temrianmovad', 'kowdianmovad', 'suddha ghat', 'devadurgam', 'chirrakunta', 'padibonda',
+        'danaboinapeta', 'mondepalle', 'routsankepalle', 'perasnambal', 'addaghat', 'asifabad'
+    ],
+
+    'jainoor' : [
+        'ashapalle', 'patnapur', 'gudamamda', 'addesar', 'bhusimatta', 'rasimatta', 'daboli', 'lendiguda', 'ushegaon',
+        'shivanur', 'marlawai', 'dubbaguda', 'powerguda', 'jamni', 'polasa', 'jainoor'
+    ],
+
+    'utnoor' : [
+        'chintakarra', 'narsapur buzurg', 'ghatti', 'wadoni', 'chandur', 'hasnapur', 'yenka', 'umri', 'sakhera', 'andholi',
+        'pulimadgu', 'yenda', 'shampur', 'salewada buzurg', 'salewada khurd', 'kopergadh', 'wadgalpur khurd', 'tandra',
+        'luxettipet', 'nagapur', 'ramlingampet', 'durgapur', 'rampur khurd', 'lakkaram', 'gangamapet', 'gangapur', 'kamnipet',
+        'danthanpalle', 'ghanpur', 'narsapur new', 'bhupet', 'balampur', 'birsaipet', 'utnur'
+    ],
+
+    'ichoda' : [
+        'adegaon khurd', 'gubba', 'junni', 'babuldhole', 'boregaon', 'kamgir', 'ponna', 'sunkidi', 'sirikonda', 'heerapur',
+        'soanpalle', 'dhoba buzurg', 'talamadri', 'madapur', 'jamidi', 'adegaon buzurg', 'girjam', 'chincholi', 'navagaon',
+        'dhaba khurd', 'salyada', 'malyal', 'mankapur', 'dharmapuri', 'jalda', 'kokasmannar', 'makhra buzurg', 'makhra khurd',
+        'gundi', 'keshapatnam', 'narsapur', 'gundala', 'neradigonda', 'gaidpalle', 'gandiwagu', 'babjepet', 'jogipet',
+        'sirichalma', 'narayanapur', 'neradigonda k', 'ichoda'
+    ],
+
+    'bazarhathnoor' : [
+        'umarda buzurg', 'girjai', 'bhutai khurd', 'dhabadi', 'gokonda', 'yesapur', 'morekhandi', 'harkai', 'ananthapur',
+        'dignoor', 'rampur', 'tembi', 'dharampuri', 'bhosra', 'dehgaon', 'chintal sangvi', 'bhutai buzurg', 'mankapur p',
+        'jatarla', 'bazarhatnur', 'kolhari', 'balanpur', 'girnur', 'pipri', 'kandli', 'mohada', 'warthamanoor'
+    ],
+
+    'boath' : [
+        'wajar', 'chintalabori', 'ghanpur', 'sonala', 'kowtha khurd', 'sangvi', 'kowtha buzurg', 'sakhera', 'tewiti', 'pardi buzurg',
+        'pardi khurd', 'gollapur', 'babera', 'kantegaon', 'nigini', 'marlapalle', 'nakkalawada', 'karathwada', 'boath buzurg',
+        'kangutta', 'pochera', 'kuchalapur', 'dhannur buzurg', 'pippaladhari', 'patnapur', 'narayanpur', 'anduru', 'dhannur khurd',
+        'nagapur'
+    ],
+    
+    'neradigonda': [
+    'gajli', 'gandhari', 'kupti khurd', 'kumari', 'tejapur', 'chincholi', 'tarnam khurd', 'tarnam buzurg', 'madhapur',
+    'kuntala buzurg', 'venkatapur', 'wagdhari', 'sowergaon', 'lokhampur', 'buddikonda', 'waddur', 'darba', 'bondadi',
+    'surdapur', 'kishtapur', 'shankarapur', 'neradigonda', 'rolmanda', 'buggaram', 'kuntala khurd', 'nagamalyal',
+    'peechra', 'boragaon', 'bandemregad', 'purushothampur', 'rajura', 'ispur', 'narayanapur', 'wankidi', 'koratkal buzurg',
+    'dhonnora', 'koratkal khurd', 'lingatla', 'arepalle'
+],
+'sirpur': [
+    'raghapur', 'bhurnur', 'phullara', 'devadpalle', 'seetagondi', 'pangdi', 'babjipet', 'chorpalle', 'vankamaddi', 'netnur',
+    'pamulawada', 'sirpur', 'kohinur buzurg', 'kohinur khurd', 'shettihadapnur', 'chapri', 'dhanora', 'mahagaon',
+    'ghumnur khurd', 'ghumnur buzurg', 'khanchanpalle', 'kothapalle', 'mamidipalle', 'lingapur', 'yellapatar', 'jamuldhara'
+],
+'rebbana': [
+    'edvalli', 'khairgaon', 'navegaon', 'venkulam', 'rollapet', 'rampur', 'kondapalle', 'nerpalle', 'rebbana', 'gangapur',
+    'passigaon', 'tungeda', 'pothpalle', 'dharmaram', 'nambal', 'gollet', 'sonapur', 'pulikunta', 'takkallapalle', 'rajaram',
+    'rollapahad', 'seethanagar', 'komarvalli', 'rangapur', 'narayanpur', 'kistapur', 'jakkalpalle'
+],
+'bhimini': [
+    'karjibheempur', 'akkalapalle', 'laxmipur', 'wadal', 'peddagudipet', 'surjapur', 'babapur', 'rajaram', 'peddapeta',
+    'bhimini', 'bitturpalle', 'mallidi', 'venkatapur', 'gollaghat', 'veegaon', 'polampalle', 'shiknam', 'rampur', 'tekulapalle',
+    'jankapur', 'yellaram', 'dampur', 'jajjarvelly', 'kothapalle', 'rebbena', 'veerapur', 'muthapur', 'kannepalle', 'metpalle'
+],
+'dahegaon': [
+    'itial', 'gorregutta', 'borlakunta', 'keslapur', 'kothmir', 'beebra', 'pesarkunta', 'chedvai', 'ainam', 'polampalle',
+    'thangallapalle', 'chinnagudipet', 'chinna thimmapur', 'pedda thimmapur', 'hathni', 'madavelli', 'saligaon', 'kalwada',
+    'dahegaon', 'pambapur', 'kammarpalle', 'laggaon', 'bhogaram', 'vodduguda', 'brahmanchichal', 'bhamanagar', 'kunchavelli',
+    'chandrapalle', 'etapalle', 'girvelli', 'chinnaraspalle', 'amargonda', 'loha', 'digida', 'teepergaon', 'rampur',
+    'motlaguda', 'ravalpalle'
+],
+'vemanpalle': [
+    'buyyaram', 'jilleda', 'jakkepalle', 'nagepalle', 'lingala', 'chintapudi', 'nagaram', 'suraram', 'bommena', 'chamanpalle',
+    'baddampalle', 'dasnapur', 'kothapalle', 'vemanpalle', 'rajaram', 'sumputum', 'jajulpet', 'mukkidigudem', 'kallampalle',
+    'gorlapalle', 'mamda', 'neelwai', 'kyathanpalle', 'mulkalpet', 'racherla'
+],
+'nennal': [
+    'nennal', 'manneguda', 'konampet', 'kushenapalle', 'jangalpet', 'dammireddipet', 'kharji', 'gollapalle', 'nandulapalle',
+    'ghanpur', 'jogapur', 'gundlasomaram', 'metpalle', 'mailaram', 'avadam', 'chittapur', 'gudipet', 'jhandavenkatapur',
+    'chinavenkatapur', 'pottiyal', 'kothur'
+],
+'tandur': [
+    'abbapur', 'narsapur', 'pegadapalle', 'repallewada', 'kothapalle', 'balhanpur', 'rechini', 'annaram', 'achalapur',
+    'gampalpalle', 'chandrapalle', 'gopalnagar', 'kistampet', 'choutpalle', 'boyapalle', 'tandur', 'dwarakapur', 'kasipet',
+    'katherla'
+],
+'tiryani': [
+    'loddiguda', 'goena', 'dantanpalle', 'pangidimadra', 'ullipitadorli', 'lingiguda', 'devaiguda', 'boardham', 'areguda',
+    'chopidi', 'jewni', 'goyagaon', 'dongargaon', 'koyatalandi', 'talandi', 'rallakamepalle', 'godelpalle', 'ginnedari',
+    'sangapur', 'maindagudipet', 'tiryani', 'gangapur', 'gambhiraopet', 'duggapur', 'kannepalle', 'sonapur', 'edulpad',
+    'dondla', 'irkapalle', 'chintapalle', 'mangi', 'rompalle', 'bheemapur', 'gundala', 'mankapur'
+],
+'jannaram': [
+    'indhanpalle', 'kothapet', 'kawal', 'kishtapur', 'kamanpalle', 'raindlaguda', 'marriguda', 'murimadugu', 'venkatapur',
+    'narsingapur', 'kalmadagu', 'dharmaram', 'badampalle', 'puttiguda', 'ponakal', 'jannaram', 'paidpalle', 'dongapalle',
+    'bommena', 'papammaguda', 'chintaguda', 'malyal', 'singaraipet', 'thimmapur', 'rampur'
+],
+'kaddam peddur': [
+    'gangapur', 'allampally', 'rampur', 'gandigopalpur', 'islampur', 'udumpur', 'dharmajipet', 'kalleda', 'laxmipur',
+    'revajipet old', 'singapur', 'peddur', 'pandwapur', 'nawabpet', 'mallapur', 'bhuttapur', 'revojipet new', 'dasturabad',
+    'ambaripet', 'kondkuru', 'kannapur', 'dharmaipet', 'narsapur', 'nachan yellapur', 'maddipadga', 'laxmisagar',
+    'yelagadapa', 'masaipet', 'lingapur', 'sarangapur', 'dildarnagar', 'chittial', 'bellal', 'bhuthkur', 'munnial',
+    'chennur', 'gondserial'
+],
+'sarangapur': [
+    'potia', 'kupti', 'ponkur', 'pendaldhari', 'adelli', 'nagapur', 'jam', 'sarangpur', 'kowtla buzurg', 'jewly',
+    'chincholi malak', 'kamkati', 'vaikuntapur', 'tandra', 'piyaramur', 'beervelli', 'vanjar', 'godsera', 'yakarpalle',
+    'boregaon', 'dhani', 'alur', 'lakshmipur', 'chincholi buzurg', 'gopalpet', 'ranapur'
+],
+'kuntala': [
+    'limba buzurg', 'medanpur', 'ambagaon', 'suryapur', 'downelle', 'burugupalle g', 'gulmadaga', 'ambakanti', 'kuntala',
+    'oala', 'limba khurd', 'vittapur', 'venkur', 'penchikalpahad', 'andkur', 'bamini buzurg', 'nandan', 'turati', 'kallur',
+    'mutakapalle', 'burgupalle k', 'arly khurd', 'dongargaon', 'chakepalle'
+],
+'kubeer': [
+    'palsi', 'pardi khurd', 'jamgaon', 'ranjani', 'sirpalle', 'dodarna', 'belgaon', 'brahmeswar', 'marlagonda', 'veeragohan',
+    'halda', 'shivani', 'chata', 'pardi buzurg', 'darkubeer', 'rajura', 'kubeer', 'khasra', 'chondi', 'jumda', 'sangvi',
+    'kupti', 'varni', 'sonari', 'hampli buzurg', 'godapur', 'nighwa', 'mola', 'lingi', 'wai', 'sanwali', 'antharni',
+    'malegaon', 'godsera', 'pangra', 'bakot', 'sowna'
+],
+'bhainsa': [
+    'chichond', 'kumbhi', 'takli', 'linga', 'mirzapur', 'siddur', 'gundagaon', 'mahagaon', 'chintalabori', 'kotalgaon',
+    'bijjur', 'sunkli', 'thimmapur', 'wanalpahad', 'ekgaon', 'babalgaon', 'pangri', 'manjri', 'sirala', 'elegaon',
+    'badgaon', 'dahegaon', 'walegaon', 'kumsari', 'khatgaon', 'kamol', 'hasgul', 'mategaon', 'hampoli khurd',
+    'boregaon buzurg', 'watoli', 'pendapalle', 'bhainsa'
+],
+'tanoor': [
+    'wadjhari', 'beltaroda', 'bhosi', 'mahalingi', 'bamni', 'bondrat', 'bolsa', 'umri khurd', 'boregaon khurd', 'bember',
+    'jhari buzurg', 'mugli', 'masalga', 'kupli', 'wadgaon', 'jewla khurd', 'kalyani', 'kolur', 'hipnally', 'elvi', 'hangirga',
+    'dhagaon', 'singangam', 'doultabad', 'nandgam', 'tanoor', 'jewla buzurg', 'tondala', 'kharbala', 'yellawat', 'wadhone'
+],
+'mudhole': [
+    'ramtek', 'machkal', 'mudgal', 'taroda', 'pipri', 'edbid', 'venkatapur', 'chinchala', 'vitholi', 'karegaon', 'chintakunta',
+    'wadthala', 'boregaon', 'brahmangaon', 'ganora', 'riuvi', 'kirgul khurd', 'mudhole', 'takli', 'dhondapur', 'labdi',
+    'bidralli', 'mailapur', 'ravindapur', 'basar', 'kirgul buzurg', 'voni', 'kowtha', 'ashta', 'surli', 'salapur', 'sawargaon'
+],
+'lokeswaram': [
+    'potpalle m', 'hadgaon', 'sathgaon', 'biloli', 'hawarga', 'manmad', 'potpalle b', 'yeddur', 'rajura', 'gadchanda',
+    'nagar', 'bhagapur', 'kistapur', 'puspur', 'lohesra', 'new raipur k r c', 'joharpur', 'kankapur', 'wastapur', 'watoli',
+    'dharmara', 'panchgudi', 'mohalla', 'bamni k'
+],
+'dilawarpur': [
+    'anjani', 'kurli', 'kadili', 'malegaon', 'kalva', 'new lolam r c', 'daryapur', 'narsapur', 'naseerabad', 'rampur',
+    'cherlapalle', 'temborni', 'samanderpalle', 'gundampalle', 'dilawarpur', 'sirgapur', 'mayapur', 'banaspalle',
+    'lingampalle', 'kanjar', 'ratnapur k', 'sangvi', 'mallapur', 'velmel'
+],
+'nirmal': [
+    'vengvapet', 'dyangapur', 'yellareddipet', 'medpalle', 'neelaipet', 'ananthpet', 'langdapur', 'talwada', 'chityal',
+    'new mujgi', 'thamsa', 'yellapalle', 'bhagyanagar', 'new pochampad', 'ratnapur kondli', 'kondapur', 'akkapur',
+    'muktapur', 'shakari', 'kadthal', 'koutla k', 'siddankunta new', 'old pochampad', 'pakpatla', 'madhapur', 'jafrapur',
+    'ganjal', 'soan', 'nirmal'
+],
+'laxmanchanda': [
+    'waddyal', 'kankapur', 'narsapur', 'boregaon', 'kanjar', 'babapur', 'potapalle k', 'thirpalle', 'laxmanchanda',
+    'peechara', 'new velmal', 'sangampet', 'new bopparam', 'kuchanpalle', 'dharmaram', 'parpalle', 'potpalle b', 'mallapur',
+    'machapur', 'munipalle', 'chamanpalle', 'chintalchanda'
+],
+'mamda': [
+    'pulimadugu', 'tandra', 'vasthapur', 'rampur', 'rasimatla', 'gayadpalle', 'burugupalle', 'kishanraopet', 'parimandal',
+    'arepalle', 'lingapur', 'raidhari', 'kappanpalle', 'dimmadurthy', 'kotha sangvi r c', 'mamda', 'kotha lingampalle r c',
+    'koratikal', 'chandaram', 'bandal khanapur', 'potharam', 'ananthpet', 'kotha timbareni r c', 'adarsanagar r c kothur edudur',
+    'kamal kote', 'ponkal', 'naldurthi', 'venkatapur'
+],
+'khanapur': [
+    'paspula', 'itikyal', 'gummanuyenglapur', 'dhomdari', 'vaspalle', 'shetpalle', 'kosagutta', 'pembi', 'venkampochampad',
+    'burugpalle', 'bevapur r', 'rajura', 'mandapalle', 'ervachintal', 'chamanpalle', 'beernandi', 'advisarangapur', 'nagpur',
+    'iqbalpur', 'tarlapad', 'sathnapalle', 'patha yellapur', 'kothapet', 'dilwarpur', 'bavapur k', 'khanapur', 'badankurthy',
+    'maskapur', 'surjapur', 'medampalle', 'thimmapur'
+],
+'dandepalle': [
+    'gurrevu', 'allipur', 'nagasamudram', 'tallapet', 'makulpet', 'mamidipalle', 'kundelapahad', 'tanimadugu', 'dandepalle',
+    'medaripet', 'lingapur', 'bikkanguda', 'laxmikantapur', 'dwaraka', 'peddapet', 'dharmaraopet', 'narsapur', 'venkatapur',
+    'chintapalle', 'karvichelma', 'mutyampet', 'rebbenpalle', 'kondapur', 'kasipet', 'velganoor', 'jaidapet', 'nambal',
+    'gudam', 'kamepalle'
+],
+'kasipet': [
+    'kurreghad', 'sonapur', 'venkatapur', 'tirmalapur', 'dharmaraopet', 'malkepalle', 'rottepalle', 'peddapur', 'gatrapalle',
+    'chintaguda', 'kondapur', 'konur', 'pallamguda', 'kankalapur', 'kometichenu', 'gurvapur', 'muthempalle', 'varipet',
+    'devapur', 'kasipet'
+],
+'bellampalle': [
+    'ankusam', 'chakepalle', 'chandravelli', 'rangapet', 'dugnepalle', 'akenipalle', 'batwanpalle', 'perkapalle',
+    'bellampalle part'
+],
+'kotapalle': [
+    'nakkalpalle', 'brahmanpalle', 'mallampet', 'shankarpur', 'shetpalle', 'pangadisomaram', 'kotapalle', 'vesonvai',
+    'sarvaipet', 'kondampet', 'nagampet', 'bopparam', 'venchapalle', 'supak', 'jangaon', 'algaon', 'pullagaon', 'sirsa',
+    'edula bandam', 'lingannapet', 'edagatta', 'pinnaram', 'parpalle', 'yerraipet', 'borampalle', 'kawarkothapalle', 'annaram',
+    'arjungutta', 'rajaram', 'rampur', 'kollur', 'dewalwada', 'rapanpalle'
+],
+'mandamarri': [
+    'andgulapet', 'chirrakunta', 'sarangapalle', 'thimmapur', 'amerwadi', 'venkatapur', 'ponnaram', 'mamidighat', 'kyathampalle',
+    'mandamarri'
+],
+'luxettipet': [
+    'talamalla', 'challampet', 'balraopet', 'jendavenkatapur', 'rangapet', 'chandram', 'venkataraopet', 'ellaram', 'kothur',
+    'utukur', 'modela', 'itkyal', 'lingapur', 'thimmapur', 'laxmipur', 'pothepalle', 'gullakota', 'mittapally', 'luxettipet'
+],
+'mancherial': [
+    'ryali', 'nagaram', 'gadhpur', 'gudipet', 'subbapalle', 'peddampet', 'kondapur', 'donabanda', 'padthenpalle', 'karnamamidi',
+    'kondepalle', 'rapalle', 'hajipur', 'narsingapur', 'namnur', 'chandanapur', 'mulkalla', 'kothapalle', 'vempalle',
+    'teegalpahad', 'naspur', 'thallapalle', 'singapur', 'mancherial'
+],
+'jaipur': [
+    'kankur', 'mittapalle', 'reddipalle', 'dampur', 'burugupalle', 'pothanpalle', 'bhimaram', 'ankushapur', 'polampalle', 'jaipur',
+    'narva', 'maddikunta', 'ramaraopet', 'indaram', 'tekumatla', 'shetpalle', 'yelkanti', 'pegadapalle', 'gangipalle',
+    'narasingapuram', 'bejjal', 'maddulapalle', 'kundaram', 'arepalle', 'rommipur', 'kistapur', 'maddikal', 'kothapalle',
+    'velal', 'gopalpur', 'pownur', 'shivvaram'
+],
+'chennur': [
+    'buddaram', 'sankaram', 'kannepalle', 'shivalingapur', 'akkapalle', 'chintapalle', 'yellakkapet', 'kistampet',
+    'khambojipet', 'lingampalle', 'suddal', 'bhamraopet', 'kathersala', 'narayanpur', 'dugnepalle', 'raipet', 'angarajpalle',
+    'kachanpalle', 'gangaram', 'asnad', 'kommera', 'sundersala', 'narasakkapet', 'pokkur', 'chakepalle', 'ponnaram',
+    'somanpalle', 'nagapur', 'beervelli', 'chennur'
+] 
+    
+    
+    
+    
 
 
 };

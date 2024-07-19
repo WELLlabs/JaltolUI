@@ -223,12 +223,10 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
           {boundaryData && (
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
+                key={JSON.stringify(boundaryData)} // Force re-render by using a unique key
                 data={boundaryData}
                 style={normalStyle}
                 onEachFeature={onEachFeature}
-                eventHandlers={{
-                  add: () => setBoundaryLoaded(true), // Set boundaryLoaded state when boundary data is fully loaded
-                }}
               />
             </LayersControl.Overlay>
           )}

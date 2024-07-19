@@ -55,9 +55,16 @@ const DropdownIndicator = (props) => {
   );
 };
 
-const SelectDistrict = ({ options, placeholder }) => {
+const SelectDistrict = ({ options, placeholder, onChange }) => {
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
   const animatedComponents = makeAnimated();
+
+  const handleChange = (selectedOption) => {
+    setSelectedDistrict(selectedOption);
+    if (onChange) {
+      onChange(selectedOption);
+    }
+  };
 
   return (
     <Select
@@ -66,7 +73,7 @@ const SelectDistrict = ({ options, placeholder }) => {
       options={options}
       value={selectedDistrict}
       placeholder={placeholder}
-      onChange={setSelectedDistrict}
+      onChange={handleChange}
     />
   );
 };
@@ -74,6 +81,7 @@ const SelectDistrict = ({ options, placeholder }) => {
 SelectDistrict.propTypes = {
   options: PropTypes.array.isRequired,
   placeholder: PropTypes.string,
+  onChange: PropTypes.func, // Add PropTypes for onChange
 };
 
 export default SelectDistrict;

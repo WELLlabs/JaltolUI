@@ -15,6 +15,8 @@ const Footer = () => {
             <li><a href="/impact-assessment" className="text-white hover:text-gray-300">Impact Assessment</a></li>
             <li><a href="/maps-page" className="text-white hover:text-gray-300">Maps</a></li>
             <li><a href="/methodology" className="text-white hover:text-gray-300">Methodology</a></li>
+            <li><a href="/api-documentation" className="text-white hover:text-gray-300">API</a></li>
+            {/* <Link to="/api-documentation" className="text-xl text-white hover:text-gray-300">API Documentation</Link> */}
           </ul>
         </div>
         {/* Contact Section */}
