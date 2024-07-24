@@ -79,6 +79,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2022');
   const [controlVillage, setControlVillageName] = useState(null);
+  const [controlSubdistrict, setSubdistrictName] = useState(null);
   const [isLoading, setLoading] = useState(false);
   const [boundaryLoaded, setBoundaryLoaded] = useState(false);
   const [rasterLoaded, setRasterLoaded] = useState(false);
@@ -102,13 +103,15 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
       get_control_village(selectedState, districtValue, subdistrictValue, selectedVillage)
         .then(data => {
+          const controlSubdistrict = data.properties.subdistric;
           const controlVillageName = data.properties.village_na;
           console.log("Boundary data received:", data);
           setBoundaryData(data);
+          setSubdistrictName(controlSubdistrict);
           setControlVillageName(controlVillageName);
 
           // Fetch the LULC raster data using the selected district and control village name
-          return get_lulc_raster(selectedState, districtValue, subdistrictValue, controlVillageName, selectedYear);
+          return get_lulc_raster(selectedState, districtValue, controlSubdistrict, controlVillageName, selectedYear);
         })
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
@@ -160,7 +163,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
         <VillageDetails
           selectedState={selectedState}
           selectedDistrict={selectedDistrict}
-          selectedSubdistrict={selectedSubdistrict}
+          selectedSubdistrict={controlSubdistrict}
           selectedVillage={controlVillage}
         />
       </div>

@@ -23,6 +23,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
     const chartData = useRecoilValue(interventionChartDataAtom);
     const setChartData = useSetRecoilState(interventionChartDataAtom);
     const [controlVillage, setControlVillage] = useState(null);
+    const [controlSubdistrict, setSubdistrictName] = useState(null);
     const [datasetVisibility, setDatasetVisibility] = useState({});
     const chartRef = useRef(null);
 
@@ -92,7 +93,9 @@ const InterventionCompareChart = ({ onDataChange }) => {
             get_control_village(stateName, districtValue, subdistrictName.value, villageName)
                 .then(response => {
                     const controlVillageName = response.properties?.village_na;
+                    const controlSubdistrict = response.properties?.subdistric;
                     console.log('Control Village:', controlVillageName);
+                    setSubdistrictName(controlSubdistrict);
                     setControlVillage(controlVillageName);  // Update state, triggers re-render
                 })
                 .catch(error => {
@@ -103,15 +106,15 @@ const InterventionCompareChart = ({ onDataChange }) => {
 
     useEffect(() => {
         // This effect runs only when controlVillage is set
-        if (controlVillage && stateName && districtName && subdistrictName && villageName) {
+        if (controlVillage && controlSubdistrict && stateName && districtName && subdistrictName && villageName) {
             const districtValue = districtName.value;
             const subdistrictValue = subdistrictName.value
             console.log('Making API call with:', stateName, districtName, subdistrictName, villageName);
             const fetchLandCover = get_area_change(stateName, districtValue, subdistrictValue, villageName);
             const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, villageName);
 
-            const fetchControlLandCover = get_area_change(stateName, districtValue, subdistrictValue, controlVillage);
-            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, controlVillage);
+            const fetchControlLandCover = get_area_change(stateName, districtValue, controlSubdistrict, controlVillage);
+            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, controlSubdistrict, controlVillage);
 
             Promise.all([fetchLandCover, fetchRainfall, fetchControlLandCover, fetchControlRainfall])
                 .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {
