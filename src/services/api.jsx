@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
-//const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
+// const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
 
 export const get_boundary_data = (stateName, districtName) => {
   return axios.get(`${API_URL}/get_boundary_data/`, {
@@ -55,4 +55,22 @@ export const get_rainfall_data = (stateName, districtName, subdistrictName, vill
       village_name: villageName
     }
   }).then(response => response.data);
+};
+
+export const getSubdistricts = (districtId) => {
+  return axios.get(`${API_URL}/subdistricts/${districtId}/`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching subdistricts:", error);
+      throw error;
+    });
+};
+
+export const getVillages = (subdistrictId) => {
+  return axios.get(`${API_URL}/villages/${subdistrictId}/`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching villages:", error);
+      throw error;
+    });
 };

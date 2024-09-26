@@ -96,7 +96,7 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
       setFlyToComplete(false); // Reset fly to complete state
 
       const districtValue = selectedDistrict.value;
-      const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.value : null;
+      const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.label : null;
 
       // Fetch boundary data
       get_boundary_data(selectedState, districtValue, subdistrictValue, selectedVillage)

@@ -111,8 +111,8 @@ const LandCoverChangeChart = ({ onDataChange }) => {
     useEffect(() => {
         setLoading(true);  // Set loading to true when API call starts
         if (stateName && districtName && subdistrictName && villageName) {
-            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.value, villageName);
-            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.value, villageName);
+            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.label, villageName);
+            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.label, villageName);
 
             Promise.all([fetchLandCover, fetchRainfall])
                 .then(([landCoverData, rainfallData]) => {

@@ -90,7 +90,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
             console.log('Fetching control village data');
             const districtValue = districtName.value;
 
-            get_control_village(stateName, districtValue, subdistrictName.value, villageName)
+            get_control_village(stateName, districtValue, subdistrictName.label, villageName)
                 .then(response => {
                     const controlVillageName = response.properties?.village_na;
                     const controlSubdistrict = response.properties?.subdistric;
@@ -108,7 +108,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
         // This effect runs only when controlVillage is set
         if (controlVillage && controlSubdistrict && stateName && districtName && subdistrictName && villageName) {
             const districtValue = districtName.value;
-            const subdistrictValue = subdistrictName.value
+            const subdistrictValue = subdistrictName.label;
             console.log('Making API call with:', stateName, districtName, subdistrictName, villageName);
             const fetchLandCover = get_area_change(stateName, districtValue, subdistrictValue, villageName);
             const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, villageName);

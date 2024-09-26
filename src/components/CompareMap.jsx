@@ -99,7 +99,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
       // Fetch the boundary data using the selected district
       const districtValue = selectedDistrict.value;
-      const subdistrictValue = selectedSubdistrict.value;
+      const subdistrictValue = selectedSubdistrict.label;
 
       get_control_village(selectedState, districtValue, subdistrictValue, selectedVillage)
         .then(data => {
