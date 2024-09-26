@@ -4,11 +4,13 @@ export const selectedState = 'Rajasthan'; // Hardcoded for now
 export const districtDisplayNames = {
     'karauli': 'Karauli, RJ',
     'adilabad': 'Adilabad, AP',
+    'raichur' : 'Raichur, KA',
 };
   
 export const districtToStateMap = {
     'karauli': 'Rajasthan',
     'adilabad': 'Andhra Pradesh',
+    'raichur' : 'Karnataka',
 };
   
 

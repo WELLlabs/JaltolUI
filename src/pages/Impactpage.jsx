@@ -46,7 +46,10 @@ const ImpactAssessmentPage = () => {
       return 1; // Karauli district ID
     } else if (districtName === 'Adilabad, AP') {
       return 2; // Adilabad district ID
-    } else {
+    }  else if (districtName === 'Raichur, KA') {
+      return 3; // Adilabad district ID
+    }
+    else {
       return null; // No district selected
     }
   };
@@ -104,10 +107,18 @@ const ImpactAssessmentPage = () => {
   // Handle district change and set state accordingly
   const handleDistrictChange = option => {
     setSelectedDistrict(option); // Update selected district
+     // Reset subdistrict and village when a new district is selected
+  setSelectedSubdistrict(null);
+  setSelectedVillage(null);
+  setSubdistrictOptions([]); // Clear subdistrict options
+  setVillageOptions([]); // Clear village options
+
     const state = districtToStateMap[option.value]; // Get corresponding state
     if (state) {
       setSelectedState(state); // Update state
     }
+
+
   };
 
   const handleSubdistrictChange = option => {
@@ -116,6 +127,9 @@ const ImpactAssessmentPage = () => {
   
   // Store the subdistrict label (name) and still pass it as an object for consistency
   setSelectedSubdistrict({ value: option.value, label: option.label.toLowerCase() });
+   // Reset the selected village and village options when a new subdistrict is selected
+   setSelectedVillage(null);
+   setVillageOptions([]);
 };
 
   
@@ -159,7 +173,7 @@ const handleVillageChange = option => {
                 onChange={handleSubdistrictChange}
                 placeholder="Select Subdistrict..."
                 isDisabled={!selectedDistrict}
-                value={selectedSubdistrict}
+                value={selectedSubdistrict || null }
               />
             </div>
             <div className="mb-4">
@@ -168,7 +182,7 @@ const handleVillageChange = option => {
                 onChange={handleVillageChange}
                 placeholder="Select Village..."
                 isDisabled={!selectedSubdistrict}
-                value={selectedVillage}
+                value={selectedVillage || null}
               />
             </div>
           </div>
