@@ -5,11 +5,12 @@ export const districtDisplayNames = {
     'karauli': 'Karauli, RJ',
     'adilabad': 'Adilabad, AP',
 };
-
+  
 export const districtToStateMap = {
     'karauli': 'Rajasthan',
     'adilabad': 'Andhra Pradesh',
 };
+  
 
 export const subdistrictByDistrict = {
     'karauli': ['Todabhim', 'Nadoti', 'Hindaun', 'Karauli', 'Mandrail', 'Sapotra'],

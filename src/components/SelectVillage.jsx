@@ -53,7 +53,7 @@ const SelectVillage = ({ options, placeholder }) => {
     const handleChange = (selectedOption) => {
         console.log("Village selected:", selectedOption);
         // If you are storing the whole object in the Recoil state:
-        setSelectedVillage(selectedOption.value);
+        setSelectedVillage(selectedOption.label);
         // If you are only storing the value in the Recoil state:
         // setSelectedVillage(selectedOption.value);
     };

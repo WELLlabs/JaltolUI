@@ -99,7 +99,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
 
     if (selectedDistrict && selectedState) {
       const districtValue = selectedDistrict.value;
-      const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.value : null;
+      const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.label : null;
 
       // Fetch boundary data
       get_boundary_data(selectedState, districtValue, subdistrictValue, selectedVillage)
