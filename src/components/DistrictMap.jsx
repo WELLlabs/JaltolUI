@@ -176,16 +176,22 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
       </div>
       <div className="absolute bottom-8 left-10 z-[9999] m-4">
-        <button 
-          onClick={() => {
-            setCompareVillagesClicked(true);
-            console.log("Compare Villages button clicked");
-            scrollRef.current.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded cursor-pointer"
-        >
-          Compare Villages
-        </button>
+      <button 
+  onClick={() => {
+    setCompareVillagesClicked(true);
+    if (scrollRef && scrollRef.current) {
+      console.log("Scrolling to:", scrollRef.current);
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      console.error("scrollRef is not properly set");
+    }
+  }}
+  className="mt-4 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded cursor-pointer"
+>
+  Compare Villages
+</button>
+
+
       </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">

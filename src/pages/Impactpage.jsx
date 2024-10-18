@@ -40,19 +40,39 @@ const ImpactAssessmentPage = () => {
   const compareVillagesClicked = useRecoilValue(compareVillagesClickedAtom);
   const [selectedState, setSelectedState] = useRecoilState(selectedStateAtom);
 
-  // Hardcoded district IDs based on selected district name
-  const getDistrictIdByName = (districtName) => {
-    if (districtName === 'Karauli, RJ') {
-      return 1; // Karauli district ID
-    } else if (districtName === 'Adilabad, AP') {
-      return 2; // Adilabad district ID
-    }  else if (districtName === 'Raichur, KA') {
-      return 3; // Adilabad district ID
-    }
-    else {
-      return null; // No district selected
-    }
+  // // Hardcoded district IDs based on selected district name
+  // const getDistrictIdByName = (districtName) => {
+  //   if (districtName === 'Karauli, RJ') {
+  //     return 1; // Karauli district ID
+  //   } else if (districtName === 'Adilabad, AP') {
+  //     return 2; // Adilabad district ID
+  //   }  else if (districtName === 'Raichur, KA') {
+  //     return 3; // Adilabad district ID
+  //   } else if (districtName === 'Chitrakoot, UP') {
+  //     return 4;
+  //   } else if (districtName === 'Nashik, MH') {
+  //     return 5;
+  //   } else if (districtName === 'Aurangabad, MH') {
+  //     return 7;
+  //   } else if (districtName === 'Saraikela Kharsawan, JH') {
+  //     return 6;
+  //   } 
+  //   else {
+  //     return null; // No district selected
+  //   }
+  // };
+
+  const districtIdMap = {
+    'Karauli, RJ': 1,
+    'Adilabad, AP': 2,
+    'Raichur, KA': 3,
+    'Chitrakoot, UP': 4,
+    'Nashik, MH': 5,
+    'Aurangabad, MH': 7,
+    'Saraikela Kharsawan, JH': 6,
   };
+
+  const getDistrictIdByName = (districtName) => districtIdMap[districtName] || null;
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -103,6 +123,17 @@ const ImpactAssessmentPage = () => {
       setVillageOptions([]);
     }
   }, [selectedSubdistrict]);
+
+
+  useEffect(() => {
+    if (compareVillagesClicked) {
+      setTimeout(() => {
+        if (scrollTargetRef.current) {
+          scrollTargetRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100); // Add delay to ensure rendering is complete
+    }
+  }, [compareVillagesClicked]);
 
   // Handle district change and set state accordingly
   const handleDistrictChange = option => {
@@ -169,6 +200,7 @@ const handleVillageChange = option => {
             </div>
             <div className="mb-4">
               <SelectSubdistrict
+                key={selectedDistrict?.value || 'no-district'}
                 options={subdistrictOptions}
                 onChange={handleSubdistrictChange}
                 placeholder="Select Subdistrict..."
@@ -178,6 +210,7 @@ const handleVillageChange = option => {
             </div>
             <div className="mb-4">
               <SelectVillage
+                key={selectedSubdistrict?.value || 'no-subdistrict'}
                 options={villageOptions}
                 onChange={handleVillageChange}
                 placeholder="Select Village..."
@@ -237,7 +270,7 @@ const handleVillageChange = option => {
 
       {compareVillagesClicked && (
         <>
-          <div className="flex flex-col lg:flex-row gap-6 ml-10 z-[9999]">
+          <div ref={scrollTargetRef} className="flex flex-col lg:flex-row gap-6 ml-10 z-[9999]">
             <div className="mb-4 text-black z-[9999]">
               <SelectDistrict
                 key={selectedDistrict?.value}
@@ -268,7 +301,7 @@ const handleVillageChange = option => {
             </div>
           </div>
 
-          <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" ref={scrollTargetRef}>
+          <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" >
             <div className="flex-1">
               <div className="bg-gray-200 z-[0] rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
                 <InterventionMap
