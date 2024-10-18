@@ -5,12 +5,21 @@ export const districtDisplayNames = {
     'karauli': 'Karauli, RJ',
     'adilabad': 'Adilabad, AP',
     'raichur' : 'Raichur, KA',
+    'chitrakoot' : 'Chitrakoot, UP',
+    'nashik' : 'Nashik, MH',
+    'aurangabad' : 'Aurangabad, MH',
+    'saraikela kharsawan' : 'Saraikela Kharsawan, JH'
+
 };
   
 export const districtToStateMap = {
     'karauli': 'Rajasthan',
     'adilabad': 'Andhra Pradesh',
     'raichur' : 'Karnataka',
+    'chitrakoot' : 'Uttar Pradesh',
+    'nashik' : 'Maharashtra',
+    'aurangabad' : 'Maharashta',
+    'saraikela kharsawan' : 'Jharkhand'
 };
   
 

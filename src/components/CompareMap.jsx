@@ -116,6 +116,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);
+          setLoading(false);
         })
         .catch(error => {
           console.error('Error fetching data:', error);
