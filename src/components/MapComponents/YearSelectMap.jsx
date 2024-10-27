@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 
 const YearDropdown = ({ selectedYear, onChange, onMenuOpen }) => {
   const yearOptions = [
+    { value: '2023', label: '2023' },
     { value: '2022', label: '2022' },
     { value: '2021', label: '2021' },
     { value: '2020', label: '2020' },
