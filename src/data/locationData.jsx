@@ -18,7 +18,7 @@ export const districtToStateMap = {
     'raichur' : 'Karnataka',
     'chitrakoot' : 'Uttar Pradesh',
     'nashik' : 'Maharashtra',
-    'aurangabad' : 'Maharashta',
+    'aurangabad' : 'Maharashtra',
     'saraikela kharsawan' : 'Jharkhand'
 };
   
