@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { get_control_village, get_lulc_raster } from '../services/api';
+import { get_control_village, get_lulc_raster, get_boundary_data } from '../services/api';
 import PropTypes from 'prop-types';
 import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import VillageDetails from './VillageDetails';
 import Spinner from './Spinner';
+import { selectedControlSubdistrictAtom, selectedControlVillageAtom } from '../recoil/selectAtoms';
+import { useRecoilState } from 'recoil';
 
 const Legend = () => {
   const map = useMap();
@@ -78,39 +80,38 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [boundaryData, setBoundaryData] = useState(null);
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2022');
-  const [controlVillage, setControlVillageName] = useState(null);
-  const [controlSubdistrict, setSubdistrictName] = useState(null);
   const [isLoading, setLoading] = useState(false);
   const [boundaryLoaded, setBoundaryLoaded] = useState(false);
   const [rasterLoaded, setRasterLoaded] = useState(false);
   const [flyToComplete, setFlyToComplete] = useState(false);
+  const [controlSubdistrict, setControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
+  const [controlVillage, setControlVillage] = useRecoilState(selectedControlVillageAtom);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
     setSelectedYear(selectedOption.value);
   };
 
+  // Initial fetch for control village data when intervention village is selected
   useEffect(() => {
     if (selectedDistrict && selectedState && selectedVillage) {
       setLoading(true);
-      setBoundaryLoaded(false); // Reset boundary loaded state
-      setRasterLoaded(false); // Reset raster loaded state
-      setFlyToComplete(false); // Reset fly to complete state
+      setBoundaryLoaded(false);
+      setRasterLoaded(false);
+      setFlyToComplete(false);
 
-      // Fetch the boundary data using the selected district
       const districtValue = selectedDistrict.value;
       const subdistrictValue = selectedSubdistrict.label;
+      const villageValue = selectedVillage.label;
 
-      get_control_village(selectedState, districtValue, subdistrictValue, selectedVillage)
+      get_control_village(selectedState, districtValue, subdistrictValue, villageValue)
         .then(data => {
           const controlSubdistrict = data.properties.subdistric;
           const controlVillageName = data.properties.village_na;
-          console.log("Boundary data received:", data);
           setBoundaryData(data);
-          setSubdistrictName(controlSubdistrict);
-          setControlVillageName(controlVillageName);
+          setControlSubdistrict({ label: controlSubdistrict, value: controlSubdistrict });
+          setControlVillage({ label: controlVillageName, value: controlVillageName });
 
-          // Fetch the LULC raster data using the selected district and control village name
           return get_lulc_raster(selectedState, districtValue, controlSubdistrict, controlVillageName, selectedYear);
         })
         .then(data => {
@@ -122,10 +123,9 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           console.error('Error fetching data:', error);
           setBoundaryData(null);
           setLulcTilesUrl(null);
-          setBoundaryLoaded(true); // Stop loading even if there's an error
-          setRasterLoaded(true); // Stop loading even if there's an error
+          setBoundaryLoaded(true);
+          setRasterLoaded(true);
         });
-
     } else {
       setBoundaryData(null);
       setLulcTilesUrl(null);
@@ -133,11 +133,58 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
     }
   }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
 
+  // Fetch boundary and LULC data when control village is updated via dropdown
+  useEffect(() => {
+    if (controlVillage?.value && selectedState && selectedDistrict && selectedSubdistrict) {
+      setLoading(true);
+
+      const districtValue = selectedDistrict.value;
+      const controlSubdistrictName = controlSubdistrict.label;
+      const controlVillageName = controlVillage.label;
+
+      get_lulc_raster(selectedState, districtValue, controlSubdistrictName, controlVillageName, selectedYear)
+        .then(data => {
+          setLulcTilesUrl(data.tiles_url);
+          setRasterLoaded(true);
+        })
+        .catch(error => {
+          console.error('Error fetching new control village LULC data:', error);
+          setLulcTilesUrl(null);
+          setRasterLoaded(true);
+        });
+
+        get_boundary_data(selectedState, districtValue, controlSubdistrictName, controlVillageName)
+        .then(data => {
+          console.log("Boundary data received:", data);
+          if (controlSubdistrictName && controlVillageName) {
+            const villageFeature = data.features.find(
+              feature => feature.properties.village_na.toLowerCase().trim() === controlVillageName.toLowerCase().trim()
+            );
+            if (villageFeature) {
+              setBoundaryData({ ...data, features: [villageFeature] });
+            } else {
+              setBoundaryData(null);
+            }
+          } else {
+            setBoundaryData(data);
+            setLoading(false)
+          }
+          setBoundaryLoaded(true);
+          setLoading(false)
+        })
+        .catch(error => {
+          console.error('Error fetching the GeoJSON data:', error);
+          setBoundaryLoaded(true); // Even if there's an error, we need to stop loading
+        });
+    }
+  }, [controlVillage, selectedState, selectedDistrict, selectedSubdistrict, selectedYear]);
+
   useEffect(() => {
     if (boundaryLoaded && rasterLoaded && flyToComplete) {
       setLoading(false);
     }
   }, [boundaryLoaded, rasterLoaded, flyToComplete]);
+  
 
   const normalStyle = {
     color: '#4a83ec',
@@ -204,6 +251,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           {boundaryData && (
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
+                key={JSON.stringify(boundaryData)}
                 data={boundaryData}
                 style={normalStyle}
                 onEachFeature={onEachFeature}
@@ -231,6 +279,7 @@ CompareMap.propTypes = {
   selectedDistrict: PropTypes.string,
   selectedSubdistrict: PropTypes.string,
   selectedVillage: PropTypes.string,
+  controlVillageChanged: PropTypes.bool,
 };
 
 export default CompareMap;

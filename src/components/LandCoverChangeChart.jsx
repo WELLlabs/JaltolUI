@@ -92,8 +92,36 @@ const LandCoverChangeChart = ({ onDataChange }) => {
                 bodyColor: 'black',
                 titleColor: 'black',
                 borderColor: 'black',
-                borderWidth: 1
+                borderWidth: 1,
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        
+                         // Round off the value to 2 decimal places and add an asterisk
+                        let value = (Math.round(context.raw * 100) / 100).toFixed(2) + '*';
+            
+                        // Append units based on the dataset
+                        if (context.dataset.label === 'Single Cropland' || context.dataset.label === 'Double Cropland') {
+                            label += `${value} ha`; // hectares for cropland area
+                        } else if (context.dataset.label === 'Rainfall') {
+                            label += `${value} mm`; // millimeters for rainfall
+                        }
+                        return label;
+                    },
+                    footer: function() {
+                        return '*Values rounded off to 2 decimal points';
+                    }
+                },
+                footerColor: 'black',
+                footerFont: {
+                    size: 10,
+                    style: 'italic',
+                }
             }
+            
         },
         responsive: true,
         maintainAspectRatio: false,
@@ -109,10 +137,13 @@ const LandCoverChangeChart = ({ onDataChange }) => {
     };
 
     useEffect(() => {
-        setLoading(true);  // Set loading to true when API call starts
-        if (stateName && districtName && subdistrictName && villageName) {
-            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.label, villageName);
-            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.label, villageName);
+        setLoading(true); 
+        
+        const villageValue = villageName.label; 
+        // Set loading to true when API call starts
+        if (stateName && districtName && subdistrictName && villageValue) {
+            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.label, villageValue);
+            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.label, villageValue);
 
             Promise.all([fetchLandCover, fetchRainfall])
                 .then(([landCoverData, rainfallData]) => {

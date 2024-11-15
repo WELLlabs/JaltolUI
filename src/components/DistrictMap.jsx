@@ -100,14 +100,15 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
     if (selectedDistrict && selectedState) {
       const districtValue = selectedDistrict.value;
       const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.label : null;
+      const villageValue = selectedVillage ? selectedVillage.label : null;
 
       // Fetch boundary data
-      get_boundary_data(selectedState, districtValue, subdistrictValue, selectedVillage)
+      get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue)
         .then(data => {
           console.log("Boundary data received:", data);
           if (selectedSubdistrict && selectedVillage) {
             const villageFeature = data.features.find(
-              feature => feature.properties.village_na.toLowerCase().trim() === selectedVillage.toLowerCase().trim()
+              feature => feature.properties.village_na.toLowerCase().trim() === villageValue.toLowerCase().trim()
             );
             if (villageFeature) {
               setBoundaryData({ ...data, features: [villageFeature] });
@@ -125,7 +126,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         });
 
       // Fetch LULC raster data
-      get_lulc_raster(selectedState, districtValue, subdistrictValue, selectedVillage, selectedYear)
+      get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);

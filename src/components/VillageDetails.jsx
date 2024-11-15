@@ -6,20 +6,25 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
   const [population, setPopulation] = useState(null);
 
   useEffect(() => {
-    if (selectedDistrict && selectedState && selectedVillage) {
+    if (selectedDistrict?.value && selectedState && selectedVillage?.label) {
       const districtValue = selectedDistrict.value;
-      // Fetch the boundary data using the selected district
-      get_boundary_data(selectedState, districtValue, selectedSubdistrict, selectedVillage)
+
+      get_boundary_data(selectedState, districtValue, selectedSubdistrict, selectedVillage.label)
         .then(data => {
           console.log("Boundary data received:", data);
-          // Normalize data if necessary or ensure exact match conditions are checked
-          const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === selectedVillage.toLowerCase().trim());
-          console.log("Attempting to find village:", selectedVillage, "in data:", data.features.map(f => f.properties.village_na));
+
+          const villageName = selectedVillage.label.toLowerCase().trim();
+          const villageFeature = data.features.find(feature => 
+            feature.properties.village_na?.toLowerCase().trim() === villageName
+          );
+
+          console.log("Attempting to find village:", selectedVillage.label, "in data:", data.features.map(f => f.properties.village_na));
+          
           if (villageFeature) {
             console.log("Village feature found:", villageFeature);
             setPopulation(villageFeature.properties.tot_p); // Assuming 'tot_p' is the population property
           } else {
-            console.log("No village feature found for:", selectedVillage);
+            console.log("No village feature found for:", selectedVillage.label);
             setPopulation(null);
           }
         })
@@ -36,12 +41,12 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
       <h2 className="text-lg font-semibold mb-2">Village Details</h2>
       <div className="flex justify-between">
         <div>
-          <p><strong>Name:</strong> {selectedVillage}</p>
-          <p><strong>District:</strong> {selectedDistrict.label}</p>
+          <p><strong>Name:</strong> {selectedVillage?.label || 'Unknown'}</p>
+          <p><strong>District:</strong> {selectedDistrict?.label || 'Unknown'}</p>
         </div>
         <div>
           <p><strong>Population:</strong> {population !== null ? population : 'Calculating...'}</p>
-          <p><strong>State:</strong> {selectedState}</p>
+          <p><strong>State:</strong> {selectedState || 'Unknown'}</p>
         </div>
       </div>
     </div>
@@ -50,9 +55,15 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
 
 VillageDetails.propTypes = {
   selectedState: PropTypes.string.isRequired,
-  selectedDistrict: PropTypes.object.isRequired,
+  selectedDistrict: PropTypes.shape({
+    label: PropTypes.string,
+    value: PropTypes.string
+  }),
   selectedSubdistrict: PropTypes.string,
-  selectedVillage: PropTypes.string,
+  selectedVillage: PropTypes.shape({
+    label: PropTypes.string,
+    value: PropTypes.string
+  }),
 };
 
 export default VillageDetails;

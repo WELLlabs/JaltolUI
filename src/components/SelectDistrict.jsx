@@ -27,6 +27,7 @@ const customStyles = {
   }),
   placeholder: (provided) => ({
     ...provided,
+    color: '#6c757d', // Set a specific color that stands out
     fontSize: '0.875rem',
   }),
   singleValue: (provided) => ({
@@ -71,10 +72,11 @@ const SelectDistrict = ({ options, placeholder, onChange }) => {
       components={{ ...animatedComponents, DropdownIndicator }}
       styles={customStyles}
       options={options}
-      value={selectedDistrict}
+      value={selectedDistrict || null} // Ensure it's null if undefined
       placeholder={placeholder}
       onChange={handleChange}
     />
+
   );
 };
 
