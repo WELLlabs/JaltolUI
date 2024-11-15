@@ -4,11 +4,12 @@ import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { get_area_change, get_control_village, get_rainfall_data } from '../services/api';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilValue, useSetRecoilState, useRecoilState } from 'recoil';
 import {
     selectedStateAtom, selectedDistrictAtom,
     selectedSubdistrictAtom, selectedVillageAtom,
-    interventionChartDataAtom
+    interventionChartDataAtom, selectedControlSubdistrictAtom, 
+    selectedControlVillageAtom
 } from '../recoil/selectAtoms';
 import Spinner from './Spinner'; // Import Spinner
 
@@ -22,8 +23,8 @@ const InterventionCompareChart = ({ onDataChange }) => {
     const [isLoading, setLoading] = useState(false);
     const chartData = useRecoilValue(interventionChartDataAtom);
     const setChartData = useSetRecoilState(interventionChartDataAtom);
-    const [controlVillage, setControlVillage] = useState(null);
-    const [controlSubdistrict, setSubdistrictName] = useState(null);
+    const [controlSubdistrict, setControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
+    const [controlVillage, setControlVillage] = useRecoilState(selectedControlVillageAtom);
     const [datasetVisibility, setDatasetVisibility] = useState({});
     const chartRef = useRef(null);
 
@@ -67,8 +68,36 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 bodyColor: 'black',
                 titleColor: 'black',
                 borderColor: 'black',
-                borderWidth: 1
+                borderWidth: 1,
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+            
+                        // Use context.parsed.y to access the displayed value and round it off
+                        let value = (Math.round(context.parsed.y * 100) / 100).toFixed(2) + '*';
+            
+                        // Append units based on the dataset
+                        if (context.dataset.label.includes('Single Cropland') || context.dataset.label.includes('Double Cropland')) {
+                            label += `${value} ha`; // hectares for cropland area
+                        } else if (context.dataset.label.includes('Rainfall')) {
+                            label += `${value} mm`; // millimeters for rainfall
+                        }
+                        return label;
+                    },
+                    footer: function() {
+                        return '*Values rounded off to 2 decimal points';
+                    }
+                },
+                footerColor: 'black', // Set footer text color to black
+                footerFont: {
+                    size: 10,
+                    style: 'italic',
+                }
             }
+            
         },
         responsive: true,
         maintainAspectRatio: false,
@@ -89,14 +118,16 @@ const InterventionCompareChart = ({ onDataChange }) => {
         if (stateName && districtName && subdistrictName && villageName) {
             console.log('Fetching control village data');
             const districtValue = districtName.value;
+            const villageValue = villageName.label;
 
-            get_control_village(stateName, districtValue, subdistrictName.label, villageName)
+            get_control_village(stateName, districtValue, subdistrictName.label, villageValue)
                 .then(response => {
                     const controlVillageName = response.properties?.village_na;
                     const controlSubdistrict = response.properties?.subdistric;
                     console.log('Control Village:', controlVillageName);
-                    setSubdistrictName(controlSubdistrict);
-                    setControlVillage(controlVillageName);  // Update state, triggers re-render
+                    setControlSubdistrict({ label: controlSubdistrict, value: controlSubdistrict });
+                    setControlVillage({ label: controlVillageName, value: controlVillageName });
+  // Update state, triggers re-render
                 })
                 .catch(error => {
                     console.error('Error fetching control village data:', error);
@@ -106,22 +137,26 @@ const InterventionCompareChart = ({ onDataChange }) => {
 
     useEffect(() => {
         // This effect runs only when controlVillage is set
-        if (controlVillage && controlSubdistrict && stateName && districtName && subdistrictName && villageName) {
+        if (controlVillage?.value && controlSubdistrict && stateName && districtName && subdistrictName && villageName) {
+            setLoading(true)
             const districtValue = districtName.value;
             const subdistrictValue = subdistrictName.label;
-            console.log('Making API call with:', stateName, districtName, subdistrictName, villageName);
-            const fetchLandCover = get_area_change(stateName, districtValue, subdistrictValue, villageName);
-            const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, villageName);
+            const villageValue = villageName.label;
+            const controlSubdistrictName = controlSubdistrict.label;
+            const controlVillageName = controlVillage.label;
+            console.log('Making API call with:', stateName, districtName, subdistrictName, villageValue);
+            const fetchLandCover = get_area_change(stateName, districtValue, subdistrictValue, villageValue);
+            const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, villageValue);
 
-            const fetchControlLandCover = get_area_change(stateName, districtValue, controlSubdistrict, controlVillage);
-            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, controlSubdistrict, controlVillage);
+            const fetchControlLandCover = get_area_change(stateName, districtValue, controlSubdistrictName, controlVillageName);
+            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, controlSubdistrictName, controlVillageName);
 
             Promise.all([fetchLandCover, fetchRainfall, fetchControlLandCover, fetchControlRainfall])
                 .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {
                     const labels = Object.keys(landCoverData);
                     const datasets = [
                         {
-                            label: `Single Cropland - ${villageName}`,
+                            label: `Single Cropland - ${villageValue}`,
                             type: 'line',  // Line chart for single cropland
                             data: labels.map(label => landCoverData[label]['Single cropping cropland']),
                             borderColor: '#8b9dc3',
@@ -129,7 +164,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             yAxisID: 'y',
                         },
                         {
-                            label: `Double Cropland - ${villageName}`,
+                            label: `Double Cropland - ${villageValue}`,
                             type: 'line',  // Line chart for double cropland
                             data: labels.map(label => landCoverData[label]['Double cropping cropland']),
                             borderColor: '#222f5b',
@@ -137,7 +172,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             yAxisID: 'y',
                         },
                         {
-                            label: `Rainfall - ${villageName}`,
+                            label: `Rainfall - ${villageValue}`,
                             type: 'bar',  // Bar chart for rainfall
                             data: rainfallData.rainfall_data.map(entry => entry[1]),
                             borderColor: '#00BFFF',
@@ -145,7 +180,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             yAxisID: 'y1',
                         },
                         {
-                            label: `Single Cropland - ${controlVillage}`,
+                            label: `Single Cropland - ${controlVillageName}`,
                             type: 'line',  // Line chart for control village single cropland
                             data: labels.map(label => controlLandCoverData[label]['Single cropping cropland']),
                             borderColor: '#FFA07A',  // Salmon color
@@ -154,7 +189,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             borderDash: [10, 5],  // Dotted line
                         },
                         {
-                            label: `Double Cropland - ${controlVillage}`,
+                            label: `Double Cropland - ${controlVillageName}`,
                             type: 'line',  // Line chart for control village double cropland
                             data: labels.map(label => controlLandCoverData[label]['Double cropping cropland']),
                             borderColor: '#20B2AA',  // Light Sea Green
@@ -163,7 +198,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             borderDash: [10, 5],  // Dotted line
                         },
                         {
-                            label: `Rainfall - ${controlVillage}`,
+                            label: `Rainfall - ${controlVillageName}`,
                             type: 'bar',  // Bar chart for control village rainfall
                             data: controlRainfallData.rainfall_data.map(entry => entry[1]),
                             borderColor: '#C71585',  // Medium Violet Red

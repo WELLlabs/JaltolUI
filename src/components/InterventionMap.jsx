@@ -97,20 +97,21 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
 
       const districtValue = selectedDistrict.value;
       const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.label : null;
+      const villageValue = selectedVillage ? selectedVillage.label : null;
 
       // Fetch boundary data
-      get_boundary_data(selectedState, districtValue, subdistrictValue, selectedVillage)
+      get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue)
         .then(data => {
           console.log("Boundary data received:", data);
           if (selectedVillage) {
             // Normalize data if necessary or ensure exact match conditions are checked
-            const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === selectedVillage.toLowerCase().trim());
-            console.log("Attempting to find village:", selectedVillage, "in data:", data.features.map(f => f.properties.village_na));
+            const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === villageValue.toLowerCase().trim());
+            console.log("Attempting to find village:", villageValue, "in data:", data.features.map(f => f.properties.village_na));
             if (villageFeature) {
               console.log("Village feature found:", villageFeature);
               setBoundaryData({ ...data, features: [villageFeature] });
             } else {
-              console.log("No village feature found for:", selectedVillage);
+              console.log("No village feature found for:", villageValue);
             }
           } else {
             setBoundaryData(data);
@@ -123,12 +124,12 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
         });
 
       // Fetch LULC raster data
-      get_lulc_raster(selectedState, districtValue, subdistrictValue, selectedVillage, selectedYear)
+      get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);
           if (selectedSubdistrict && selectedVillage) {
-            get_lulc_raster(selectedState, districtValue, subdistrictValue, selectedVillage, selectedYear)
+            get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
             .then(data => {
               setLulcTilesUrl(data.tiles_url);
               setRasterLoaded(true);})

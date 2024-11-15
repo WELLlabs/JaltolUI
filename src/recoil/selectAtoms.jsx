@@ -3,12 +3,12 @@ import { atom } from 'recoil';
 
 export const selectedStateAtom = atom({
   key: 'selectedState', // unique ID (with respect to other atoms/selectors)
-  default: 'Rajasthan', // default value (aka initial value)
+  default: '', // default value (aka initial value)
 });
 
 export const selectedDistrictAtom = atom({
   key: 'selectedDistrict',
-  default: { value: 'karauli', label: 'Karauli, RJ' }, // Provide a valid default value
+  default: null, // Provide a valid default value
 });
 
 export const selectedSubdistrictAtom = atom({
@@ -18,7 +18,7 @@ export const selectedSubdistrictAtom = atom({
 
 export const selectedVillageAtom = atom({
   key: 'selectedVillage',
-  default: '',
+  default: { value: '', label: '' }, // Match the structure used in SelectSubdistrict
 });
 
 export const villageOptionsAtom = atom({
@@ -45,3 +45,14 @@ export const compareVillagesClickedAtom = atom({
   key: 'compareVillagesClicked',
   default: false,
 });
+
+export const selectedControlSubdistrictAtom = atom({
+  key: 'selectedControlSubdistrict',
+  default: { value: '', label: '' },  // Ensure proper default initialization
+});
+
+export const selectedControlVillageAtom = atom({
+  key: 'selectedControlVillage',
+  default: { value: '', label: '' }, // Match the structure used in SelectSubdistrict
+});
+

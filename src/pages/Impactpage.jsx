@@ -3,6 +3,7 @@ import LandCoverChangeChart from '../components/LandCoverChangeChart';
 import SelectDistrict from '../components/SelectDistrict';
 import Navbar from '../components/Navbar';
 import SelectVillage from '../components/SelectVillage';
+import SelectVillage2 from '../components/SelectVillage2';
 import DistrictMap from '../components/DistrictMap';
 import SelectSubdistrict from '../components/SelectSubdistrict';
 import CompareMap from '../components/CompareMap';
@@ -21,7 +22,8 @@ import {
   villageOptionsAtom,
   landCoverChartDataAtom,
   interventionChartDataAtom,
-  compareVillagesClickedAtom
+  compareVillagesClickedAtom,
+  selectedControlVillageAtom,
 } from '../recoil/selectAtoms';
 import { getSubdistricts, getVillages } from '../services/api'; // Import API calls
 import Footer from '../components/Footer';
@@ -40,27 +42,8 @@ const ImpactAssessmentPage = () => {
   const compareVillagesClicked = useRecoilValue(compareVillagesClickedAtom);
   const [selectedState, setSelectedState] = useRecoilState(selectedStateAtom);
 
-  // // Hardcoded district IDs based on selected district name
-  // const getDistrictIdByName = (districtName) => {
-  //   if (districtName === 'Karauli, RJ') {
-  //     return 1; // Karauli district ID
-  //   } else if (districtName === 'Adilabad, AP') {
-  //     return 2; // Adilabad district ID
-  //   }  else if (districtName === 'Raichur, KA') {
-  //     return 3; // Adilabad district ID
-  //   } else if (districtName === 'Chitrakoot, UP') {
-  //     return 4;
-  //   } else if (districtName === 'Nashik, MH') {
-  //     return 5;
-  //   } else if (districtName === 'Aurangabad, MH') {
-  //     return 7;
-  //   } else if (districtName === 'Saraikela Kharsawan, JH') {
-  //     return 6;
-  //   } 
-  //   else {
-  //     return null; // No district selected
-  //   }
-  // };
+  // const [selectedControlSubdistrict, setSelectedControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
+  const [selectedControlVillage, setSelectedControlVillage] = useRecoilState(selectedControlVillageAtom);
 
   const districtIdMap = {
     'Karauli, RJ': 1,
@@ -138,42 +121,43 @@ const ImpactAssessmentPage = () => {
   // Handle district change and set state accordingly
   const handleDistrictChange = option => {
     setSelectedDistrict(option); // Update selected district
-     // Reset subdistrict and village when a new district is selected
-  setSelectedSubdistrict(null);
-  setSelectedVillage(null);
-  setSubdistrictOptions([]); // Clear subdistrict options
-  setVillageOptions([]); // Clear village options
-
-    const state = districtToStateMap[option.value]; // Get corresponding state
+    setSelectedSubdistrict(null); // Reset subdistrict when district changes
+    setSelectedVillage(null); // Reset village when district changes
+    setSubdistrictOptions([]); // Clear subdistrict options
+    setVillageOptions([]); // Clear village options
+  
+    const state = districtToStateMap[option?.value]; // Get corresponding state
     if (state) {
       setSelectedState(state); // Update state
     }
-
-
   };
 
   const handleSubdistrictChange = option => {
-  // Log the change to make sure it's being called
-  console.log("Subdistrict selected:", option);
-  
-  // Store the subdistrict label (name) and still pass it as an object for consistency
-  setSelectedSubdistrict({ value: option.value, label: option.label.toLowerCase() });
-   // Reset the selected village and village options when a new subdistrict is selected
-   setSelectedVillage(null);
-   setVillageOptions([]);
-};
+    // Log the change to make sure it's being called
+    console.log("Subdistrict selected:", option);
 
-  
+    // Store the subdistrict label (name) and still pass it as an object for consistency
+    setSelectedSubdistrict({ value: option.value, label: option.label.toLowerCase() });
+    // Reset the selected village and village options when a new subdistrict is selected
+    setSelectedVillage(null);
+    setVillageOptions([]);
+  };
+
+
+
+
+  const handleVillageChange = (option) => {
+    console.log("Village selected:", option);
+    setSelectedVillage(option); // Store the entire { value, label } object
+  };
+
+  const handleControlVillageChange = (option) => {
+    console.log("Control Village selected:", option);
+    setSelectedControlVillage(option);
+  };
   
 
-const handleVillageChange = option => {
-  console.log("Village selected new:", option);
-  const village_new = option.label
-  // Store the village label (name) and pass it as an object if needed
-  setSelectedVillage({ village_new});
-};
 
-  
 
   // Prepare district options from districtDisplayNames
   const districtOptions = Object.keys(districtDisplayNames).map(key => ({
@@ -196,6 +180,7 @@ const handleVillageChange = option => {
                 options={districtOptions}
                 onChange={handleDistrictChange}
                 value={selectedDistrict}
+                placeholder="Select District..."
               />
             </div>
             <div className="mb-4">
@@ -205,7 +190,7 @@ const handleVillageChange = option => {
                 onChange={handleSubdistrictChange}
                 placeholder="Select Subdistrict..."
                 isDisabled={!selectedDistrict}
-                value={selectedSubdistrict || null }
+                value={selectedSubdistrict || null}
               />
             </div>
             <div className="mb-4">
@@ -270,40 +255,38 @@ const handleVillageChange = option => {
 
       {compareVillagesClicked && (
         <>
-          <div ref={scrollTargetRef} className="flex flex-col lg:flex-row gap-6 ml-10 z-[9999]">
-            <div className="mb-4 text-black z-[9999]">
-              <SelectDistrict
-                key={selectedDistrict?.value}
-                options={districtOptions}
-                onChange={handleDistrictChange}
-                value={selectedDistrict}
-              />
-            </div>
-            <div className="mb-4">
-              <SelectSubdistrict
-                key={`subdistrict-${selectedSubdistrict?.value || 'none'}`}
-                options={subdistrictOptions}
-                onChange={handleSubdistrictChange}
-                placeholder="Select Subdistrict..."
-                isDisabled={!selectedDistrict}
-                value={selectedSubdistrict}
-              />
-            </div>
-            <div className="mb-4">
-              <SelectVillage
-                key={`village-${selectedVillage?.value || 'none'}`}
-                options={villageOptions}
-                onChange={handleVillageChange}
-                placeholder="Select Village..."
-                isDisabled={!selectedSubdistrict}
-                value={selectedVillage}
-              />
-            </div>
-          </div>
+          <div ref={scrollTargetRef} className="flex flex-col h-full w-full lg:flex-row gap-6 mb-12">
+            <div className="flex-1 bg-blue-100 rounded-lg shadow-lg p-5 ml-3 min-h-[700px] flex flex-col justify-start">
+              <div className="flex flex-col lg:flex-row gap-6 ml-3 z-[9900]">
+                <h2 className="text-l font-semibold text-gray-700 mt-2 mb-2">Intervention Village</h2>
+                <div className="flex flex-col lg:flex-row gap-4 mb-4 z-[9999]">
+                  <SelectDistrict
+                    key={selectedDistrict?.value}
+                    options={districtOptions}
+                    onChange={handleDistrictChange}
+                    value={selectedDistrict}
+                  />
+                  <SelectSubdistrict
+                    key={`subdistrict-${selectedSubdistrict?.value || 'none'}`}
+                    options={subdistrictOptions}
+                    onChange={handleSubdistrictChange}
+                    placeholder="Select Subdistrict..."
+                    isDisabled={!selectedDistrict}
+                    value={selectedSubdistrict}
+                  />
+                  <SelectVillage
+                    key={`village-${selectedVillage?.value || 'none'}`}
+                    options={villageOptions}
+                    onChange={handleVillageChange}
+                    placeholder="Select Village..."
+                    isDisabled={!selectedSubdistrict}
+                    value={selectedVillage}
+                  />
+                </div>
+              </div>
 
-          <div className="flex flex-col h-full w-full lg:flex-row gap-6 mb-8" >
-            <div className="flex-1">
-              <div className="bg-gray-200 z-[0] rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
+              {/* Map Container with Full Height */}
+              <div className="flex-1 bg-gray-200 z-[0] rounded shadow-lg min-h-[500px] h-full flex items-center justify-center">
                 <InterventionMap
                   selectedState={selectedState}
                   selectedDistrict={selectedDistrict}
@@ -313,9 +296,36 @@ const handleVillageChange = option => {
               </div>
             </div>
 
-            <div className="flex-1">
-              <div className="bg-gray-200 rounded shadow-lg h-full flex items-center justify-center mb-8 m-5">
-                <CompareMap
+            <div className="flex-1 bg-blue-100 rounded-lg shadow-lg p-5 ml-3 min-h-[700px] flex flex-col justify-start">
+              <div className="flex flex-col lg:flex-row gap-6 ml-3 z-[9900]">
+                <h2 className="text-l font-semibold text-gray-700 mt-2 mb-2">Control Village</h2>
+                <div className="flex flex-col lg:flex-row gap-4 mb-4 z-[9999]">
+                  {/* <SelectDistrict
+                    key={selectedDistrict?.value}
+                    options={districtOptions}
+                    onChange={handleDistrictChange}
+                    value={selectedDistrict}
+                  />
+                  <SelectSubdistrict
+                    key={`subdistrict-${selectedSubdistrict?.value || 'none'}`}
+                    options={subdistrictOptions}
+                    onChange={handleSubdistrictChange}
+                    placeholder="Select Subdistrict..."
+                    isDisabled={!selectedDistrict}
+                    value={selectedSubdistrict}
+                  /> */}
+                   <SelectVillage2
+                  options={villageOptions}
+                  onChange={handleControlVillageChange}
+                  placeholder="Select Control Village..."
+                  value={selectedControlVillage}
+                />
+                </div>
+              </div>
+
+              {/* Map Container with Full Height */}
+              <div className="flex-1 bg-gray-200 z-[0] rounded shadow-lg min-h-[500px] h-full flex items-center justify-center">
+              <CompareMap
                   selectedState={selectedState}
                   selectedDistrict={selectedDistrict}
                   selectedSubdistrict={selectedSubdistrict}
@@ -325,6 +335,7 @@ const handleVillageChange = option => {
             </div>
           </div>
 
+          {/* Chart Section */}
           <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5 mb-5">
             {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
               loadingChartData ? (
@@ -346,6 +357,8 @@ const handleVillageChange = option => {
               filename="intervention_chart_data.csv"
             />
           )}
+
+
         </>
       )}
       <Footer />
