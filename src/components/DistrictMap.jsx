@@ -170,9 +170,30 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
     }
   };
 
+  const popUpStyle = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 9999,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
+    textAlign: 'center',
+    fontSize: '16px',
+    fontWeight: 'bold',
+    color: '#333',
+  };
+
   return (
     <div className="relative h-full w-full">
       {isLoading && <Spinner />}
+      {!selectedDistrict && (
+        <div style={popUpStyle}>
+          <p>Please select a district to view the map</p>
+        </div>
+      )}
       <div className="absolute top-0 left-10 z-[9999] m-4">
         <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
       </div>
