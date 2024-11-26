@@ -228,10 +228,15 @@ const InterventionCompareChart = ({ onDataChange }) => {
                     ];
 
                     setChartData({ labels, datasets });
-                    setDatasetVisibility(datasets.reduce((acc, dataset, index) => {
-                        acc[index] = true;
+
+                // Initialize dataset visibility state
+                     setDatasetVisibility(
+                    datasets.reduce((acc, dataset, index) => {
+                        acc[index] = !dataset.hidden; // Reflect hidden status
                         return acc;
-                    }, {}));
+                    }, {})
+                    );
+
                     onDataChange({ labels, datasets });
                     setLoading(false); // Pass data to the parent component
                 })
@@ -266,7 +271,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                         style={{
                             textDecoration: datasetVisibility[index] ? 'none' : 'line-through',
                             opacity: datasetVisibility[index] ? 1 : 0.5,
-                            color: 'black', // Ensure the color of the text is always black
+                            color: 'black', // Ensure legend text is always black
                         }}
                     >
                         <span
@@ -274,7 +279,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                                 display: 'inline-block',
                                 width: '20px',
                                 height: '10px',
-                                borderTop: `3px solid ${dataset.borderColor}`,
+                                borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
                                 marginRight: '8px',
                             }}
                         ></span>
