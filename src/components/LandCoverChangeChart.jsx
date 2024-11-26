@@ -104,7 +104,7 @@ const LandCoverChangeChart = ({ onDataChange }) => {
                         let value = (Math.round(context.raw * 100) / 100).toFixed(2) + '*';
             
                         // Append units based on the dataset
-                        if (context.dataset.label === 'Single Cropland' || context.dataset.label === 'Double Cropland') {
+                        if (context.dataset.label === 'Single Cropland' || context.dataset.label === 'Double Cropland' || context.dataset.label === 'Tree Cover' ) {
                             label += `${value} ha`; // hectares for cropland area
                         } else if (context.dataset.label === 'Rainfall') {
                             label += `${value} mm`; // millimeters for rainfall
@@ -162,7 +162,17 @@ const LandCoverChangeChart = ({ onDataChange }) => {
                         borderColor: '#222f5b',
                         backgroundColor: 'rgba(34, 47, 91, 0.5)',
                         yAxisID: 'y',
-                    }, {
+                    },
+                    {
+                        label: 'Tree Cover',
+                        type: 'line',
+                        data: labels.map(label => landCoverData[label]['Tree Cover Area']),
+                        borderColor: 'green',
+                        backgroundColor: 'rgba(0, 128, 0, 0.5)',
+                        yAxisID: 'y',
+                        hidden: true,
+                    },
+                    {
                         label: 'Rainfall',
                         type: 'bar',
                         data: rainfallData.rainfall_data.map(entry => entry[1]),

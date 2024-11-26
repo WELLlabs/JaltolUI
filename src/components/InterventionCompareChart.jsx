@@ -172,6 +172,15 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             yAxisID: 'y',
                         },
                         {
+                            label: `Tree Cover - ${villageValue}`,
+                            type: 'line',  // Line chart for double cropland
+                            data: labels.map(label => landCoverData[label]['Tree Cover Area']),
+                            borderColor: 'green',
+                            backgroundColor: 'rgba(0, 128, 0, 0.2)',  // Lighter and more transparent
+                            yAxisID: 'y',
+                            hidden: true,
+                        },
+                        {
                             label: `Rainfall - ${villageValue}`,
                             type: 'bar',  // Bar chart for rainfall
                             data: rainfallData.rainfall_data.map(entry => entry[1]),
@@ -196,6 +205,16 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             backgroundColor: 'rgba(32, 178, 170, 0.2)',  // Matching color, more transparent
                             yAxisID: 'y',
                             borderDash: [10, 5],  // Dotted line
+                        },
+                        {
+                            label: `Tree Cover - ${controlVillageName}`,
+                            type: 'line',  // Line chart for control village double cropland
+                            data: labels.map(label => controlLandCoverData[label]['Tree Cover Area']),
+                            borderColor: 'green',  // Light Sea Green
+                            backgroundColor: 'rgba(0, 128, 0, 0.2)',  // Matching color, more transparent
+                            yAxisID: 'y',
+                            borderDash: [10, 5],  // Dotted line
+                            hidden: true,
                         },
                         {
                             label: `Rainfall - ${controlVillageName}`,
@@ -240,20 +259,26 @@ const InterventionCompareChart = ({ onDataChange }) => {
         return (
             <ul className="flex flex-wrap justify-center mb-2">
                 {chartData.datasets.map((dataset, index) => (
-                    <li key={index} className="flex items-center mr-4 mb-2 cursor-pointer" onClick={() => toggleDatasetVisibility(index)}>
+                    <li
+                        key={index}
+                        className="flex items-center mr-4 mb-2 cursor-pointer"
+                        onClick={() => toggleDatasetVisibility(index)}
+                        style={{
+                            textDecoration: datasetVisibility[index] ? 'none' : 'line-through',
+                            opacity: datasetVisibility[index] ? 1 : 0.5,
+                            color: 'black', // Ensure the color of the text is always black
+                        }}
+                    >
                         <span
                             style={{
                                 display: 'inline-block',
                                 width: '20px',
                                 height: '10px',
-                                borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
+                                borderTop: `3px solid ${dataset.borderColor}`,
                                 marginRight: '8px',
-                                opacity: datasetVisibility[index] ? 1 : 0.5,
                             }}
                         ></span>
-                        <span style={{ color: 'black', opacity: datasetVisibility[index] ? 1 : 0.5 }}>
-                            {dataset.label}
-                        </span>
+                        {dataset.label}
                     </li>
                 ))}
             </ul>
