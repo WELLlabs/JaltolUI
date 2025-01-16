@@ -55,4 +55,3 @@ export const selectedControlVillageAtom = atom({
   key: 'selectedControlVillage',
   default: { value: '', label: '' }, // Match the structure used in SelectSubdistrict
 });
-

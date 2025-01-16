@@ -9,6 +9,7 @@ import VillageDetails from './VillageDetails';
 import Spinner from './Spinner';
 import { selectedControlSubdistrictAtom, selectedControlVillageAtom } from '../recoil/selectAtoms';
 import { useRecoilState } from 'recoil';
+import OpacitySlider from './MapComponents/OpacitySlider';
 
 const Legend = () => {
   const map = useMap();
@@ -87,6 +88,8 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [controlSubdistrict, setControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
   const [controlVillage, setControlVillage] = useRecoilState(selectedControlVillageAtom);
 
+  const [lulcOpacity, setLulcOpacity] = useState(1);
+
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
     setSelectedYear(selectedOption.value);
@@ -153,7 +156,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           setRasterLoaded(true);
         });
 
-        get_boundary_data(selectedState, districtValue, controlSubdistrictName, controlVillageName)
+      get_boundary_data(selectedState, districtValue, controlSubdistrictName, controlVillageName)
         .then(data => {
           console.log("Boundary data received:", data);
           if (controlSubdistrictName && controlVillageName) {
@@ -184,7 +187,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
       setLoading(false);
     }
   }, [boundaryLoaded, rasterLoaded, flyToComplete]);
-  
+
 
   const normalStyle = {
     color: '#4a83ec',
@@ -215,9 +218,17 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           selectedVillage={controlVillage}
         />
       </div>
+      <div className="absolute bottom-8 left-10 z-[9999] m-4">
+        <div className="w-52 bg-white rounded shadow-md">
+          <OpacitySlider
+            opacity={lulcOpacity}
+            onChange={setLulcOpacity}
+          />
+        </div>
+      </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Google Maps">
+          <LayersControl.BaseLayer checked name="Google Maps">
             <TileLayer
               url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
               attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a> contributors'
@@ -244,10 +255,12 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
           {lulcTilesUrl && (
             <LayersControl.Overlay checked name="Land Use Land Cover">
-              <TileLayer url={lulcTilesUrl} />
+              <TileLayer
+                url={lulcTilesUrl}
+                opacity={lulcOpacity}
+              />
             </LayersControl.Overlay>
           )}
-
           {boundaryData && (
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
