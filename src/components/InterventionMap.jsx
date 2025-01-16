@@ -7,6 +7,7 @@ import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import VillageDetails from './VillageDetails';
 import Spinner from './Spinner'; // Import Spinner
+import OpacitySlider from './MapComponents/OpacitySlider';
 
 const Legend = () => {
   const map = useMap();
@@ -25,7 +26,7 @@ const Legend = () => {
 
       let legendHtml = '<div style="font-size:14px; font-weight:bold; margin-bottom:5px; color: black;">Legend</div>';
       labels.forEach(item => {
-        legendHtml += 
+        legendHtml +=
           `<div style="display: flex; align-items: center; margin-bottom: 4px; color: black;">` +
           `<i style="width: 18px; height: 18px; background:${item.color}; margin-right: 8px;"></i>` +
           `<span>${item.label}</span>` +
@@ -82,6 +83,7 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
   const [boundaryLoaded, setBoundaryLoaded] = useState(false);
   const [rasterLoaded, setRasterLoaded] = useState(false);
   const [flyToComplete, setFlyToComplete] = useState(false);
+  const [lulcOpacity, setLulcOpacity] = useState(1);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -130,10 +132,12 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
           setRasterLoaded(true);
           if (selectedSubdistrict && selectedVillage) {
             get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
-            .then(data => {
-              setLulcTilesUrl(data.tiles_url);
-              setRasterLoaded(true);})
-            ;}
+              .then(data => {
+                setLulcTilesUrl(data.tiles_url);
+                setRasterLoaded(true);
+              })
+              ;
+          }
         })
         .catch(error => {
           console.error('Error fetching the LULC raster data:', error);
@@ -188,9 +192,17 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
           selectedVillage={selectedVillage}
         />
       </div>
+      <div className="absolute bottom-8 left-10 z-[9999] m-4">
+        <div className="w-52 bg-white rounded shadow-md">
+          <OpacitySlider
+            opacity={lulcOpacity}
+            onChange={setLulcOpacity}
+          />
+        </div>
+      </div>
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Google Maps">
+          <LayersControl.BaseLayer checked name="Google Maps">
             <TileLayer
               url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
               attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a> contributors'
@@ -217,10 +229,12 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
 
           {lulcTilesUrl && (
             <LayersControl.Overlay checked name="Land Use Land Cover">
-              <TileLayer url={lulcTilesUrl} />
+              <TileLayer
+                url={lulcTilesUrl}
+                opacity={lulcOpacity}
+              />
             </LayersControl.Overlay>
           )}
-
           {boundaryData && (
             <LayersControl.Overlay checked name="Village Boundaries">
               <GeoJSON
@@ -233,7 +247,7 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
           )}
         </LayersControl>
         {boundaryData && (
-          <FlyToFeature 
+          <FlyToFeature
             featureData={boundaryData}
             onFlyToComplete={() => setFlyToComplete(true)}
           />

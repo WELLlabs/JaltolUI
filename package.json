@@ -17,7 +17,10 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "axios": "^1.6.8",
     "chart.js": "^4.4.2",
+    "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
+    "leaflet-easyprint": "^2.1.9",
+    "leaflet-image": "^0.4.0",
     "leaflet-spin": "^1.1.2",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
@@ -28,6 +31,7 @@
     "react-router-dom": "^6.23.0",
     "react-select": "^5.8.0",
     "recoil": "^0.7.7",
+    "shadcn-ui": "^0.9.4",
     "spin.js": "^4.1.1"
   },
   "devDependencies": {
