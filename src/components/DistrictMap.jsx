@@ -192,55 +192,81 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
     }
   };
 
-  useEffect(() => {
-    setLoading(true);
-    setBoundaryLoaded(false);
-    setRasterLoaded(false);
-    setFlyToComplete(false);
+  // Update the useEffect where boundary data is fetched
+useEffect(() => {
+  setLoading(true);
+  setBoundaryLoaded(false);
+  setRasterLoaded(false);
+  setFlyToComplete(false);
 
-    if (selectedDistrict && selectedState) {
-      const districtValue = selectedDistrict.value;
-      const subdistrictValue = selectedSubdistrict?.label || null;
-      const villageValue = selectedVillage?.label || null;
-
-      // Fetch boundary data
-      get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue)
-        .then(data => {
-          if (selectedSubdistrict && selectedVillage) {
-            const villageFeature = data.features.find(
-              feature => feature.properties.village_na.toLowerCase().trim() === villageValue.toLowerCase().trim()
-            );
-            if (villageFeature) {
-              setBoundaryData({ ...data, features: [villageFeature] });
-            } else {
-              setBoundaryData(null);
-            }
-          } else {
-            setBoundaryData(data);
-          }
-          setBoundaryLoaded(true);
-        })
-        .catch(error => {
-          console.error('Error fetching the GeoJSON data:', error);
-          setBoundaryLoaded(true);
-        });
-
-      // Fetch LULC raster data
-      get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
-        .then(data => {
-          setLulcTilesUrl(data.tiles_url);
-          setRasterLoaded(true);
-        })
-        .catch(error => {
-          console.error('Error fetching the LULC raster data:', error);
-          setRasterLoaded(true);
-        });
-    } else {
-      setBoundaryData(null);
-      setLulcTilesUrl(null);
-      setLoading(false);
+  if (selectedDistrict && selectedState) {
+    const districtValue = selectedDistrict.value;
+    const subdistrictValue = selectedSubdistrict?.label || null;
+    const villageValue = selectedVillage?.label || null;
+    
+    // Extract village ID if present in the format "name - id"
+    let villageId = null;
+    let villageName = villageValue;
+    
+    if (villageValue && villageValue.includes(' - ')) {
+      const parts = villageValue.split(' - ');
+      villageName = parts[0];
+      villageId = parts[1];
     }
-  }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
+    
+    // Also check if the village object has a value property that might contain the ID
+    if (!villageId && selectedVillage?.value) {
+      villageId = selectedVillage.value;
+    }
+    
+    console.log('Fetching boundary with:', {
+      state: selectedState,
+      district: districtValue,
+      subdistrict: subdistrictValue,
+      villageName: villageName,
+      villageId: villageId
+    });
+
+    // Fetch boundary data with village ID when available
+    get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
+      .then(data => {
+        if (selectedSubdistrict && selectedVillage) {
+          // Still match by name for UI purposes
+          const villageNameToMatch = villageName || villageValue;
+          const villageFeature = data.features.find(
+            feature => feature.properties.village_na.toLowerCase().trim() === villageNameToMatch.toLowerCase().trim()
+          );
+          if (villageFeature) {
+            setBoundaryData({ ...data, features: [villageFeature] });
+          } else {
+            setBoundaryData(null);
+          }
+        } else {
+          setBoundaryData(data);
+        }
+        setBoundaryLoaded(true);
+      })
+      .catch(error => {
+        console.error('Error fetching the GeoJSON data:', error);
+        setBoundaryLoaded(true);
+      });
+
+    // Fetch LULC raster data (no change needed here)
+    get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
+      .then(data => {
+        setLulcTilesUrl(data.tiles_url);
+        setRasterLoaded(true);
+      })
+      .catch(error => {
+        console.error('Error fetching the LULC raster data:', error);
+        setRasterLoaded(true);
+      });
+  } else {
+    setBoundaryData(null);
+    setLulcTilesUrl(null);
+    setLoading(false);
+  }
+}, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
 
   useEffect(() => {
     if (boundaryLoaded && rasterLoaded && flyToComplete) {
@@ -264,8 +290,14 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
 
   const onEachFeature = (feature, layer) => {
     const villageName = selectedVillage?.label || selectedVillage;
+    // Extract base village name without ID if it's in the format "name - id"
+    let selectedVillageName = villageName;
+    if (selectedVillageName && selectedVillageName.includes(' - ')) {
+      selectedVillageName = selectedVillageName.split(' - ')[0];
+    }
+    
     if (feature.properties.village_na && 
-        feature.properties.village_na.toLowerCase().trim() === (villageName || '').toLowerCase().trim()) {
+        feature.properties.village_na.toLowerCase().trim() === (selectedVillageName || '').toLowerCase().trim()) {
       layer.setStyle(highlightStyle);
     } else {
       layer.setStyle(normalStyle);
