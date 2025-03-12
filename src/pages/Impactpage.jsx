@@ -85,18 +85,29 @@ const ImpactAssessmentPage = () => {
   useEffect(() => {
     if (selectedSubdistrict) {
       const subdistrictId = selectedSubdistrict.value;
-
+  
       if (!subdistrictId) {
         console.error("Subdistrict ID is undefined");
         return;
       }
-
+  
       // Fetch villages from API using subdistrictId
       getVillages(subdistrictId)
         .then(villages => {
+          console.log("API Response - Villages:", villages); // Debug the raw API response
+          
           setVillageOptions(
-            villages.map(village => ({ value: village.id, label: village.name }))
+            villages.map(village => {
+              console.log("Processing village:", village);  // Debug each village
+              return { 
+                value: village.id, 
+                label: village.display_name || village.name, // Use display_name (with ID) or fallback to name
+                villageName: village.name, 
+                villageId: village.village_id 
+              };
+            })
           );
+          console.log("Set village options completed");
           setSelectedVillage(null);
         })
         .catch(error => {
@@ -106,7 +117,6 @@ const ImpactAssessmentPage = () => {
       setVillageOptions([]);
     }
   }, [selectedSubdistrict]);
-
 
   useEffect(() => {
     if (compareVillagesClicked) {
@@ -143,18 +153,17 @@ const ImpactAssessmentPage = () => {
     setVillageOptions([]);
   };
 
-
-
-
+  // Update the handleVillageChange function
   const handleVillageChange = (option) => {
     console.log("Village selected:", option);
-    setSelectedVillage(option); // Store the entire { value, label } object
+    setSelectedVillage(option); // Store the entire option object with all properties
   };
 
   const handleControlVillageChange = (option) => {
     console.log("Control Village selected:", option);
     setSelectedControlVillage(option);
   };
+
   
 
 

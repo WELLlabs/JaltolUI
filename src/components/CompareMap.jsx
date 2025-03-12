@@ -107,7 +107,33 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
       const subdistrictValue = selectedSubdistrict.label;
       const villageValue = selectedVillage.label;
 
-      get_control_village(selectedState, districtValue, subdistrictValue, villageValue)
+      // Extract village ID if present in the format "name - id"
+      let villageId = null;
+      let villageName = villageValue;
+      
+      if (villageValue && villageValue.includes(' - ')) {
+        const parts = villageValue.split(' - ');
+        villageName = parts[0];
+        if (parts.length > 1) {
+          villageId = parts[1];
+        }
+      }
+      
+      // Also check if the village object has a value property that might contain the ID
+      if (!villageId && selectedVillage?.value && selectedVillage.value !== selectedVillage.label) {
+        villageId = selectedVillage.value;
+      }
+      
+      console.log('Fetching control village with:', {
+        state: selectedState,
+        district: districtValue,
+        subdistrict: subdistrictValue,
+        villageName: villageName,
+        villageId: villageId
+      });
+
+      // Pass the ID to get_control_village if available
+      get_control_village(selectedState, districtValue, subdistrictValue, villageValue, villageId)
         .then(data => {
           const controlSubdistrict = data.properties.subdistric;
           const controlVillageName = data.properties.village_na;
@@ -144,6 +170,23 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
       const districtValue = selectedDistrict.value;
       const controlSubdistrictName = controlSubdistrict.label;
       const controlVillageName = controlVillage.label;
+      
+      // Extract control village ID if present in the format "name - id"
+      let controlVillageId = null;
+      let controlVillageNameClean = controlVillageName;
+      
+      if (controlVillageName && controlVillageName.includes(' - ')) {
+        const parts = controlVillageName.split(' - ');
+        controlVillageNameClean = parts[0];
+        if (parts.length > 1) {
+          controlVillageId = parts[1];
+        }
+      }
+      
+      // Also check if the control village object has a value property that might contain the ID
+      if (!controlVillageId && controlVillage?.value && controlVillage.value !== controlVillage.label) {
+        controlVillageId = controlVillage.value;
+      }
 
       get_lulc_raster(selectedState, districtValue, controlSubdistrictName, controlVillageName, selectedYear)
         .then(data => {
@@ -156,12 +199,16 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           setRasterLoaded(true);
         });
 
-      get_boundary_data(selectedState, districtValue, controlSubdistrictName, controlVillageName)
+      // Pass the control village ID when available
+      get_boundary_data(selectedState, districtValue, controlSubdistrictName, controlVillageName, controlVillageId)
         .then(data => {
           console.log("Boundary data received:", data);
           if (controlSubdistrictName && controlVillageName) {
+            // Use clean name for matching if we extracted an ID
+            const nameToMatch = controlVillageNameClean || controlVillageName;
+            
             const villageFeature = data.features.find(
-              feature => feature.properties.village_na.toLowerCase().trim() === controlVillageName.toLowerCase().trim()
+              feature => feature.properties.village_na.toLowerCase().trim() === nameToMatch.toLowerCase().trim()
             );
             if (villageFeature) {
               setBoundaryData({ ...data, features: [villageFeature] });
@@ -170,14 +217,14 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
             }
           } else {
             setBoundaryData(data);
-            setLoading(false)
           }
           setBoundaryLoaded(true);
-          setLoading(false)
+          setLoading(false);
         })
         .catch(error => {
           console.error('Error fetching the GeoJSON data:', error);
           setBoundaryLoaded(true); // Even if there's an error, we need to stop loading
+          setLoading(false);
         });
     }
   }, [controlVillage, selectedState, selectedDistrict, selectedSubdistrict, selectedYear]);
@@ -289,10 +336,9 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
 CompareMap.propTypes = {
   selectedState: PropTypes.string,
-  selectedDistrict: PropTypes.string,
-  selectedSubdistrict: PropTypes.string,
-  selectedVillage: PropTypes.string,
-  controlVillageChanged: PropTypes.bool,
+  selectedDistrict: PropTypes.object,
+  selectedSubdistrict: PropTypes.object,
+  selectedVillage: PropTypes.object,
 };
 
 export default CompareMap;

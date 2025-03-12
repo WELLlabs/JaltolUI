@@ -100,20 +100,48 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
       const districtValue = selectedDistrict.value;
       const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.label : null;
       const villageValue = selectedVillage ? selectedVillage.label : null;
+      
+      // Extract village ID if present in the format "name - id"
+      let villageId = null;
+      let villageName = villageValue;
+      
+      if (villageValue && villageValue.includes(' - ')) {
+        const parts = villageValue.split(' - ');
+        villageName = parts[0];
+        if (parts.length > 1) {
+          villageId = parts[1];
+        }
+      }
+      
+      // Also check if the village object has a value property that might contain the ID
+      if (!villageId && selectedVillage?.value && selectedVillage.value !== selectedVillage.label) {
+        villageId = selectedVillage.value;
+      }
+      
+      console.log('Fetching boundary with:', {
+        state: selectedState,
+        district: districtValue,
+        subdistrict: subdistrictValue,
+        villageName: villageName,
+        villageId: villageId
+      });
 
-      // Fetch boundary data
-      get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue)
+      // Fetch boundary data with village ID when available
+      get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
         .then(data => {
           console.log("Boundary data received:", data);
           if (selectedVillage) {
             // Normalize data if necessary or ensure exact match conditions are checked
-            const villageFeature = data.features.find(feature => feature.properties.village_na.toLowerCase().trim() === villageValue.toLowerCase().trim());
-            console.log("Attempting to find village:", villageValue, "in data:", data.features.map(f => f.properties.village_na));
+            const villageNameToMatch = villageName || villageValue;
+            const villageFeature = data.features.find(
+              feature => feature.properties.village_na.toLowerCase().trim() === villageNameToMatch.toLowerCase().trim()
+            );
+            console.log("Attempting to find village:", villageNameToMatch, "in data:", data.features.map(f => f.properties.village_na));
             if (villageFeature) {
               console.log("Village feature found:", villageFeature);
               setBoundaryData({ ...data, features: [villageFeature] });
             } else {
-              console.log("No village feature found for:", villageValue);
+              console.log("No village feature found for:", villageNameToMatch);
             }
           } else {
             setBoundaryData(data);
@@ -171,13 +199,21 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
   };
 
   const onEachFeature = (feature, layer) => {
-    if (feature.properties.village_na === selectedVillage) {
+    const villageName = selectedVillage?.label || selectedVillage;
+    // Extract base village name without ID if it's in the format "name - id"
+    let selectedVillageName = villageName;
+    if (selectedVillageName && selectedVillageName.includes(' - ')) {
+      selectedVillageName = selectedVillageName.split(' - ')[0];
+    }
+    
+    if (feature.properties.village_na && 
+        feature.properties.village_na.toLowerCase().trim() === (selectedVillageName || '').toLowerCase().trim()) {
       layer.setStyle(highlightStyle);
     } else {
       layer.setStyle(normalStyle);
     }
   };
-
+  
   return (
     <div className="relative h-full w-full">
       {isLoading && <Spinner />} {/* Display spinner while loading */}
