@@ -255,7 +255,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
     <div className="relative h-full w-full">
       {isLoading && <Spinner />}
       <div className="absolute top-0 left-10 z-[9999] m-4">
-        <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
+        <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} stateName={selectedState} />
       </div>
       <div className='absolute top-5 left-40 z-[9999] bg-white pl-10 pr-10 rounded-lg shadow-lg bg-opacity-70'>
         <VillageDetails

@@ -314,7 +314,7 @@ useEffect(() => {
         </div>
       )}
       <div className="absolute top-0 left-10 z-[9999] m-4">
-        <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} />
+        <YearDropdown selectedYear={selectedYear} onChange={handleYearChange} stateName={selectedState} />
       </div>
       <div className="absolute bottom-8 left-10 z-[9999] m-4">
         <div className="mb-4 w-52">
