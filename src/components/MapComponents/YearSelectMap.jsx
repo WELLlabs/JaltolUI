@@ -1,19 +1,34 @@
-
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 
 
-const YearDropdown = ({ selectedYear, onChange, onMenuOpen }) => {
-  const yearOptions = [
-    { value: '2023', label: '2023' },
-    { value: '2022', label: '2022' },
-    { value: '2021', label: '2021' },
-    { value: '2020', label: '2020' },
-    { value: '2019', label: '2019' },
-    { value: '2018', label: '2018' },
-    { value: '2017', label: '2017' },
-    // ... more year options
-  ];
+const YearDropdown = ({ selectedYear, onChange, onMenuOpen, stateName }) => {
+  // Get year options based on state
+  const getYearOptions = () => {
+    // For Maharashtra, Uttar Pradesh, and Jharkhand, use Bhuvan LULC years (2005-2024 excluding 2019)
+    if (['maharashtra', 'uttar pradesh', 'jharkhand'].includes(stateName?.toLowerCase())) {
+      const years = [];
+      for (let year = 2024; year >= 2005; year--) {
+        if (year !== 2019) { // Skip 2019 as it's unavailable
+          years.push({ value: year.toString(), label: year.toString() });
+        }
+      }
+      return years;
+    } 
+    
+    // For other states, use the default range
+    return [
+      { value: '2023', label: '2023' },
+      { value: '2022', label: '2022' },
+      { value: '2021', label: '2021' },
+      { value: '2020', label: '2020' },
+      { value: '2019', label: '2019' },
+      { value: '2018', label: '2018' },
+      { value: '2017', label: '2017' },
+    ];
+  };
+
+  const yearOptions = getYearOptions();
 
   const customStyles = {
     control: (styles) => ({
@@ -51,8 +66,6 @@ const YearDropdown = ({ selectedYear, onChange, onMenuOpen }) => {
     // ... other styles as needed
   };
 
-  
-
   return (
     <Select
       className="react-select-container z-9999"
@@ -61,7 +74,7 @@ const YearDropdown = ({ selectedYear, onChange, onMenuOpen }) => {
       value={yearOptions.find(option => option.value === selectedYear)} // Ensure this line is correct
       styles={customStyles}
       onChange={onChange}
-      onMenuOpen={onMenuOpen} // Make sure this is triggering the parent's handleYearChange
+      onMenuOpen={onMenuOpen} 
       isSearchable={false}
     />
   );
@@ -70,7 +83,8 @@ const YearDropdown = ({ selectedYear, onChange, onMenuOpen }) => {
 export default YearDropdown;
 
 YearDropdown.propTypes = {
-    selectedYear: PropTypes.string.isRequired, // add prop validation for selectedYear
-    onChange: PropTypes.func.isRequired,
-    onMenuOpen: PropTypes.func.isRequired,
-  };
+  selectedYear: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onMenuOpen: PropTypes.func, // Make this optional
+  stateName: PropTypes.string, // Add prop for state name
+}; 
