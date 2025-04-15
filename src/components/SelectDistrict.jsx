@@ -56,6 +56,54 @@ const DropdownIndicator = (props) => {
   );
 };
 
+// Custom Option component to display asset information
+const Option = (props) => {
+  const { data } = props;
+  return (
+    <components.Option {...props}>
+      <div>
+        <div>{data.label}</div>
+        {data.asset && (
+          <div className="text-xs text-gray-600 mt-1">
+            Asset: {data.asset}
+          </div>
+        )}
+      </div>
+    </components.Option>
+  );
+};
+
+Option.propTypes = {
+  data: PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    asset: PropTypes.string
+  }).isRequired
+};
+
+// Custom SingleValue component to display asset information in the selected dropdown
+const SingleValue = (props) => {
+  const { data } = props;
+  return (
+    <components.SingleValue {...props}>
+      <div>
+        <div>{data.label}</div>
+        {data.asset && (
+          <div className="text-xs text-gray-500">
+            Asset: {data.asset}
+          </div>
+        )}
+      </div>
+    </components.SingleValue>
+  );
+};
+
+SingleValue.propTypes = {
+  data: PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    asset: PropTypes.string
+  }).isRequired
+};
+
 const SelectDistrict = ({ options, placeholder, onChange }) => {
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
   const animatedComponents = makeAnimated();
@@ -69,14 +117,13 @@ const SelectDistrict = ({ options, placeholder, onChange }) => {
 
   return (
     <Select
-      components={{ ...animatedComponents, DropdownIndicator }}
+      components={{ ...animatedComponents, DropdownIndicator, Option, SingleValue }}
       styles={customStyles}
       options={options}
       value={selectedDistrict || null} // Ensure it's null if undefined
       placeholder={placeholder}
       onChange={handleChange}
     />
-
   );
 };
 

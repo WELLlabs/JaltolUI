@@ -166,13 +166,28 @@ const ImpactAssessmentPage = () => {
 
   
 
-
-
   // Prepare district options from districtDisplayNames
-  const districtOptions = Object.keys(districtDisplayNames).map(key => ({
-    value: key,
-    label: districtDisplayNames[key],
-  }));
+  const districtOptions = Object.keys(districtDisplayNames).map(key => {
+    // Asset mapping for display purposes only
+    const districtAssetMap = {
+      'Karauli, RJ': 'IndiaSAT',
+      'Adilabad, AP': 'IndiaSAT',
+      'Raichur, KA': 'IndiaSAT',
+      'Chitrakoot, UP': 'Bhuvan',
+      'Nashik, MH': 'Bhuvan',
+      'Aurangabad, MH': 'Bhuvan',
+      'Saraikela Kharsawan, JH': 'Bhuvan'
+    };
+
+    const districtName = districtDisplayNames[key];
+    
+    // Use districtName directly to look up in districtAssetMap
+    return {
+      value: key,
+      label: districtName,
+      asset: districtAssetMap[districtName] || 'Default Asset' 
+    };
+  });
 
   return (
     <div className="font-sans bg-white h-screen w-screen overflow-x-hidden">
