@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import LandCoverChangeChart from '../components/LandCoverChangeChart';
+import GroundwaterLevelChart from '../components/GroundwaterLevelChart';
 import SelectDistrict from '../components/SelectDistrict';
 import Navbar from '../components/Navbar';
 import SelectVillage from '../components/SelectVillage';
@@ -11,6 +12,7 @@ import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
+
 import { districtDisplayNames, districtToStateMap } from '../data/locationData';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import {
@@ -36,7 +38,10 @@ const ImpactAssessmentPage = () => {
   const [selectedVillage, setSelectedVillage] = useRecoilState(selectedVillageAtom);
   const [subdistrictOptions, setSubdistrictOptions] = useRecoilState(subdistrictOptionsAtom);
   const [villageOptions, setVillageOptions] = useRecoilState(villageOptionsAtom);
-  const [loadingChartData] = useState(false);
+  const [loadingLandCoverData, setLoadingLandCoverData] = useState(false);
+  const [loadingGroundwaterData, setLoadingGroundwaterData] = useState(false);
+  const [groundwaterDataLoaded, setGroundwaterDataLoaded] = useState(false);
+  const [activeChart, setActiveChart] = useState('landcover');
   const landCoverChartData = useRecoilValue(landCoverChartDataAtom);
   const interventionChartData = useRecoilValue(interventionChartDataAtom);
   const compareVillagesClicked = useRecoilValue(compareVillagesClickedAtom);
@@ -156,7 +161,10 @@ const ImpactAssessmentPage = () => {
   // Update the handleVillageChange function
   const handleVillageChange = (option) => {
     console.log("Village selected:", option);
-    setSelectedVillage(option); // Store the entire option object with all properties
+    setSelectedVillage(option);
+    setLoadingLandCoverData(true);
+    setLoadingGroundwaterData(true);
+    setGroundwaterDataLoaded(false);
   };
 
   const handleControlVillageChange = (option) => {
@@ -164,30 +172,27 @@ const ImpactAssessmentPage = () => {
     setSelectedControlVillage(option);
   };
 
-  
+  // Simplify the handlers to just switch the display without triggering data reload
+  const handleSwitchToGroundwater = () => {
+    setActiveChart('groundwater');
+  };
+
+  // Callback for groundwater data loaded - only track when loading completes
+  const handleGroundwaterDataLoaded = (success) => {
+    setLoadingGroundwaterData(false);
+    setGroundwaterDataLoaded(success);
+  };
+
+  // Callback for land cover data loaded - only track when loading completes
+  const handleLandCoverDataLoaded = () => {
+    setLoadingLandCoverData(false);
+  };
 
   // Prepare district options from districtDisplayNames
-  const districtOptions = Object.keys(districtDisplayNames).map(key => {
-    // Asset mapping for display purposes only
-    const districtAssetMap = {
-      'Karauli, RJ': 'IndiaSAT',
-      'Adilabad, AP': 'IndiaSAT',
-      'Raichur, KA': 'IndiaSAT',
-      'Chitrakoot, UP': 'Bhuvan',
-      'Nashik, MH': 'Bhuvan',
-      'Aurangabad, MH': 'Bhuvan',
-      'Saraikela Kharsawan, JH': 'Bhuvan'
-    };
-
-    const districtName = districtDisplayNames[key];
-    
-    // Use districtName directly to look up in districtAssetMap
-    return {
+  const districtOptions = Object.keys(districtDisplayNames).map(key => ({
       value: key,
-      label: districtName,
-      asset: districtAssetMap[districtName] || 'Default Asset' 
-    };
-  });
+    label: districtDisplayNames[key],
+  }));
 
   return (
     <div className="font-sans bg-white h-screen w-screen overflow-x-hidden">
@@ -239,23 +244,76 @@ const ImpactAssessmentPage = () => {
           )}
 
           <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-3">Land Cover Change</h2>
+            <div className="flex items-center mb-3">
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => setActiveChart('landcover')}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    activeChart === 'landcover'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Land Cover & Rainfall
+                </button>
+                <button 
+                  onClick={handleSwitchToGroundwater}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                    activeChart === 'groundwater'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {loadingGroundwaterData && !groundwaterDataLoaded && activeChart === 'groundwater' ? (
+                    <span className="inline-flex items-center">
+                      <svg className="animate-spin -ml-0.5 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Groundwater Levels
+                    </span>
+                  ) : (
+                    "Groundwater Levels"
+                  )}
+                </button>
+              </div>
+              <h2 className="text-xl font-semibold ml-4">
+                {activeChart === 'landcover' ? 'Land Cover Change' : 'Groundwater Levels'}
+              </h2>
+            </div>
             <div className="w-full bg-gray-200 h-70 rounded shadow-inner flex items-center justify-center">
               {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
-                loadingChartData ? (
-                  <div className="flex items-center justify-center">
-                    <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
+                <>
+                  {/* Always load both charts but only display the active one */}
+                  <div style={{ display: activeChart === 'landcover' ? 'block' : 'none', width: '100%', height: '100%' }}>
+                    {loadingLandCoverData ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <LandCoverChangeChart onDataLoaded={handleLandCoverDataLoaded} />
+                    )}
                   </div>
-                ) : (
-                  <LandCoverChangeChart />
-                )
+                  
+                  <div style={{ display: activeChart === 'groundwater' ? 'block' : 'none', width: '100%', height: '100%' }}>
+                    {loadingGroundwaterData ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <GroundwaterLevelChart onDataLoaded={handleGroundwaterDataLoaded} />
+                    )}
+                  </div>
+                </>
               ) : (
                 <p>Select all fields to see the chart</p>
               )}
             </div>
-            {!loadingChartData && landCoverChartData.labels.length > 0 && (
+            {!loadingLandCoverData && landCoverChartData.labels.length > 0 && (
               <DownloadCSVButton
                 data={landCoverChartData}
                 filename="land_cover_chart_data.csv"
@@ -362,7 +420,7 @@ const ImpactAssessmentPage = () => {
           {/* Chart Section */}
           <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5 mb-5">
             {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
-              loadingChartData ? (
+              loadingLandCoverData ? (
                 <div className="items-center justify-center">
                   <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
                     <span className="visually-hidden">Loading...</span>
@@ -375,7 +433,7 @@ const ImpactAssessmentPage = () => {
               <p>Select all fields to see the chart</p>
             )}
           </div>
-          {!loadingChartData && interventionChartData.labels.length > 0 && (
+          {!loadingLandCoverData && interventionChartData.labels.length > 0 && (
             <DownloadCSVButton
               data={interventionChartData}
               filename="intervention_chart_data.csv"

@@ -1,5 +1,5 @@
 // src/components/LandCoverChangeChart.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
@@ -15,7 +15,7 @@ import Spinner from './Spinner'; // Import Spinner
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const LandCoverChangeChart = ({ onDataChange }) => {
+const LandCoverChangeChart = ({ onDataChange, onDataLoaded }) => {
     const stateName = useRecoilValue(selectedStateAtom);
     const districtName = useRecoilValue(selectedDistrictAtom);
     const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
@@ -23,7 +23,9 @@ const LandCoverChangeChart = ({ onDataChange }) => {
     const setChartData = useSetRecoilState(landCoverChartDataAtom);
     const [isLoading, setLoading] = useState(false);
     const chartData = useRecoilValue(landCoverChartDataAtom);
-
+    
+    // Track the last loaded village to prevent redundant API calls
+    const lastLoadedVillage = useRef(null);
 
     const options = {
         scales: {
@@ -137,11 +139,17 @@ const LandCoverChangeChart = ({ onDataChange }) => {
     };
 
     useEffect(() => {
-        setLoading(true); 
-        
-        const villageValue = villageName.label; 
-        // Set loading to true when API call starts
-        if (stateName && districtName && subdistrictName && villageValue) {
+        // Only fetch data if we have all required information and haven't loaded this village yet
+        if (stateName && districtName && subdistrictName && villageName &&
+            (lastLoadedVillage.current !== villageName.label)) {
+            
+            setLoading(true);
+            
+            const villageValue = villageName.label;
+            
+            // Update the last loaded village
+            lastLoadedVillage.current = villageValue;
+            
             const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.label, villageValue);
             const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.label, villageValue);
 
@@ -179,17 +187,31 @@ const LandCoverChangeChart = ({ onDataChange }) => {
                         borderColor: 'blue',
                         backgroundColor: 'rgba(0, 0, 255, 0.5)',
                         yAxisID: 'y1',
+                        borderWidth: 0,
                     }];
                     setChartData({ labels, datasets });
-                    onDataChange({ labels, datasets });
-                    setLoading(false);  // Set loading to false once data is fetched
+                    if (onDataChange) {
+                        onDataChange({ labels, datasets });
+                    }
+                    setLoading(false);
+                    if (onDataLoaded) {
+                        onDataLoaded(true);
+                    }
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
-                    setLoading(false);  // Ensure loading is set to false on error
+                    setLoading(false);
+                    if (onDataLoaded) {
+                        onDataLoaded(false);
+                    }
                 });
+        } else if (chartData.datasets.length > 0 && onDataLoaded) {
+            // If we already have data and just switched tabs, notify that data is loaded
+            setLoading(false);
+            onDataLoaded(true);
         }
-    }, [stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
+    // Only re-run if village or state info changes, not on every render or callback change
+    }, [stateName, districtName, subdistrictName, villageName?.label]);
 
     return (
         <div className="w-full h-64 bg-white flex justify-center items-center relative">
@@ -208,7 +230,13 @@ const LandCoverChangeChart = ({ onDataChange }) => {
 
 
 LandCoverChangeChart.propTypes = {
-    onDataChange: PropTypes.func.isRequired,
+    onDataChange: PropTypes.func,
+    onDataLoaded: PropTypes.func
+};
+
+LandCoverChangeChart.defaultProps = {
+    onDataChange: () => {},
+    onDataLoaded: () => {}
 };
 
 export default LandCoverChangeChart;

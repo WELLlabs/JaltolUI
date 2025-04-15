@@ -36,6 +36,11 @@ export const interventionChartDataAtom = atom({
   default: { labels: [], datasets: [] },
 });
 
+export const groundwaterDataAtom = atom({
+  key: 'groundwaterData',
+  default: { years: [], minValues: [], maxValues: [] },
+});
+
 export const subdistrictOptionsAtom = atom({
   key: 'subdistrictOptions',  // Unique ID with respect to other atoms/selectors
   default: [],  // Default value (initial state)

@@ -4,6 +4,8 @@ import { get_boundary_data } from '../services/api';
 
 const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage }) => {
   const [population, setPopulation] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [debugInfo, setDebugInfo] = useState(null);
 
   useEffect(() => {
     if (selectedDistrict?.value && selectedState && selectedVillage?.label) {
@@ -14,6 +16,7 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
           console.log("Boundary data received:", data);
 
           const villageName = selectedVillage.label.toLowerCase().trim();
+          // First try to match by name
           const villageFeature = data.features.find(feature => 
             feature.properties.village_na?.toLowerCase().trim() === villageName
           );
@@ -22,10 +25,58 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
           
           if (villageFeature) {
             console.log("Village feature found:", villageFeature);
-            setPopulation(villageFeature.properties.tot_p); // Assuming 'tot_p' is the population property
+            
+            // Check multiple possible population field names
+            let populationValue = null;
+            
+            // Log all properties to help debug
+            setDebugInfo(JSON.stringify(villageFeature.properties));
+            
+            // Try various field names used for population across different states
+            if (villageFeature.properties.tot_p !== undefined) {
+              populationValue = villageFeature.properties.tot_p;
+            } else if (villageFeature.properties.pc11_pca_t_p !== undefined) {
+              populationValue = villageFeature.properties.pc11_pca_t_p;
+            } else if (villageFeature.properties.population !== undefined) {
+              populationValue = villageFeature.properties.population;
+            } else if (villageFeature.properties.pc11_tv_p !== undefined) {
+              populationValue = villageFeature.properties.pc11_tv_p;
+            }
+            
+            setPopulation(populationValue);
           } else {
-            console.log("No village feature found for:", selectedVillage.label);
-            setPopulation(null);
+            // If we couldn't find by name, try to find by village ID if available
+            if (selectedVillage.villageId) {
+              const villageById = data.features.find(feature => 
+                feature.properties.pc11_tv_id?.toString() === selectedVillage.villageId.toString()
+              );
+              
+              if (villageById) {
+                console.log("Village feature found by ID:", villageById);
+                
+                // Try various field names for population
+                let populationValue = null;
+                setDebugInfo(JSON.stringify(villageById.properties));
+                
+                if (villageById.properties.tot_p !== undefined) {
+                  populationValue = villageById.properties.tot_p;
+                } else if (villageById.properties.pc11_pca_t_p !== undefined) {
+                  populationValue = villageById.properties.pc11_pca_t_p;
+                } else if (villageById.properties.population !== undefined) {
+                  populationValue = villageById.properties.population;
+                } else if (villageById.properties.pc11_tv_p !== undefined) {
+                  populationValue = villageById.properties.pc11_tv_p;
+                }
+                
+                setPopulation(populationValue);
+              } else {
+                console.log("No village feature found by ID for:", selectedVillage.villageId);
+                setPopulation(null);
+              }
+            } else {
+              console.log("No village feature found for:", selectedVillage.label);
+              setPopulation(null);
+            }
           }
         })
         .catch(error => {
@@ -62,7 +113,8 @@ VillageDetails.propTypes = {
   selectedSubdistrict: PropTypes.string,
   selectedVillage: PropTypes.shape({
     label: PropTypes.string,
-    value: PropTypes.string
+    value: PropTypes.string,
+    villageId: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
   }),
 };
 
