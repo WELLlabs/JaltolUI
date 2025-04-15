@@ -170,13 +170,13 @@ const ImpactAssessmentPage = () => {
   const districtOptions = Object.keys(districtDisplayNames).map(key => {
     // Asset mapping for display purposes only
     const districtAssetMap = {
-      'Karauli, RJ': 'IndiaSAT',
-      'Adilabad, AP': 'IndiaSAT',
-      'Raichur, KA': 'IndiaSAT',
-      'Chitrakoot, UP': 'Bhuvan',
-      'Nashik, MH': 'Bhuvan',
-      'Aurangabad, MH': 'Bhuvan',
-      'Saraikela Kharsawan, JH': 'Bhuvan'
+      'Karauli, RJ': 'IndiaSAT LULC',
+      'Adilabad, AP': 'IndiaSAT LULC',
+      'Raichur, KA': 'IndiaSAT LULC',
+      'Chitrakoot, UP': 'Bhuvan LULC',
+      'Nashik, MH': 'Bhuvan LULC',
+      'Aurangabad, MH': 'Bhuvan LULC',
+      'Saraikela Kharsawan, JH': 'Bhuvan LULC'
     };
 
     const districtName = districtDisplayNames[key];
