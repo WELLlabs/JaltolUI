@@ -65,7 +65,7 @@ const Option = (props) => {
         <div>{data.label}</div>
         {data.asset && (
           <div className="text-xs text-gray-600 mt-1">
-            Asset: {data.asset}
+            Map: {data.asset}
           </div>
         )}
       </div>
