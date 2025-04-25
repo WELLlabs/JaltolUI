@@ -11,6 +11,7 @@ import { compareVillagesClickedAtom } from '../recoil/selectAtoms';
 import OpacitySlider from './MapComponents/OpacitySlider';
 import html2canvas from 'html2canvas';
 import MultiYearMaps from './MapComponents/MultiYearMap';
+import { mapCoordinator } from '../utils/MapStateCoordinator';
 
 const Legend = () => {
   const map = useMap();
@@ -53,19 +54,188 @@ const Legend = () => {
   return null;
 };
 
+const ZoomStateLock = () => {
+  const map = useMap();
+  const [hasAppliedZoom, setHasAppliedZoom] = useState(false);
+  
+  useEffect(() => {
+    const isSharedLink = window.location.search.includes('shared=true');
+    if (!map || !isSharedLink) return;
+    if (hasAppliedZoom) return; // Only apply once
+    
+    console.log('ZoomStateLock: Initializing for shared link');
+    
+    // Override critical map methods to prevent zoom changes
+    const originalFitBounds = map.fitBounds;
+    const originalFlyToBounds = map.flyToBounds;
+    const originalZoomOut = map.zoomOut;
+    
+    if (sessionStorage.getItem('zoomLocked') === 'true') {
+      // Apply hard override to map methods
+      map.fitBounds = function() {
+        console.log('Intercepted fitBounds call');
+        return map;
+      };
+      
+      map.flyToBounds = function() {
+        console.log('Intercepted flyToBounds call');
+        return map;
+      };
+      
+      map.zoomOut = function() {
+        const zoom = map.getZoom();
+        if (zoom <= 12) {
+          console.log('Preventing zoom out below 12');
+          return map;
+        }
+        return originalZoomOut.apply(this, arguments);
+      };
+      
+      // Restore bounds from session storage
+      try {
+        const boundsData = JSON.parse(sessionStorage.getItem('villageBounds'));
+        if (boundsData) {
+          const bounds = L.latLngBounds(
+            [boundsData.south, boundsData.west],
+            [boundsData.north, boundsData.east]
+          );
+          
+          // Set hard constraints
+          map.setMinZoom(12);
+          map.setMaxBounds(bounds.pad(0.5));
+          map.options.maxBoundsViscosity = 1.0;
+          
+          // Wait for the map to be ready before zooming
+          setTimeout(() => {
+            console.log('Applying stored zoom bounds');
+            map.invalidateSize();
+            map.flyToBounds(bounds, { 
+              padding: [40, 40],
+              animate: true
+            });
+            setHasAppliedZoom(true);
+            
+            mapCoordinator.init(map).lockZoom(bounds);
+          }, 500); // Increased delay to ensure map is ready
+        }
+      } catch (e) {
+        console.error('Error restoring zoom state:', e);
+      }
+    }
+    
+    // Clean up on unmount
+    return () => {
+      // Only restore original methods if we're still in a shared link
+      if (window.location.search.includes('shared=true')) {
+        map.fitBounds = originalFitBounds;
+        map.flyToBounds = originalFlyToBounds;
+        map.zoomOut = originalZoomOut;
+      }
+    };
+  }, [map, hasAppliedZoom]);
+  
+  return null;
+};
+
 function FlyToFeature({ featureData, onFlyToComplete }) {
   const map = useMap();
+  const [hasZoomed, setHasZoomed] = useState(false);
 
+  // Reset hasZoomed when featureData changes completely
   useEffect(() => {
     if (featureData) {
-      const geoJsonLayer = L.geoJSON(featureData);
-      const bounds = geoJsonLayer.getBounds();
-      map.flyToBounds(bounds, { padding: [50, 50] });
-      map.once('moveend', () => {
-        onFlyToComplete();
-      });
+      console.log("New feature data received, resetting zoom state");
+      setHasZoomed(false);
     }
-  }, [featureData, map, onFlyToComplete]);
+  }, [featureData]);
+
+  useEffect(() => {
+    // Skip if we've already zoomed or no data
+    if (hasZoomed || !featureData || !map) {
+      console.log("Skipping zoom because:", { 
+        hasZoomed, 
+        hasFeatureData: !!featureData, 
+        hasMap: !!map 
+      });
+      return;
+    }
+    
+    const isSharedLink = window.location.search.includes('shared=true');
+    
+    // Skip if coordinator says we should
+    if (isSharedLink && mapCoordinator.shouldSkipZoomReset()) {
+      console.log('Skipping automatic zoom due to zoom lock');
+      onFlyToComplete();
+      return;
+    }
+    
+    // Add delay for zooming in shared link mode to ensure map is properly loaded
+    const performZoom = async () => {
+      try {
+        // Add a delay before zooming to ensure the map is fully ready
+        if (isSharedLink) {
+          console.log("Adding delay before zooming in shared link mode...");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        // Create bounds from the GeoJSON data
+        console.log("Creating bounds from GeoJSON data");
+        const geoJsonLayer = L.geoJSON(featureData);
+        const bounds = geoJsonLayer.getBounds();
+        
+        if (!bounds.isValid()) {
+          console.error("Invalid bounds generated from feature data");
+          onFlyToComplete();
+          return;
+        }
+        
+        console.log("Zooming to bounds:", bounds);
+        
+        // If it's a shared link, we want to lock the zoom
+        if (isSharedLink) {
+          // Initialize coordinator with map if needed
+          if (!mapCoordinator.mapRef) {
+            mapCoordinator.init(map);
+          }
+          
+          // Lock the zoom to these bounds
+          mapCoordinator.lockZoom(bounds);
+          
+          // Zoom with animation
+          map.flyToBounds(bounds, { 
+            padding: [40, 40],
+            animate: true,
+            duration: 0.8
+          });
+          
+          // Set flag to prevent repeated zooming
+          setHasZoomed(true);
+          
+          // Signal completion after animation
+          setTimeout(() => {
+            console.log("Zoom animation complete (timeout)");
+            onFlyToComplete();
+          }, 1000);
+        } else {
+          // Standard zoom behavior for normal use
+          map.flyToBounds(bounds, { padding: [50, 50] });
+          setHasZoomed(true);
+          
+          // Signal completion when animation ends
+          map.once('moveend', () => {
+            console.log("Zoom animation complete (moveend event)");
+            onFlyToComplete();
+          });
+        }
+      } catch (error) {
+        console.error("Error during map zoom:", error);
+        // Ensure we don't get stuck in loading state
+        onFlyToComplete();
+      }
+    };
+    
+    performZoom();
+  }, [featureData, map, onFlyToComplete, hasZoomed]);
 
   return null;
 }
@@ -196,80 +366,132 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
   };
 
   // Update the useEffect where boundary data is fetched
-useEffect(() => {
-  setLoading(true);
-  setBoundaryLoaded(false);
-  setRasterLoaded(false);
-  setFlyToComplete(false);
-
-  if (selectedDistrict && selectedState) {
-    const districtValue = selectedDistrict.value;
-    const subdistrictValue = selectedSubdistrict?.label || null;
-    const villageValue = selectedVillage?.label || null;
+  useEffect(() => {
+    const isSharedLink = window.location.search.includes('shared=true');
     
-    // Extract village ID if present in the format "name - id"
-    let villageId = null;
-    let villageName = villageValue;
+    setLoading(true);
+    setBoundaryLoaded(false);
+    setRasterLoaded(false);
+    setFlyToComplete(false); // Always reset flyToComplete when selections change
     
-    if (villageValue && villageValue.includes(' - ')) {
-      const parts = villageValue.split(' - ');
-      villageName = parts[0];
-      villageId = parts[1];
-    }
-    
-    // Also check if the village object has a value property that might contain the ID
-    if (!villageId && selectedVillage?.value) {
-      villageId = selectedVillage.value;
-    }
-    
-    console.log('Fetching boundary with:', {
+    console.log("Selection changed, fetching new data:", {
       state: selectedState,
-      district: districtValue,
-      subdistrict: subdistrictValue,
-      villageName: villageName,
-      villageId: villageId
+      district: selectedDistrict?.label,
+      subdistrict: selectedSubdistrict?.label,
+      village: selectedVillage?.label
     });
 
-    // Fetch boundary data with village ID when available
-    get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
-      .then(data => {
-        if (selectedSubdistrict && selectedVillage) {
-          // Still match by name for UI purposes
-          const villageNameToMatch = villageName || villageValue;
-          const villageFeature = data.features.find(
-            feature => feature.properties.village_na.toLowerCase().trim() === villageNameToMatch.toLowerCase().trim()
-          );
-          if (villageFeature) {
-            setBoundaryData({ ...data, features: [villageFeature] });
-          } else {
-            setBoundaryData(null);
-          }
-        } else {
-          setBoundaryData(data);
+    if (selectedDistrict && selectedState) {
+      // If on a shared link, add a small delay before fetching
+      const delayFetch = async () => {
+        if (isSharedLink) {
+          console.log("Shared link detected, adding delay before fetching map data...");
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log("Proceeding with map data fetch after delay");
         }
-        setBoundaryLoaded(true);
-      })
-      .catch(error => {
-        console.error('Error fetching the GeoJSON data:', error);
-        setBoundaryLoaded(true);
-      });
+        
+        const districtValue = selectedDistrict.value;
+        const subdistrictValue = selectedSubdistrict?.label || null;
+        const villageValue = selectedVillage?.label || null;
+        
+        // Extract village ID if present in the format "name - id"
+        let villageId = null;
+        let villageName = villageValue;
+        
+        if (villageValue && villageValue.includes(' - ')) {
+          const parts = villageValue.split(' - ');
+          villageName = parts[0];
+          villageId = parts[1];
+        }
+        
+        // Also check if the village object has a value property that might contain the ID
+        if (!villageId && selectedVillage?.value) {
+          villageId = selectedVillage.value;
+        }
+        
+        console.log('Fetching boundary with:', {
+          state: selectedState,
+          district: districtValue,
+          subdistrict: subdistrictValue,
+          villageName: villageName,
+          villageId: villageId
+        });
 
-    // Fetch LULC raster data (no change needed here)
-    get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
-      .then(data => {
-        setLulcTilesUrl(data.tiles_url);
-        setRasterLoaded(true);
-      })
-      .catch(error => {
-        console.error('Error fetching the LULC raster data:', error);
-        setRasterLoaded(true);
-      });
-  } else {
-    setBoundaryData(null);
-    setLulcTilesUrl(null);
-    setLoading(false);
-  }
-}, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
+        // Register this API call with the coordinator
+        const callId = isSharedLink ? mapCoordinator.registerApiCall('boundary', 10) : 'no-shared-link';
+        
+        // Fetch boundary data with village ID when available
+        get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
+          .then(data => {
+            if (data && data.features && data.features.length > 0) {
+              console.log(`Received boundary data with ${data.features.length} features`);
+              
+              if (selectedSubdistrict && selectedVillage) {
+                // Still match by name for UI purposes
+                const villageNameToMatch = villageName || villageValue;
+                const villageFeature = data.features.find(
+                  feature => feature.properties.village_na.toLowerCase().trim() === villageNameToMatch.toLowerCase().trim()
+                );
+                
+                if (villageFeature) {
+                  console.log("Found matching village feature:", villageFeature.properties.village_na);
+                  setBoundaryData({ ...data, features: [villageFeature] });
+                } else {
+                  console.warn("No matching village feature found for:", villageNameToMatch);
+                  setBoundaryData(null);
+                }
+              } else {
+                console.log("Setting all boundary features");
+                setBoundaryData(data);
+              }
+            } else {
+              console.warn("Received empty or invalid boundary data");
+              setBoundaryData(null);
+            }
+            
+            setBoundaryLoaded(true);
+            if (isSharedLink) {
+              mapCoordinator.completeApiCall(callId);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching the GeoJSON data:', error);
+            setBoundaryData(null);
+            setBoundaryLoaded(true);
+            if (isSharedLink) {
+              mapCoordinator.completeApiCall(callId);
+            }
+          });
+
+        // Similar pattern for LULC data
+        const lulcCallId = isSharedLink ? mapCoordinator.registerApiCall('lulc', 5) : 'no-shared-link';
+        get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
+          .then(data => {
+            console.log("Received LULC raster data:", data.tiles_url ? "has URL" : "no URL");
+            setLulcTilesUrl(data.tiles_url);
+            setRasterLoaded(true);
+            if (isSharedLink) {
+              mapCoordinator.completeApiCall(lulcCallId);
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching the LULC raster data:', error);
+            setLulcTilesUrl(null);
+            setRasterLoaded(true);
+            if (isSharedLink) {
+              mapCoordinator.completeApiCall(lulcCallId);
+            }
+          });
+      };
+      
+      delayFetch();
+    } else {
+      console.log("Missing required selections, clearing map data");
+      setBoundaryData(null);
+      setLulcTilesUrl(null);
+      setLoading(false);
+    }
+  }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
 
   useEffect(() => {
     if (boundaryLoaded && rasterLoaded && flyToComplete) {
@@ -306,6 +528,55 @@ useEffect(() => {
       layer.setStyle(normalStyle);
     }
   };
+
+  // Add a new useEffect in the DistrictMap component to handle shared link forces zoom
+  // Put this right after the other useEffects
+
+  useEffect(() => {
+    // This effect is specifically for handling shared link re-zoom after all data is loaded
+    const isSharedLink = window.location.search.includes('shared=true');
+    
+    if (!isSharedLink || !mapRef.current || !boundaryData || !selectedVillage || !boundaryLoaded || !rasterLoaded) {
+      return;
+    }
+    
+    console.log("Shared link detected with all data loaded - performing additional zoom to ensure correct position");
+    
+    // Add a longer delay after everything is loaded to perform an additional zoom
+    const timer = setTimeout(() => {
+      try {
+        if (!mapRef.current) return;
+        
+        const map = mapRef.current;
+        const geoJsonLayer = L.geoJSON(boundaryData);
+        const bounds = geoJsonLayer.getBounds();
+        
+        if (bounds.isValid()) {
+          console.log("Performing additional forced zoom to village bounds");
+          
+          // Initialize coordinator with map if needed
+          if (!mapCoordinator.mapRef) {
+            mapCoordinator.init(map);
+          }
+          
+          // Lock the zoom to these bounds
+          mapCoordinator.lockZoom(bounds);
+          
+          // Force zoom with animation
+          map.invalidateSize();
+          map.flyToBounds(bounds, { 
+            padding: [40, 40],
+            animate: true,
+            duration: 1.0
+          });
+        }
+      } catch (error) {
+        console.error("Error during additional forced zoom:", error);
+      }
+    }, 5000); // 5 second delay after all data is loaded
+    
+    return () => clearTimeout(timer);
+  }, [boundaryData, selectedVillage, boundaryLoaded, rasterLoaded]);
 
   return (
     <div className="relative h-full w-full">
@@ -393,9 +664,11 @@ useEffect(() => {
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         ref={mapRef}
-        whenCreated={(mapInstance) => {
-          mapRef.current = mapInstance;
-          console.log('Map instance created:', mapInstance);
+        whenCreated={(map) => {
+          mapRef.current = map;
+          console.log('Map instance created:', map);
+          // Let coordinator know about the map
+          mapCoordinator.init(map);
         }}
       >
         <LayersControl position="topright">
@@ -464,6 +737,10 @@ useEffect(() => {
             onFlyToComplete={() => setFlyToComplete(true)}
           />
         )}
+        
+        {/* Add ZoomStateLock for shared links */}
+        {window.location.search.includes('shared=true') && <ZoomStateLock />}
+        
         <Legend />
       </MapContainer>
 
