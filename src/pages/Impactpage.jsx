@@ -13,6 +13,8 @@ import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
 import { districtDisplayNames, districtToStateMap } from '../data/locationData';
 import { useRecoilState, useRecoilValue } from 'recoil';
+import { useLocation } from 'react-router-dom';
+import ShareableLink from '../components/ShareableLink';
 import {
   selectedStateAtom,
   selectedDistrictAtom,
@@ -30,6 +32,7 @@ import Footer from '../components/Footer';
 
 const ImpactAssessmentPage = () => {
   const scrollTargetRef = useRef(null);
+  const location = useLocation();
 
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
   const [selectedSubdistrict, setSelectedSubdistrict] = useRecoilState(selectedSubdistrictAtom);
@@ -56,6 +59,142 @@ const ImpactAssessmentPage = () => {
   };
 
   const getDistrictIdByName = (districtName) => districtIdMap[districtName] || null;
+
+  // Add this effect to load from URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const isSharedLink = params.get('shared') === 'true';
+    
+    if (!isSharedLink) return;
+    
+    // Extract parameters
+    const stateParam = params.get('state');
+    const districtParam = params.get('district');
+    const subdistrictParam = params.get('subdistrict');
+    const villageParam = params.get('village');
+    
+    console.log('Loading from shared link parameters:', 
+      { state: stateParam, district: districtParam, subdistrict: subdistrictParam, village: villageParam });
+    
+    // We need to load these sequentially due to dependencies
+    const loadData = async () => {
+      try {
+        // Initial delay before starting the loading process
+        console.log("Starting shared link loading with initial delay...");
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // 1. Set state
+        if (stateParam) {
+          console.log("Setting state:", stateParam);
+          setSelectedState(stateParam);
+          // Add delay after setting state
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
+        // 2. Find and set district
+        if (districtParam) {
+          console.log("Finding and setting district:", districtParam);
+          const districtOption = districtOptions.find(
+            option => option.label.toLowerCase() === districtParam.toLowerCase()
+          );
+          
+          if (districtOption) {
+            setSelectedDistrict(districtOption);
+            console.log("District set to:", districtOption.label);
+            
+            // Fetch subdistricts for this district
+            const districtId = getDistrictIdByName(districtOption.label);
+            if (districtId) {
+              // Wait longer for the state to update
+              console.log("Waiting for district state to update before fetching subdistricts...");
+              await new Promise(resolve => setTimeout(resolve, 3000));
+              
+              try {
+                console.log("Fetching subdistricts for district ID:", districtId);
+                const subdistricts = await getSubdistricts(districtId);
+                const subdistrictsList = subdistricts.map(item => ({
+                  value: item.id,
+                  label: item.name
+                }));
+                setSubdistrictOptions(subdistrictsList);
+                console.log("Subdistrict options set with", subdistrictsList.length, "items");
+                
+                // 3. Find and set subdistrict
+                if (subdistrictParam && subdistrictsList.length > 0) {
+                  // Wait longer for options to be set
+                  console.log("Waiting for subdistricts to load...");
+                  await new Promise(resolve => setTimeout(resolve, 3000));
+                  
+                  console.log("Finding subdistrict:", subdistrictParam);
+                  const subdistrictOption = subdistrictsList.find(
+                    option => option.label.toLowerCase() === subdistrictParam.toLowerCase()
+                  );
+                  
+                  if (subdistrictOption) {
+                    console.log("Setting subdistrict to:", subdistrictOption.label);
+                    setSelectedSubdistrict(subdistrictOption);
+                    
+                    // 4. Fetch and set village
+                    console.log("Waiting before fetching villages...");
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    
+                    try {
+                      console.log("Fetching villages for subdistrict ID:", subdistrictOption.value);
+                      const villages = await getVillages(subdistrictOption.value);
+                      const villagesList = villages.map(item => ({
+                        value: item.id,
+                        label: item.display_name || item.name,
+                        villageName: item.name,
+                        villageId: item.village_id
+                      }));
+                      setVillageOptions(villagesList);
+                      console.log("Village options set with", villagesList.length, "items");
+                      
+                      // Find and set village
+                      if (villageParam && villagesList.length > 0) {
+                        // Wait longer for villages to be set
+                        console.log("Waiting for villages to load...");
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        
+                        console.log("Finding village:", villageParam);
+                        const villageOption = villagesList.find(
+                          option => option.label.toLowerCase() === villageParam.toLowerCase()
+                        );
+                        
+                        if (villageOption) {
+                          console.log("Setting village to:", villageOption.label);
+                          setSelectedVillage(villageOption);
+                          
+                          // Final delay to ensure map loads properly
+                          console.log("Final delay before map updates...");
+                          await new Promise(resolve => setTimeout(resolve, 4000));
+                          console.log("Shared link loading process complete.");
+                        } else {
+                          console.warn("Village not found:", villageParam);
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error fetching villages:', error);
+                    }
+                  } else {
+                    console.warn("Subdistrict not found:", subdistrictParam);
+                  }
+                }
+              } catch (error) {
+                console.error('Error fetching subdistricts:', error);
+              }
+            }
+          } else {
+            console.warn("District not found:", districtParam);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing shared link:', error);
+      }
+    };
+    
+    loadData();
+  }, [location.search]);
 
   useEffect(() => {
     if (selectedDistrict) {
@@ -96,8 +235,7 @@ const ImpactAssessmentPage = () => {
         .then(villages => {
           console.log("API Response - Villages:", villages); // Debug the raw API response
           
-          setVillageOptions(
-            villages.map(village => {
+          const sortedVillageOptions = villages.map(village => {
               console.log("Processing village:", village);  // Debug each village
               return { 
                 value: village.id, 
@@ -105,8 +243,9 @@ const ImpactAssessmentPage = () => {
                 villageName: village.name, 
                 villageId: village.village_id 
               };
-            })
-          );
+            }).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
+          
+          setVillageOptions(sortedVillageOptions);
           console.log("Set village options completed");
           setSelectedVillage(null);
         })
@@ -130,6 +269,10 @@ const ImpactAssessmentPage = () => {
 
   // Handle district change and set state accordingly
   const handleDistrictChange = option => {
+    // Clear any existing zoom lock state when selection changes
+    sessionStorage.removeItem('zoomLocked');
+    sessionStorage.removeItem('villageBounds');
+    
     setSelectedDistrict(option); // Update selected district
     setSelectedSubdistrict(null); // Reset subdistrict when district changes
     setSelectedVillage(null); // Reset village when district changes
@@ -143,6 +286,10 @@ const ImpactAssessmentPage = () => {
   };
 
   const handleSubdistrictChange = option => {
+    // Clear any existing zoom lock state when selection changes
+    sessionStorage.removeItem('zoomLocked');
+    sessionStorage.removeItem('villageBounds');
+    
     // Log the change to make sure it's being called
     console.log("Subdistrict selected:", option);
 
@@ -155,6 +302,10 @@ const ImpactAssessmentPage = () => {
 
   // Update the handleVillageChange function
   const handleVillageChange = (option) => {
+    // Clear any existing zoom lock state when selection changes
+    sessionStorage.removeItem('zoomLocked');
+    sessionStorage.removeItem('villageBounds');
+    
     console.log("Village selected:", option);
     setSelectedVillage(option); // Store the entire option object with all properties
   };
@@ -198,34 +349,46 @@ const ImpactAssessmentPage = () => {
             <h1 className="text-5xl font-bold mb-2">Impact Assessment</h1>
             <p>Our impact assessment focuses on increased Rabi acreage as the primary indicator of watershed programme success.</p>
           </div>
-          <div className="w-full max-w-xs">
-            <div className="mb-4 text-black">
-              <SelectDistrict
-                options={districtOptions}
-                onChange={handleDistrictChange}
-                value={selectedDistrict}
-                placeholder="Select District..."
-              />
+          <div className="flex flex-col lg:flex-row gap-6 mb-4">
+            <div className="lg:w-1/2">
+              <div className="mb-4 text-black max-w-xs">
+                <SelectDistrict
+                  options={districtOptions}
+                  onChange={handleDistrictChange}
+                  value={selectedDistrict}
+                  placeholder="Select District..."
+                />
+              </div>
+              <div className="mb-4 max-w-xs">
+                <SelectSubdistrict
+                  key={selectedDistrict?.value || 'no-district'}
+                  options={subdistrictOptions}
+                  onChange={handleSubdistrictChange}
+                  placeholder="Select Subdistrict..."
+                  isDisabled={!selectedDistrict}
+                  value={selectedSubdistrict || null}
+                />
+              </div>
+              <div className="mb-4 max-w-xs">
+                <SelectVillage
+                  key={selectedSubdistrict?.value || 'no-subdistrict'}
+                  options={villageOptions}
+                  onChange={handleVillageChange}
+                  placeholder="Select Village..."
+                  isDisabled={!selectedSubdistrict}
+                  value={selectedVillage || null}
+                />
+              </div>
             </div>
-            <div className="mb-4">
-              <SelectSubdistrict
-                key={selectedDistrict?.value || 'no-district'}
-                options={subdistrictOptions}
-                onChange={handleSubdistrictChange}
-                placeholder="Select Subdistrict..."
-                isDisabled={!selectedDistrict}
-                value={selectedSubdistrict || null}
-              />
-            </div>
-            <div className="mb-4">
-              <SelectVillage
-                key={selectedSubdistrict?.value || 'no-subdistrict'}
-                options={villageOptions}
-                onChange={handleVillageChange}
-                placeholder="Select Village..."
-                isDisabled={!selectedSubdistrict}
-                value={selectedVillage || null}
-              />
+            <div className="lg:w-1/2">
+              <div className="h-auto" style={{ maxHeight: '180px' }}>
+                <ShareableLink
+                  state={selectedState}
+                  district={selectedDistrict}
+                  subdistrict={selectedSubdistrict}
+                  village={selectedVillage}
+                />
+              </div>
             </div>
           </div>
 
