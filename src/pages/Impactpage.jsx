@@ -235,8 +235,7 @@ const ImpactAssessmentPage = () => {
         .then(villages => {
           console.log("API Response - Villages:", villages); // Debug the raw API response
           
-          setVillageOptions(
-            villages.map(village => {
+          const sortedVillageOptions = villages.map(village => {
               console.log("Processing village:", village);  // Debug each village
               return { 
                 value: village.id, 
@@ -244,8 +243,9 @@ const ImpactAssessmentPage = () => {
                 villageName: village.name, 
                 villageId: village.village_id 
               };
-            })
-          );
+            }).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
+          
+          setVillageOptions(sortedVillageOptions);
           console.log("Set village options completed");
           setSelectedVillage(null);
         })
