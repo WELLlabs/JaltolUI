@@ -7,8 +7,8 @@ import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import VillageDetails from './VillageDetails';
 import Spinner from './Spinner';
-import { selectedControlSubdistrictAtom, selectedControlVillageAtom } from '../recoil/selectAtoms';
-import { useRecoilState } from 'recoil';
+import { selectedControlSubdistrictAtom, selectedControlVillageAtom, customPolygonDataAtom } from '../recoil/selectAtoms';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import OpacitySlider from './MapComponents/OpacitySlider';
 
 const Legend = () => {
@@ -89,6 +89,8 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [controlVillage, setControlVillage] = useRecoilState(selectedControlVillageAtom);
 
   const [lulcOpacity, setLulcOpacity] = useState(1);
+
+  const customPolygonData = useRecoilValue(customPolygonDataAtom);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -243,6 +245,14 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
     fillOpacity: 0.1
   };
 
+  const circleStyle = {
+    color: '#ffffff',
+    weight: 2,
+    opacity: 1,
+    fillColor: '#ffffff',
+    fillOpacity: 0.3
+  };
+
   const onEachFeature = (feature, layer) => {
     layer.setStyle(normalStyle);
   };
@@ -318,6 +328,15 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
                 eventHandlers={{
                   add: handleBoundaryLoad,
                 }}
+              />
+            </LayersControl.Overlay>
+          )}
+          {customPolygonData && customPolygonData.circles && (
+            <LayersControl.Overlay checked name="Generated Circles">
+              <GeoJSON
+                key={`generated-circles-${JSON.stringify(customPolygonData.circles).length}`}
+                data={customPolygonData.circles}
+                style={circleStyle}
               />
             </LayersControl.Overlay>
           )}

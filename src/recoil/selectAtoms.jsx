@@ -55,3 +55,25 @@ export const selectedControlVillageAtom = atom({
   key: 'selectedControlVillage',
   default: { value: '', label: '' }, // Match the structure used in SelectSubdistrict
 });
+
+// Add these atoms to your existing selectAtoms.jsx file
+
+export const customPolygonDataAtom = atom({
+  key: 'customPolygonData',
+  default: null, // Will contain the GeoJSON data
+});
+
+export const generatedCirclesDataAtom = atom({
+  key: 'generatedCirclesData',
+  default: null, // Will contain circles generated for the control village
+});
+
+export const polygonChartDataAtom = atom({
+  key: 'polygonChartData',
+  default: { labels: [], datasets: [] },
+});
+
+export const showPolygonDataAtom = atom({
+  key: 'showPolygonData',
+  default: false, // Toggle between village (false) and polygon (true) data
+});

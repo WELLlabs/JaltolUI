@@ -12,9 +12,10 @@ import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
 import { districtDisplayNames, districtToStateMap } from '../data/locationData';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { useLocation } from 'react-router-dom';
 import ShareableLink from '../components/ShareableLink';
+import { uploadCustomPolygon } from '../services/api';
 import {
   selectedStateAtom,
   selectedDistrictAtom,
@@ -26,12 +27,17 @@ import {
   interventionChartDataAtom,
   compareVillagesClickedAtom,
   selectedControlVillageAtom,
+  customPolygonDataAtom,
+  showPolygonDataAtom
 } from '../recoil/selectAtoms';
 import { getSubdistricts, getVillages } from '../services/api'; // Import API calls
 import Footer from '../components/Footer';
 
+
+
 const ImpactAssessmentPage = () => {
   const scrollTargetRef = useRef(null);
+  const fileInputRef = useRef(null);
   const location = useLocation();
 
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
@@ -47,6 +53,11 @@ const ImpactAssessmentPage = () => {
 
   // const [selectedControlSubdistrict, setSelectedControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
   const [selectedControlVillage, setSelectedControlVillage] = useRecoilState(selectedControlVillageAtom);
+  const [uploadedGeoJSON, setUploadedGeoJSON] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const setCustomPolygonData = useSetRecoilState(customPolygonDataAtom);
+  const setShowPolygonData = useSetRecoilState(showPolygonDataAtom);
 
   const districtIdMap = {
     'Karauli, RJ': 1,
@@ -315,6 +326,109 @@ const ImpactAssessmentPage = () => {
     setSelectedControlVillage(option);
   };
 
+  // GeoJSON upload handlers
+  const handleUploadButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const geojsonData = JSON.parse(e.target.result);
+        setUploadedGeoJSON(geojsonData);
+        
+        // Send to backend for processing
+        processUploadedGeoJSON(geojsonData);
+      } catch (error) {
+        console.error('Error parsing GeoJSON file:', error);
+        setUploadError('Invalid GeoJSON file. Please upload a valid file.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const processUploadedGeoJSON = async (geojsonData) => {
+    if (!selectedState || !selectedDistrict || !selectedSubdistrict || !selectedVillage) {
+      setUploadError('Please select all village details before uploading a polygon.');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      // Get current year from the URL or use default
+      const year = (new URLSearchParams(location.search).get('year')) || '2022';
+      
+      // Log the parameters being sent
+      console.log("Sending params:", {
+        state: selectedState,
+        district: selectedDistrict?.label,
+        subdistrict: selectedSubdistrict?.label,
+        village: selectedVillage?.label,
+        controlVillage: selectedControlVillage?.label || '',
+        year: year
+      });
+      
+      // Make sure we're sending all required parameters
+      if (!selectedState || !selectedDistrict?.label || !selectedSubdistrict?.label || 
+          !selectedVillage?.label || !year) {
+        setUploadError('Missing required parameters. Please select all fields.');
+        setIsUploading(false);
+        return;
+      }
+
+      // Call the backend API to process the GeoJSON
+      const result = await uploadCustomPolygon(
+        selectedState,
+        selectedDistrict.label,
+        selectedSubdistrict.label,
+        selectedVillage.label,
+        selectedControlVillage?.label || '',
+        selectedControlVillage?.value || '',
+        year,
+        geojsonData
+      );
+
+      console.log('Polygon processing result:', result);
+      
+      // Transform data for our components
+      const processedData = {
+        // Original GeoJSON
+        polygon: geojsonData,
+        // Circles generated for control village
+        circles: result.control.circles || { type: 'FeatureCollection', features: [] },
+        // Stats for charts
+        interventionStats: {
+          single_crop: result.intervention.crop_stats?.single_crop || 0,
+          double_crop: result.intervention.crop_stats?.double_crop || 0,
+          tree_cover: result.intervention.crop_stats?.tree_cover || 0,
+        },
+        controlStats: {
+          single_crop: result.control.crop_stats?.single_crop || 0,
+          double_crop: result.control.crop_stats?.double_crop || 0,
+          tree_cover: result.control.crop_stats?.tree_cover || 0,
+        }
+      };
+      
+      // Update state with processed data
+      setCustomPolygonData(processedData);
+      
+      // Switch to polygon data view in chart
+      setShowPolygonData(true);
+      
+      setIsUploading(false);
+    } catch (error) {
+      console.error('Error processing GeoJSON:', error);
+      setUploadError('Error processing your GeoJSON. Please try again.');
+      setIsUploading(false);
+    }
+  };
+
   
 
   // Prepare district options from districtDisplayNames
@@ -469,6 +583,26 @@ const ImpactAssessmentPage = () => {
                     isDisabled={!selectedSubdistrict}
                     value={selectedVillage}
                   />
+                  {/* GeoJSON Upload Button */}
+                  <div className="z-[9999]">
+                    <button 
+                      onClick={handleUploadButtonClick}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      disabled={!selectedVillage || isUploading}
+                    >
+                      {isUploading ? 'Processing...' : 'Upload GeoJSON'}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json,.geojson"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    {uploadError && (
+                      <div className="text-red-500 text-sm mt-1">{uploadError}</div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -479,6 +613,7 @@ const ImpactAssessmentPage = () => {
                   selectedDistrict={selectedDistrict}
                   selectedSubdistrict={selectedSubdistrict}
                   selectedVillage={selectedVillage}
+                  uploadedGeoJSON={uploadedGeoJSON}
                 />
               </div>
             </div>

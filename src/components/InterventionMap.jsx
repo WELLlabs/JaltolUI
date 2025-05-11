@@ -8,6 +8,9 @@ import L from 'leaflet';
 import VillageDetails from './VillageDetails';
 import Spinner from './Spinner'; // Import Spinner
 import OpacitySlider from './MapComponents/OpacitySlider';
+import * as turf from '@turf/turf';
+import { useRecoilValue } from 'recoil';
+import { customPolygonDataAtom } from '../recoil/selectAtoms';
 
 const Legend = () => {
   const map = useMap();
@@ -72,7 +75,13 @@ FlyToFeature.propTypes = {
   onFlyToComplete: PropTypes.func,
 };
 
-const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage }) => {
+const InterventionMap = ({ 
+  selectedState, 
+  selectedDistrict, 
+  selectedSubdistrict, 
+  selectedVillage,
+  uploadedGeoJSON 
+}) => {
   const position = [22.3511148, 78.6677428]; // Central point of India
   const zoom = 5;
 
@@ -84,10 +93,96 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
   const [rasterLoaded, setRasterLoaded] = useState(false);
   const [flyToComplete, setFlyToComplete] = useState(false);
   const [lulcOpacity, setLulcOpacity] = useState(1);
+  const [processedGeoJSON, setProcessedGeoJSON] = useState(null);
+  
+  // Get processed polygon data from Recoil atom
+  const customPolygonData = useRecoilValue(customPolygonDataAtom);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
     setSelectedYear(selectedOption.value);
+  };
+
+  // Process the GeoJSON when it's received from props or atom
+  useEffect(() => {
+    if (customPolygonData?.polygon) {
+      // If we have processed data from the backend, use that
+      setProcessedGeoJSON(customPolygonData.polygon);
+    } else if (uploadedGeoJSON && boundaryData) {
+      // Otherwise process the uploaded GeoJSON locally
+      processGeoJSON(uploadedGeoJSON);
+    }
+  }, [uploadedGeoJSON, boundaryData, customPolygonData]);
+
+  const processGeoJSON = (geojsonData) => {
+    if (!boundaryData || !boundaryData.features || boundaryData.features.length === 0) {
+      console.warn('No village boundary data available to process GeoJSON');
+      setProcessedGeoJSON(null);
+      return;
+    }
+
+    try {
+      // Get the village polygon
+      const villageBoundary = boundaryData.features[0];
+      
+      // Process each feature in the uploaded GeoJSON
+      const intersectedFeatures = {
+        type: 'FeatureCollection',
+        features: []
+      };
+
+      // Check if we're dealing with a FeatureCollection or a single Feature
+      const features = geojsonData.type === 'FeatureCollection' 
+        ? geojsonData.features 
+        : [geojsonData];
+
+      features.forEach(feature => {
+        try {
+          // For simple cases like the sample.geojson, where we're drawing shapes inside the village,
+          // we may just want to display the shapes directly
+          if (turf.booleanWithin(feature, villageBoundary)) {
+            // If the feature is completely within the village boundary, add it as is
+            intersectedFeatures.features.push({...feature});
+            return;
+          }
+          
+          // Handle different geometry types for partial intersections
+          if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+            const intersection = turf.intersect(feature, villageBoundary);
+            if (intersection) {
+              // Preserve original properties if they exist
+              intersection.properties = {...feature.properties, ...intersection.properties};
+              intersectedFeatures.features.push(intersection);
+            }
+          } else if (feature.geometry.type === 'LineString' || feature.geometry.type === 'MultiLineString') {
+            // For lines, we can use turf.lineSplit or turf.lineIntersect
+            const clipped = turf.booleanIntersects(feature, villageBoundary) 
+              ? turf.mask(feature, villageBoundary) 
+              : null;
+            if (clipped) {
+              intersectedFeatures.features.push(clipped);
+            }
+          } else if (feature.geometry.type === 'Point' || feature.geometry.type === 'MultiPoint') {
+            // For points, check if they're inside the polygon
+            if (turf.booleanPointInPolygon(feature.geometry.coordinates, villageBoundary)) {
+              intersectedFeatures.features.push(feature);
+            }
+          }
+        } catch (error) {
+          console.error('Error processing feature:', error, feature);
+          // If there's an error with the intersection, try to add the feature unchanged
+          // but only if it at least intersects with the village boundary
+          if (turf.booleanIntersects(feature, villageBoundary)) {
+            intersectedFeatures.features.push({...feature});
+          }
+        }
+      });
+
+      console.log('Processed GeoJSON features:', intersectedFeatures.features.length);
+      setProcessedGeoJSON(intersectedFeatures);
+    } catch (error) {
+      console.error('Error intersecting GeoJSON with village boundary:', error);
+    }
   };
 
   useEffect(() => {
@@ -198,6 +293,22 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
     fillOpacity: 0.1
   };
 
+  const uploadedGeoJSONStyle = {
+    color: 'transparent', // No border
+    weight: 0,
+    opacity: 0,
+    fillColor: '#FFFFFF', // White fill
+    fillOpacity: 0.8
+  };
+
+  const polygonStyle = {
+    color: 'transparent', // No border
+    weight: 0,
+    opacity: 0,
+    fillColor: '#FFFFFF', // White fill
+    fillOpacity: 0.8
+  };
+
   const onEachFeature = (feature, layer) => {
     const villageName = selectedVillage?.label || selectedVillage;
     // Extract base village name without ID if it's in the format "name - id"
@@ -236,6 +347,7 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
           />
         </div>
       </div>
+
       <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="Google Maps">
@@ -281,6 +393,24 @@ const InterventionMap = ({ selectedState, selectedDistrict, selectedSubdistrict,
               />
             </LayersControl.Overlay>
           )}
+          {processedGeoJSON && processedGeoJSON.features.length > 0 && (
+            <LayersControl.Overlay checked name="Uploaded GeoJSON">
+              <GeoJSON
+                key={JSON.stringify(processedGeoJSON)} // Force re-render
+                data={processedGeoJSON}
+                style={uploadedGeoJSONStyle}
+              />
+            </LayersControl.Overlay>
+          )}
+          {customPolygonData && customPolygonData.polygon && (
+            <LayersControl.Overlay checked name="Custom Polygon">
+              <GeoJSON
+                key={`custom-polygon-${JSON.stringify(customPolygonData.polygon).length}`}
+                data={customPolygonData.polygon}
+                style={polygonStyle}
+              />
+            </LayersControl.Overlay>
+          )}
         </LayersControl>
         {boundaryData && (
           <FlyToFeature
@@ -299,6 +429,7 @@ InterventionMap.propTypes = {
   selectedDistrict: PropTypes.string,
   selectedSubdistrict: PropTypes.string,
   selectedVillage: PropTypes.string,
+  uploadedGeoJSON: PropTypes.object
 };
 
 export default InterventionMap;

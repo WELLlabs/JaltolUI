@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
-// const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
+// const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
+const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
 
 // Updated get_boundary_data function to accept villageId as a parameter
 export const get_boundary_data = (stateName, districtName, subdistrictName = '', villageName = '', villageId = '') => {
@@ -98,4 +98,41 @@ export const getVillages = (subdistrictId) => {
       console.error("Error fetching villages:", error);
       throw error;
     });
+};
+
+
+export const uploadCustomPolygon = (
+  stateName,
+  districtName,
+  subdistrictName,
+  villageName,
+  controlVillageName = '',
+  controlVillageId = '',
+  year,
+  geojsonData
+) => {
+  // Create FormData to handle the file upload
+  const formData = new FormData();
+  formData.append('state_name', stateName);
+  formData.append('district_name', districtName);
+  formData.append('subdistrict_name', subdistrictName);
+  formData.append('village_name', villageName);
+  formData.append('year', year);
+  
+  // Add control village data if provided
+  if (controlVillageName) {
+    formData.append('control_village_name', controlVillageName);
+  }
+  if (controlVillageId) {
+    formData.append('control_village_id', controlVillageId);
+  }
+  
+  // Convert GeoJSON to string and append
+  formData.append('geojson', JSON.stringify(geojsonData));
+
+  return axios.post(`${API_URL}/custom_polygon_comparison/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }).then(response => response.data);
 };
