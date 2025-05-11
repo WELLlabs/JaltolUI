@@ -134,6 +134,7 @@ export const uploadCustomPolygon = (
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    withCredentials: true,  // Add this line
   }).then(response => {
     // Process the response data
     const responseData = response.data;
