@@ -352,7 +352,7 @@ const ImpactAssessmentPage = () => {
   };
 
   const processUploadedGeoJSON = async (geojsonData) => {
-    if (!selectedState || !selectedDistrict || !selectedSubdistrict || !selectedVillage) {
+    if (!selectedState || !selectedDistrict || !selectedSubdistrict || !selectedVillage || !selectedControlVillage) {
       setUploadError('Please select all village details before uploading a polygon.');
       return;
     }
@@ -376,7 +376,7 @@ const ImpactAssessmentPage = () => {
       
       // Make sure we're sending all required parameters
       if (!selectedState || !selectedDistrict?.label || !selectedSubdistrict?.label || 
-          !selectedVillage?.label || !year) {
+          !selectedVillage?.label || !selectedControlVillage?.label || !year) {
         setUploadError('Missing required parameters. Please select all fields.');
         setIsUploading(false);
         return;
@@ -388,8 +388,8 @@ const ImpactAssessmentPage = () => {
         selectedDistrict.label,
         selectedSubdistrict.label,
         selectedVillage.label,
-        selectedControlVillage?.label || '',
-        selectedControlVillage?.value || '',
+        selectedControlVillage.label,
+        selectedControlVillage.value,
         year,
         geojsonData
       );

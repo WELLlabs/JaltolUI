@@ -106,8 +106,8 @@ export const uploadCustomPolygon = (
   districtName,
   subdistrictName,
   villageName,
-  controlVillageName = '',
-  controlVillageId = '',
+  controlVillageName ,
+  controlVillageId,
   year,
   geojsonData
 ) => {
