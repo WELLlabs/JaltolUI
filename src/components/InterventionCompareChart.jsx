@@ -41,22 +41,55 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 beginAtZero: true,
                 ticks: {
                     color: 'black',
+                    font: {
+                        size: 11
+                    }
                 },
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
+                    color: 'rgba(0, 0, 0, 0.05)',
                 },
                 title: {
                     display: true,
                     text: 'Area (ha)',
                     color: 'black',
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
+                },
+                position: 'left'
+            },
+            y1: {
+                beginAtZero: true,
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false, // only want the grid lines for y1 axis
+                },
+                ticks: {
+                    color: '#00BFFF',
+                    font: {
+                        size: 11
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Rainfall (mm)',
+                    color: '#00BFFF',
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
                 },
             },
             x: {
                 ticks: {
                     color: 'black',
+                    font: {
+                        size: 11
+                    }
                 },
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
+                    color: 'rgba(0, 0, 0, 0.05)',
                 }
             }
         },
@@ -76,6 +109,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 titleColor: 'black',
                 borderColor: 'black',
                 borderWidth: 1,
+                padding: 10,
                 callbacks: {
                     label: function(context) {
                         let label = context.dataset.label || '';
@@ -110,10 +144,12 @@ const InterventionCompareChart = ({ onDataChange }) => {
         maintainAspectRatio: false,
         elements: {
             point: {
-                radius: 5,
+                radius: 4,
+                hoverRadius: 6
             },
             line: {
-                borderWidth: 3,
+                borderWidth: 2,
+                tension: 0.1
             }
         },
         backgroundColor: 'white',
@@ -257,29 +293,26 @@ const InterventionCompareChart = ({ onDataChange }) => {
     // New effect to create polygon chart data when custom polygon data changes
     useEffect(() => {
         if (customPolygonData && controlVillage?.value && stateName && districtName) {
-            // We already have all the data we need in customPolygonData
             const villageValue = villageName.label;
             const controlVillageName = controlVillage.label;
             
-            // Find the same years from the regular chart data
-            const labels = chartData.labels || [];
-            
-            // Create polygon-based datasets
-            // For now, we'll just use the latest year's data for the polygon
-            // In a real implementation, you'd have historical data for the polygon areas
-            // const currentYear = new Date().getFullYear().toString();
-            
-            // Extract intervention and control stats
+            // Extract the multi-year data from customPolygonData
             const { interventionStats, controlStats } = customPolygonData;
             
-            // Create polygon-specific datasets
-            // We'll use the same years as the village data but with polygon-specific values
-            // For simplicity, we'll show the same polygon values for all years
+            // Get all available years from both intervention and control stats
+            const years = Object.keys(interventionStats || {}).sort();
+            
+            if (years.length === 0) {
+                console.error("No yearly data found in the polygon stats");
+                return;
+            }
+            
+            // Create datasets for each year's data - only for land cover, no rainfall
             const datasets = [
                 {
                     label: `Single Cropland (Polygon) - ${villageValue}`,
                     type: 'line',
-                    data: labels.map(() => interventionStats.single_crop || 0),
+                    data: years.map(year => interventionStats[year]?.single_crop || 0),
                     borderColor: '#8b9dc3',
                     backgroundColor: 'rgba(139, 157, 195, 0.2)',
                     yAxisID: 'y',
@@ -287,7 +320,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 {
                     label: `Double Cropland (Polygon) - ${villageValue}`,
                     type: 'line',
-                    data: labels.map(() => interventionStats.double_crop || 0),
+                    data: years.map(year => interventionStats[year]?.double_crop || 0),
                     borderColor: '#222f5b',
                     backgroundColor: 'rgba(34, 47, 91, 0.2)',
                     yAxisID: 'y',
@@ -295,18 +328,16 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 {
                     label: `Tree Cover (Polygon) - ${villageValue}`,
                     type: 'line',
-                    data: labels.map(() => interventionStats.tree_cover || 0),
+                    data: years.map(year => interventionStats[year]?.tree_cover || 0),
                     borderColor: 'green',
                     backgroundColor: 'rgba(0, 128, 0, 0.2)',
                     yAxisID: 'y',
                     hidden: true,
                 },
-                // We'll reuse the same rainfall data
-                ...chartData.datasets.filter(dataset => dataset.label.includes('Rainfall')),
                 {
                     label: `Single Cropland (Circles) - ${controlVillageName}`,
                     type: 'line',
-                    data: labels.map(() => controlStats.single_crop || 0),
+                    data: years.map(year => controlStats[year]?.single_crop || 0),
                     borderColor: '#FFA07A',
                     backgroundColor: 'rgba(255, 160, 122, 0.2)',
                     yAxisID: 'y',
@@ -315,7 +346,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 {
                     label: `Double Cropland (Circles) - ${controlVillageName}`,
                     type: 'line',
-                    data: labels.map(() => controlStats.double_crop || 0),
+                    data: years.map(year => controlStats[year]?.double_crop || 0),
                     borderColor: '#20B2AA',
                     backgroundColor: 'rgba(32, 178, 170, 0.2)',
                     yAxisID: 'y',
@@ -324,16 +355,17 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 {
                     label: `Tree Cover (Circles) - ${controlVillageName}`,
                     type: 'line',
-                    data: labels.map(() => controlStats.tree_cover || 0),
+                    data: years.map(year => controlStats[year]?.tree_cover || 0),
                     borderColor: 'green',
                     backgroundColor: 'rgba(0, 128, 0, 0.2)',
                     yAxisID: 'y',
                     borderDash: [10, 5],
                     hidden: true,
-                },
+                }
+                // Note: Rainfall bars are intentionally excluded for polygon view
             ];
             
-            setPolygonChartData({ labels, datasets });
+            setPolygonChartData({ labels: years, datasets });
             
             // Initialize visibility for polygon datasets
             setDatasetVisibility(
@@ -343,7 +375,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 }, {})
             );
         }
-    }, [customPolygonData, chartData, villageName, controlVillage]);
+    }, [customPolygonData, villageName, controlVillage, stateName, districtName]);
 
     const toggleDatasetVisibility = (index) => {
         const currentData = showPolygonData ? polygonChartData : chartData;
@@ -373,31 +405,34 @@ const InterventionCompareChart = ({ onDataChange }) => {
         }
         
         return (
-            <ul className="flex flex-wrap justify-center mb-2">
-                {currentData.datasets.map((dataset, index) => (
-                    <li
-                        key={index}
-                        className="flex items-center mr-4 mb-2 cursor-pointer"
-                        onClick={() => toggleDatasetVisibility(index)}
-                        style={{
-                            textDecoration: datasetVisibility[index] ? 'none' : 'line-through',
-                            opacity: datasetVisibility[index] ? 1 : 0.5,
-                            color: 'black', // Ensure legend text is always black
-                        }}
-                    >
-                        <span
+            <div className="bg-gray-50 px-4 py-3 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-sm font-medium mb-2 text-gray-700">Legend</div>
+                <ul className="flex flex-wrap justify-start gap-x-6 gap-y-2">
+                    {currentData.datasets.map((dataset, index) => (
+                        <li
+                            key={index}
+                            className="flex items-center cursor-pointer transition-all hover:bg-gray-100 px-2 py-1 rounded"
+                            onClick={() => toggleDatasetVisibility(index)}
                             style={{
-                                display: 'inline-block',
-                                width: '20px',
-                                height: '10px',
-                                borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
-                                marginRight: '8px',
+                                textDecoration: datasetVisibility[index] ? 'none' : 'line-through',
+                                opacity: datasetVisibility[index] ? 1 : 0.5,
+                                color: 'black', // Ensure legend text is always black
                             }}
-                        ></span>
-                        {dataset.label}
-                    </li>
-                ))}
-            </ul>
+                        >
+                            <span
+                                style={{
+                                    display: 'inline-block',
+                                    width: '20px',
+                                    height: '10px',
+                                    borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
+                                    marginRight: '8px',
+                                }}
+                            ></span>
+                            <span className="text-sm">{dataset.label}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         );
     };
 
@@ -406,9 +441,9 @@ const InterventionCompareChart = ({ onDataChange }) => {
     const hasData = displayData && displayData.datasets && displayData.datasets.length > 0;
 
     return (
-        <div className="w-full bg-white flex flex-col items-center relative z-9999">
-            <div className="w-full flex justify-between items-center mb-4">
-                <h2 className="text-center text-black text-2xl">Land Cover Change Over Time</h2>
+        <div className="w-full bg-white flex flex-col items-center relative z-9999 p-4">
+            <div className="w-full flex justify-between items-center mb-6">
+                <h2 className="text-center text-black text-2xl font-semibold">Land Cover Change Over Time</h2>
                 {customPolygonData && (
                     <DataToggle />
                 )}
@@ -420,13 +455,13 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 </div>
             ) : hasData ? (
                 <>
-                    <div className="w-full mt-4">{renderLegend()}</div>
-                    <div className="w-full h-64">
+                    <div className="w-full mt-2 mb-4">{renderLegend()}</div>
+                    <div className="w-full h-96 mt-2">
                         <Line ref={chartRef} data={displayData} options={options} />
                     </div>
                 </>
             ) : (
-                <p className="text-center">No data available to display the chart.</p>
+                <p className="text-center py-10">No data available to display the chart.</p>
             )}
             
             {showPolygonData && !customPolygonData && (

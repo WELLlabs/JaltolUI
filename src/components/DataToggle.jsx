@@ -1,4 +1,3 @@
-
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { showPolygonDataAtom, customPolygonDataAtom } from '../recoil/selectAtoms';
 
@@ -12,12 +11,12 @@ const DataToggle = () => {
   return (
     <div className="flex items-center space-x-4 p-2 bg-white rounded-lg shadow-md">
       <span className="text-sm font-medium text-gray-700">Show data for:</span>
-      <div className="flex bg-gray-200 rounded-lg p-1">
+      <div className="flex bg-gray-100 rounded-lg p-1">
         <button
           className={`px-3 py-1 text-sm rounded-md transition-all ${
             !showPolygonData
               ? 'bg-blue-500 text-white font-medium'
-              : 'text-gray-700 hover:bg-gray-300'
+              : 'text-gray-700 border border-blue-500 bg-white hover:bg-gray-100'
           }`}
           onClick={() => setShowPolygonData(false)}
         >
@@ -27,7 +26,7 @@ const DataToggle = () => {
           className={`px-3 py-1 text-sm rounded-md transition-all ${
             showPolygonData
               ? 'bg-blue-500 text-white font-medium'
-              : 'text-gray-700 hover:bg-gray-300'
+              : 'text-gray-700 border border-blue-500 bg-white hover:bg-gray-100'
           }`}
           onClick={() => setShowPolygonData(true)}
           disabled={!hasPolygonData}

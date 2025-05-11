@@ -7,9 +7,10 @@ import YearDropdown from './MapComponents/YearSelectMap';
 import L from 'leaflet';
 import VillageDetails from './VillageDetails';
 import Spinner from './Spinner';
-import { selectedControlSubdistrictAtom, selectedControlVillageAtom, customPolygonDataAtom } from '../recoil/selectAtoms';
+import { selectedControlSubdistrictAtom, selectedControlVillageAtom, customPolygonDataAtom, circlesSummaryAtom } from '../recoil/selectAtoms';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import OpacitySlider from './MapComponents/OpacitySlider';
+import CirclesOverlay from './CirclesOverlay';
 
 const Legend = () => {
   const map = useMap();
@@ -91,6 +92,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   const [lulcOpacity, setLulcOpacity] = useState(1);
 
   const customPolygonData = useRecoilValue(customPolygonDataAtom);
+  const circlesSummary = useRecoilValue(circlesSummaryAtom);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -246,11 +248,11 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
   };
 
   const circleStyle = {
-    color: '#ffffff',
+    color: '#ff0000',
     weight: 2,
     opacity: 1,
     fillColor: '#ffffff',
-    fillOpacity: 0.3
+    fillOpacity: 0.6
   };
 
   const onEachFeature = (feature, layer) => {
@@ -337,6 +339,13 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
                 key={`generated-circles-${JSON.stringify(customPolygonData.circles).length}`}
                 data={customPolygonData.circles}
                 style={circleStyle}
+              />
+            </LayersControl.Overlay>
+          )}
+          {circlesSummary && (
+            <LayersControl.Overlay checked name="Circles Summary">
+              <CirclesOverlay
+                circles={circlesSummary}
               />
             </LayersControl.Overlay>
           )}

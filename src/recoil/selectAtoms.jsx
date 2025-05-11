@@ -68,6 +68,11 @@ export const generatedCirclesDataAtom = atom({
   default: null, // Will contain circles generated for the control village
 });
 
+export const circlesSummaryAtom = atom({
+  key: 'circlesSummary',
+  default: null, // Will contain the simplified circles data from the API response
+});
+
 export const polygonChartDataAtom = atom({
   key: 'polygonChartData',
   default: { labels: [], datasets: [] },

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
-const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
+const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
+// const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
 
 // Updated get_boundary_data function to accept villageId as a parameter
 export const get_boundary_data = (stateName, districtName, subdistrictName = '', villageName = '', villageId = '') => {
@@ -106,7 +106,7 @@ export const uploadCustomPolygon = (
   districtName,
   subdistrictName,
   villageName,
-  controlVillageName ,
+  controlVillageName,
   controlVillageId,
   year,
   geojsonData
@@ -134,5 +134,25 @@ export const uploadCustomPolygon = (
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-  }).then(response => response.data);
+  }).then(response => {
+    // Process the response data
+    const responseData = response.data;
+    
+    // Extract the crop stats by year for both intervention and control
+    const interventionStats = responseData.intervention.crop_stats;
+    const controlStats = responseData.control.crop_stats;
+    
+    // Add circles data to the response
+    const circlesData = responseData.circles_summary;
+    
+    return {
+      intervention: responseData.intervention,
+      control: responseData.control,
+      interventionStats: interventionStats,
+      controlStats: controlStats,
+      polygon: responseData.polygon,
+      circles: circlesData,
+      selectedYear: responseData.selected_year
+    };
+  });
 };
