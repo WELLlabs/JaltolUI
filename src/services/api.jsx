@@ -99,3 +99,60 @@ export const getVillages = (subdistrictId) => {
       throw error;
     });
 };
+
+
+export const uploadCustomPolygon = (
+  stateName,
+  districtName,
+  subdistrictName,
+  villageName,
+  controlVillageName,
+  controlVillageId,
+  year,
+  geojsonData
+) => {
+  // Create FormData to handle the file upload
+  const formData = new FormData();
+  formData.append('state_name', stateName);
+  formData.append('district_name', districtName);
+  formData.append('subdistrict_name', subdistrictName);
+  formData.append('village_name', villageName);
+  formData.append('year', year);
+  
+  // Add control village data if provided
+  if (controlVillageName) {
+    formData.append('control_village_name', controlVillageName);
+  }
+  if (controlVillageId) {
+    formData.append('control_village_id', controlVillageId);
+  }
+  
+  // Convert GeoJSON to string and append
+  formData.append('geojson', JSON.stringify(geojsonData));
+
+  return axios.post(`${API_URL}/custom_polygon_comparison/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }).then(response => {
+    // Process the response data
+    const responseData = response.data;
+    
+    // Extract the crop stats by year for both intervention and control
+    const interventionStats = responseData.intervention.crop_stats;
+    const controlStats = responseData.control.crop_stats;
+    
+    // Add circles data to the response
+    const circlesData = responseData.circles_summary;
+    
+    return {
+      intervention: responseData.intervention,
+      control: responseData.control,
+      interventionStats: interventionStats,
+      controlStats: controlStats,
+      polygon: responseData.polygon,
+      circles: circlesData,
+      selectedYear: responseData.selected_year
+    };
+  });
+};

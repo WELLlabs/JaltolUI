@@ -9,9 +9,11 @@ import {
     selectedStateAtom, selectedDistrictAtom,
     selectedSubdistrictAtom, selectedVillageAtom,
     interventionChartDataAtom, selectedControlSubdistrictAtom, 
-    selectedControlVillageAtom
+    selectedControlVillageAtom, customPolygonDataAtom,
+    showPolygonDataAtom, polygonChartDataAtom
 } from '../recoil/selectAtoms';
-import Spinner from './Spinner'; // Import Spinner
+import Spinner from './Spinner';
+import DataToggle from './DataToggle';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -27,6 +29,11 @@ const InterventionCompareChart = ({ onDataChange }) => {
     const [controlVillage, setControlVillage] = useRecoilState(selectedControlVillageAtom);
     const [datasetVisibility, setDatasetVisibility] = useState({});
     const chartRef = useRef(null);
+    
+    // Add new state for custom polygon data
+    const customPolygonData = useRecoilValue(customPolygonDataAtom);
+    const showPolygonData = useRecoilValue(showPolygonDataAtom);
+    const [polygonChartData, setPolygonChartData] = useRecoilState(polygonChartDataAtom);
 
     const options = {
         scales: {
@@ -34,22 +41,55 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 beginAtZero: true,
                 ticks: {
                     color: 'black',
+                    font: {
+                        size: 11
+                    }
                 },
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
+                    color: 'rgba(0, 0, 0, 0.05)',
                 },
                 title: {
                     display: true,
                     text: 'Area (ha)',
                     color: 'black',
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
+                },
+                position: 'left'
+            },
+            y1: {
+                beginAtZero: true,
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false, // only want the grid lines for y1 axis
+                },
+                ticks: {
+                    color: '#00BFFF',
+                    font: {
+                        size: 11
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Rainfall (mm)',
+                    color: '#00BFFF',
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
                 },
             },
             x: {
                 ticks: {
                     color: 'black',
+                    font: {
+                        size: 11
+                    }
                 },
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
+                    color: 'rgba(0, 0, 0, 0.05)',
                 }
             }
         },
@@ -69,6 +109,7 @@ const InterventionCompareChart = ({ onDataChange }) => {
                 titleColor: 'black',
                 borderColor: 'black',
                 borderWidth: 1,
+                padding: 10,
                 callbacks: {
                     label: function(context) {
                         let label = context.dataset.label || '';
@@ -103,16 +144,18 @@ const InterventionCompareChart = ({ onDataChange }) => {
         maintainAspectRatio: false,
         elements: {
             point: {
-                radius: 5,
+                radius: 4,
+                hoverRadius: 6
             },
             line: {
-                borderWidth: 3,
+                borderWidth: 2,
+                tension: 0.1
             }
         },
         backgroundColor: 'white',
     };
 
-    
+    // Effect for fetching control village data
     useEffect(() => {
         setLoading(true);
         if (stateName && districtName && subdistrictName && villageName) {
@@ -127,14 +170,14 @@ const InterventionCompareChart = ({ onDataChange }) => {
                     console.log('Control Village:', controlVillageName);
                     setControlSubdistrict({ label: controlSubdistrict, value: controlSubdistrict });
                     setControlVillage({ label: controlVillageName, value: controlVillageName });
-  // Update state, triggers re-render
                 })
                 .catch(error => {
                     console.error('Error fetching control village data:', error);
                 });
         }
-    }, [stateName, districtName, subdistrictName, villageName]);  // Dependency array for the first effect
+    }, [stateName, districtName, subdistrictName, villageName]);
 
+    // Effect for fetching village-level chart data
     useEffect(() => {
         // This effect runs only when controlVillage is set
         if (controlVillage?.value && controlSubdistrict && stateName && districtName && subdistrictName && villageName) {
@@ -229,12 +272,12 @@ const InterventionCompareChart = ({ onDataChange }) => {
 
                     setChartData({ labels, datasets });
 
-                // Initialize dataset visibility state
-                     setDatasetVisibility(
-                    datasets.reduce((acc, dataset, index) => {
-                        acc[index] = !dataset.hidden; // Reflect hidden status
-                        return acc;
-                    }, {})
+                    // Initialize dataset visibility state
+                    setDatasetVisibility(
+                        datasets.reduce((acc, dataset, index) => {
+                            acc[index] = !dataset.hidden; // Reflect hidden status
+                            return acc;
+                        }, {})
                     );
 
                     onDataChange({ labels, datasets });
@@ -244,68 +287,187 @@ const InterventionCompareChart = ({ onDataChange }) => {
                     console.error('Error fetching data:', error);
                     setLoading(false);
                 });
-
         }
     }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
 
+    // New effect to create polygon chart data when custom polygon data changes
+    useEffect(() => {
+        if (customPolygonData && controlVillage?.value && stateName && districtName) {
+            const villageValue = villageName.label;
+            const controlVillageName = controlVillage.label;
+            
+            // Extract the multi-year data from customPolygonData
+            const { interventionStats, controlStats } = customPolygonData;
+            
+            // Get all available years from both intervention and control stats
+            const years = Object.keys(interventionStats || {}).sort();
+            
+            if (years.length === 0) {
+                console.error("No yearly data found in the polygon stats");
+                return;
+            }
+            
+            // Create datasets for each year's data - only for land cover, no rainfall
+            const datasets = [
+                {
+                    label: `Single Cropland (Polygon) - ${villageValue}`,
+                    type: 'line',
+                    data: years.map(year => interventionStats[year]?.single_crop || 0),
+                    borderColor: '#8b9dc3',
+                    backgroundColor: 'rgba(139, 157, 195, 0.2)',
+                    yAxisID: 'y',
+                },
+                {
+                    label: `Double Cropland (Polygon) - ${villageValue}`,
+                    type: 'line',
+                    data: years.map(year => interventionStats[year]?.double_crop || 0),
+                    borderColor: '#222f5b',
+                    backgroundColor: 'rgba(34, 47, 91, 0.2)',
+                    yAxisID: 'y',
+                },
+                {
+                    label: `Tree Cover (Polygon) - ${villageValue}`,
+                    type: 'line',
+                    data: years.map(year => interventionStats[year]?.tree_cover || 0),
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(0, 128, 0, 0.2)',
+                    yAxisID: 'y',
+                    hidden: true,
+                },
+                {
+                    label: `Single Cropland (Circles) - ${controlVillageName}`,
+                    type: 'line',
+                    data: years.map(year => controlStats[year]?.single_crop || 0),
+                    borderColor: '#FFA07A',
+                    backgroundColor: 'rgba(255, 160, 122, 0.2)',
+                    yAxisID: 'y',
+                    borderDash: [10, 5],
+                },
+                {
+                    label: `Double Cropland (Circles) - ${controlVillageName}`,
+                    type: 'line',
+                    data: years.map(year => controlStats[year]?.double_crop || 0),
+                    borderColor: '#20B2AA',
+                    backgroundColor: 'rgba(32, 178, 170, 0.2)',
+                    yAxisID: 'y',
+                    borderDash: [10, 5],
+                },
+                {
+                    label: `Tree Cover (Circles) - ${controlVillageName}`,
+                    type: 'line',
+                    data: years.map(year => controlStats[year]?.tree_cover || 0),
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(0, 128, 0, 0.2)',
+                    yAxisID: 'y',
+                    borderDash: [10, 5],
+                    hidden: true,
+                }
+                // Note: Rainfall bars are intentionally excluded for polygon view
+            ];
+            
+            setPolygonChartData({ labels: years, datasets });
+            
+            // Initialize visibility for polygon datasets
+            setDatasetVisibility(
+                datasets.reduce((acc, dataset, index) => {
+                    acc[index] = !dataset.hidden;
+                    return acc;
+                }, {})
+            );
+        }
+    }, [customPolygonData, villageName, controlVillage, stateName, districtName]);
+
     const toggleDatasetVisibility = (index) => {
+        const currentData = showPolygonData ? polygonChartData : chartData;
+        
         setDatasetVisibility(prev => {
             const newVisibility = { ...prev, [index]: !prev[index] };
-            const newDatasets = chartData.datasets.map((dataset, i) => ({
+            const newDatasets = currentData.datasets.map((dataset, i) => ({
                 ...dataset,
                 hidden: !newVisibility[i],
             }));
-            setChartData({ ...chartData, datasets: newDatasets });
+            
+            if (showPolygonData) {
+                setPolygonChartData({ ...currentData, datasets: newDatasets });
+            } else {
+                setChartData({ ...currentData, datasets: newDatasets });
+            }
+            
             return newVisibility;
         });
     };
 
     const renderLegend = () => {
+        const currentData = showPolygonData ? polygonChartData : chartData;
+        
+        if (!currentData || !currentData.datasets || currentData.datasets.length === 0) {
+            return null;
+        }
+        
         return (
-            <ul className="flex flex-wrap justify-center mb-2">
-                {chartData.datasets.map((dataset, index) => (
-                    <li
-                        key={index}
-                        className="flex items-center mr-4 mb-2 cursor-pointer"
-                        onClick={() => toggleDatasetVisibility(index)}
-                        style={{
-                            textDecoration: datasetVisibility[index] ? 'none' : 'line-through',
-                            opacity: datasetVisibility[index] ? 1 : 0.5,
-                            color: 'black', // Ensure legend text is always black
-                        }}
-                    >
-                        <span
+            <div className="bg-gray-50 px-4 py-3 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-sm font-medium mb-2 text-gray-700">Legend</div>
+                <ul className="flex flex-wrap justify-start gap-x-6 gap-y-2">
+                    {currentData.datasets.map((dataset, index) => (
+                        <li
+                            key={index}
+                            className="flex items-center cursor-pointer transition-all hover:bg-gray-100 px-2 py-1 rounded"
+                            onClick={() => toggleDatasetVisibility(index)}
                             style={{
-                                display: 'inline-block',
-                                width: '20px',
-                                height: '10px',
-                                borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
-                                marginRight: '8px',
+                                textDecoration: datasetVisibility[index] ? 'none' : 'line-through',
+                                opacity: datasetVisibility[index] ? 1 : 0.5,
+                                color: 'black', // Ensure legend text is always black
                             }}
-                        ></span>
-                        {dataset.label}
-                    </li>
-                ))}
-            </ul>
+                        >
+                            <span
+                                style={{
+                                    display: 'inline-block',
+                                    width: '20px',
+                                    height: '10px',
+                                    borderTop: `3px ${dataset.borderDash ? 'dashed' : 'solid'} ${dataset.borderColor}`,
+                                    marginRight: '8px',
+                                }}
+                            ></span>
+                            <span className="text-sm">{dataset.label}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         );
     };
 
+    // Determine which data to display based on toggle
+    const displayData = showPolygonData && customPolygonData ? polygonChartData : chartData;
+    const hasData = displayData && displayData.datasets && displayData.datasets.length > 0;
+
     return (
-        <div className="w-full bg-white flex flex-col items-center relative z-9999">
-            <h2 className="text-center text-black text-2xl mt-4">Land Cover Change Over Time</h2>
+        <div className="w-full bg-white flex flex-col items-center relative z-9999 p-4">
+            <div className="w-full flex justify-between items-center mb-6">
+                <h2 className="text-center text-black text-2xl font-semibold">Land Cover Change Over Time</h2>
+                {customPolygonData && (
+                    <DataToggle />
+                )}
+            </div>
+            
             {isLoading ? (
                 <div className="absolute inset-0 flex justify-center items-center">
                     <Spinner />
                 </div>
-            ) : chartData.datasets.length > 0 ? (
+            ) : hasData ? (
                 <>
-                    <div className="w-full mt-4">{renderLegend()}</div>
-                    <div className="w-full h-64">
-                        <Line ref={chartRef} data={chartData} options={options} />
+                    <div className="w-full mt-2 mb-4">{renderLegend()}</div>
+                    <div className="w-full h-96 mt-2">
+                        <Line ref={chartRef} data={displayData} options={options} />
                     </div>
                 </>
             ) : (
-                <p className="text-center">No data available to display the chart.</p>
+                <p className="text-center py-10">No data available to display the chart.</p>
+            )}
+            
+            {showPolygonData && !customPolygonData && (
+                <div className="mt-4 p-4 bg-yellow-100 text-yellow-800 rounded-md">
+                    Please upload a polygon using the Polygon button on the intervention map to view polygon-specific data.
+                </div>
             )}
         </div>
     );

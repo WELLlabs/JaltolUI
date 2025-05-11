@@ -12,9 +12,10 @@ import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
 import { districtDisplayNames, districtToStateMap } from '../data/locationData';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { useLocation } from 'react-router-dom';
 import ShareableLink from '../components/ShareableLink';
+import { uploadCustomPolygon } from '../services/api';
 import {
   selectedStateAtom,
   selectedDistrictAtom,
@@ -26,12 +27,18 @@ import {
   interventionChartDataAtom,
   compareVillagesClickedAtom,
   selectedControlVillageAtom,
+  customPolygonDataAtom,
+  showPolygonDataAtom,
+  circlesSummaryAtom
 } from '../recoil/selectAtoms';
 import { getSubdistricts, getVillages } from '../services/api'; // Import API calls
 import Footer from '../components/Footer';
 
+
+
 const ImpactAssessmentPage = () => {
   const scrollTargetRef = useRef(null);
+  const fileInputRef = useRef(null);
   const location = useLocation();
 
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
@@ -47,6 +54,12 @@ const ImpactAssessmentPage = () => {
 
   // const [selectedControlSubdistrict, setSelectedControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
   const [selectedControlVillage, setSelectedControlVillage] = useRecoilState(selectedControlVillageAtom);
+  const [uploadedGeoJSON, setUploadedGeoJSON] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const setCustomPolygonData = useSetRecoilState(customPolygonDataAtom);
+  const setShowPolygonData = useSetRecoilState(showPolygonDataAtom);
+  const setCirclesSummary = useSetRecoilState(circlesSummaryAtom);
 
   const districtIdMap = {
     'Karauli, RJ': 1,
@@ -315,6 +328,90 @@ const ImpactAssessmentPage = () => {
     setSelectedControlVillage(option);
   };
 
+  // GeoJSON upload handlers
+  const handleUploadButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const geojsonData = JSON.parse(e.target.result);
+        setUploadedGeoJSON(geojsonData);
+        
+        // Send to backend for processing
+        processUploadedGeoJSON(geojsonData);
+      } catch (error) {
+        console.error('Error parsing GeoJSON file:', error);
+        setUploadError('Invalid GeoJSON file. Please upload a valid file.');
+        setIsUploading(false);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const processUploadedGeoJSON = async (geojsonData) => {
+    try {
+      if (!selectedState || !selectedDistrict || !selectedSubdistrict || !selectedVillage || !selectedControlVillage) {
+        setUploadError('Missing required parameters. Please select all fields.');
+        setIsUploading(false);
+        return;
+      }
+
+      // Get current year from the URL or use default
+      const year = (new URLSearchParams(location.search).get('year')) || '2022';
+
+      // Call the backend API to process the GeoJSON
+      const result = await uploadCustomPolygon(
+        selectedState,
+        selectedDistrict.label,
+        selectedSubdistrict.label,
+        selectedVillage.label,
+        selectedControlVillage.label,
+        selectedControlVillage.value,
+        year,
+        geojsonData
+      );
+
+      console.log('Polygon processing result:', result);
+      
+      // Update the circles summary atom with the circles data for the map
+      setCirclesSummary(result.circles);
+      
+      // Transform data for our components
+      const processedData = {
+        // Original GeoJSON
+        polygon: geojsonData,
+        // Stats for charts - now contains data for multiple years
+        interventionStats: result.interventionStats,
+        controlStats: result.controlStats,
+        // Keep the rest of the metadata
+        intervention: result.intervention,
+        control: result.control,
+        selectedYear: result.selectedYear
+      };
+      
+      // Update state with processed data
+      setCustomPolygonData(processedData);
+      
+      // Switch to polygon data view in chart
+      setShowPolygonData(true);
+      
+      setIsUploading(false);
+    } catch (error) {
+      console.error('Error processing GeoJSON:', error);
+      setUploadError('Error processing your GeoJSON. Please try again.');
+      setIsUploading(false);
+    }
+  };
+
   
 
   // Prepare district options from districtDisplayNames
@@ -469,6 +566,26 @@ const ImpactAssessmentPage = () => {
                     isDisabled={!selectedSubdistrict}
                     value={selectedVillage}
                   />
+                  {/* GeoJSON Upload Button */}
+                  <div className="z-[9999]">
+                    <button 
+                      onClick={handleUploadButtonClick}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      disabled={!selectedVillage || isUploading}
+                    >
+                      {isUploading ? 'Processing...' : 'Polygon'}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json,.geojson"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    {uploadError && (
+                      <div className="text-red-500 text-sm mt-1">{uploadError}</div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -479,6 +596,7 @@ const ImpactAssessmentPage = () => {
                   selectedDistrict={selectedDistrict}
                   selectedSubdistrict={selectedSubdistrict}
                   selectedVillage={selectedVillage}
+                  uploadedGeoJSON={uploadedGeoJSON}
                 />
               </div>
             </div>
@@ -522,29 +640,35 @@ const ImpactAssessmentPage = () => {
             </div>
           </div>
 
-          {/* Chart Section */}
-          <div className="bg-white h-80 rounded shadow-inner flex items-center justify-center p-5 mb-5">
-            {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
-              loadingChartData ? (
-                <div className="items-center justify-center">
-                  <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
-                    <span className="visually-hidden">Loading...</span>
+          {/* Container with extra margin to ensure spacing */}
+          <div className="mt-24">
+            {/* Chart Section */}
+            <div className="bg-white rounded shadow-inner flex items-center justify-center p-5 mb-5">
+              {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
+                loadingChartData ? (
+                  <div className="items-center justify-center">
+                    <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <InterventionCompareChart />
+                )
               ) : (
-                <InterventionCompareChart />
-              )
-            ) : (
-              <p>Select all fields to see the chart</p>
-            )}
+                <p>Select all fields to see the chart</p>
+              )}
+            </div>
+            
+            {/* Position CSV download button with proper spacing */}
+            <div className="mb-10 pb-4 flex justify-center">
+              {!loadingChartData && interventionChartData.labels.length > 0 && (
+                <DownloadCSVButton
+                  data={interventionChartData}
+                  filename="intervention_chart_data.csv"
+                />
+              )}
+            </div>
           </div>
-          {!loadingChartData && interventionChartData.labels.length > 0 && (
-            <DownloadCSVButton
-              data={interventionChartData}
-              filename="intervention_chart_data.csv"
-            />
-          )}
-
 
         </>
       )}
