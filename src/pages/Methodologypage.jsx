@@ -6,7 +6,7 @@ const MethodologyPage = () => {
   return (
     <>
       <Navbar />
-      <div className="bg-white text-gray-800 w-screen">
+      <div className="bg-white text-gray-800 w-screen overflow-x-hidden">
         <div className=" mx-auto py-16">
           {/* About Section */}
           <div className="max-w-5xl mx-auto">
