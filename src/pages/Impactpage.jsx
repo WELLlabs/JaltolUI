@@ -11,10 +11,13 @@ import InterventionMap from '../components/InterventionMap';
 import InterventionCompareChart from '../components/InterventionCompareChart';
 import VillageDetails from '../components/VillageDetails';
 import DownloadCSVButton from '../components/DownloadCSVButton';
+import SaveProjectModal from '../components/SaveProjectModal';
 import { districtDisplayNames, districtToStateMap } from '../data/locationData';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import { useLocation } from 'react-router-dom';
 import ShareableLink from '../components/ShareableLink';
+import { useAuth } from '../context/AuthContext';
+import { saveProjectFromAssessment } from '../services/api';
 import { uploadCustomPolygon } from '../services/api';
 import {
   selectedStateAtom,
@@ -38,6 +41,9 @@ import Footer from '../components/Footer';
 
 const ImpactAssessmentPage = () => {
   const scrollTargetRef = useRef(null);
+  const districtMapRef = useRef(null);
+  const interventionMapRef = useRef(null);
+  const compareMapRef = useRef(null);
   const fileInputRef = useRef(null);
   const location = useLocation();
 
@@ -54,6 +60,19 @@ const ImpactAssessmentPage = () => {
 
   // const [selectedControlSubdistrict, setSelectedControlSubdistrict] = useRecoilState(selectedControlSubdistrictAtom);
   const [selectedControlVillage, setSelectedControlVillage] = useRecoilState(selectedControlVillageAtom);
+
+  // Intervention Period State
+  const [interventionStartYear, setInterventionStartYear] = useState(null);
+  const [interventionEndYear, setInterventionEndYear] = useState(null);
+  const [availableYears, setAvailableYears] = useState([]);
+
+  // Save Project Modal State
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  
+  const { isAuthenticated } = useAuth();
   const [uploadedGeoJSON, setUploadedGeoJSON] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
@@ -72,6 +91,116 @@ const ImpactAssessmentPage = () => {
   };
 
   const getDistrictIdByName = (districtName) => districtIdMap[districtName] || null;
+
+  // Handle Save Project functionality
+  const handleSaveProject = () => {
+    if (!isAuthenticated) {
+      // Redirect to login if not authenticated
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+      return;
+    }
+    setShowSaveModal(true);
+  };
+
+  const handleSaveModalClose = () => {
+    setShowSaveModal(false);
+    setSaveError(null);
+    setSaveSuccess(false);
+  };
+
+  const handleProjectSave = async (projectData) => {
+    try {
+      setSaving(true);
+      setSaveError(null);
+
+      // Validate that we have minimum required selections
+      if (!selectedVillage) {
+        setSaveError('Please select a village before saving the project.');
+        return;
+      }
+
+      // Helper function to convert village ID to proper format
+      const parseVillageId = (id) => {
+        if (!id || id === '') return null;
+        const parsed = parseInt(id);
+        return isNaN(parsed) ? null : parsed;
+      };
+
+      // Helper function to convert year to proper format
+      const parseYear = (year) => {
+        if (!year || year === '') return null;
+        const parsed = parseInt(year);
+        return isNaN(parsed) ? null : parsed;
+      };
+
+      // Prepare project data with current selections
+      const saveData = {
+        ...projectData,
+        state: selectedState,
+        district: selectedDistrict?.label || '',
+        subdistrict: selectedSubdistrict?.label || '',
+        village: selectedVillage?.villageName || selectedVillage?.label || '',
+        village_id: parseVillageId(selectedVillage?.villageId),
+        
+        // Control village data
+        control_state: selectedState, // Assume same state for control village
+        control_district: selectedDistrict?.label || '',
+        control_subdistrict: selectedSubdistrict?.label || '',
+        control_village: selectedControlVillage?.villageName || selectedControlVillage?.label || '',
+        control_village_id: parseVillageId(selectedControlVillage?.villageId),
+        
+        // Parse year fields properly
+        intervention_start_year: parseYear(projectData.intervention_start_year),
+        intervention_end_year: parseYear(projectData.intervention_end_year),
+        
+        project_type: 'village'
+      };
+
+      console.log('Sending project data:', saveData); // Debug log
+
+      const response = await saveProjectFromAssessment(saveData);
+      
+      if (response.success) {
+        setSaveSuccess(true);
+        setTimeout(() => {
+          setShowSaveModal(false);
+          setSaveSuccess(false);
+        }, 2000);
+      } else {
+        setSaveError(response.message || 'Failed to save project');
+      }
+    } catch (error) {
+      console.error('Error saving project:', error);
+      setSaveError('Failed to save project. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Prepare current project data for the modal
+  const getCurrentProjectData = () => {
+    // Helper function to convert village ID to proper format
+    const parseVillageId = (id) => {
+      if (!id || id === '') return null;
+      const parsed = parseInt(id);
+      return isNaN(parsed) ? null : parsed;
+    };
+
+    return {
+      state: selectedState,
+      district: selectedDistrict?.label || '',
+      subdistrict: selectedSubdistrict?.label || '',
+      village: selectedVillage?.villageName || selectedVillage?.label || '',
+      village_id: parseVillageId(selectedVillage?.villageId),
+      control_state: selectedState,
+      control_district: selectedDistrict?.label || '',
+      control_subdistrict: selectedSubdistrict?.label || '',
+      control_village: selectedControlVillage?.villageName || selectedControlVillage?.label || '',
+      control_village_id: parseVillageId(selectedControlVillage?.villageId),
+      intervention_start_year: null, // Default to null for new projects
+      intervention_end_year: null
+    };
+  };
 
   // Add this effect to load from URL parameters
   useEffect(() => {
@@ -437,6 +566,39 @@ const ImpactAssessmentPage = () => {
     };
   });
 
+  // Update available years when chart data changes
+  useEffect(() => {
+    if (landCoverChartData && landCoverChartData.labels && landCoverChartData.labels.length > 0) {
+      const years = landCoverChartData.labels.map(year => ({
+        value: year,
+        label: year
+      })).sort((a, b) => parseInt(a.value) - parseInt(b.value));
+      setAvailableYears(years);
+      // Reset intervention years when data changes
+      setInterventionStartYear(null);
+      setInterventionEndYear(null);
+    }
+  }, [landCoverChartData]);
+
+  // Validate intervention years
+  const handleStartYearChange = (selectedOption) => {
+    setInterventionStartYear(selectedOption);
+    // If end year is selected and is less than or equal to start year, reset it
+    if (interventionEndYear && parseInt(interventionEndYear.value) <= parseInt(selectedOption.value)) {
+      setInterventionEndYear(null);
+    }
+  };
+
+  const handleEndYearChange = (selectedOption) => {
+    setInterventionEndYear(selectedOption);
+  };
+
+  // Get filtered end year options (only years greater than start year)
+  const getEndYearOptions = () => {
+    if (!interventionStartYear) return [];
+    return availableYears.filter(year => parseInt(year.value) > parseInt(interventionStartYear.value));
+  };
+
   return (
     <div className="font-sans bg-white h-screen w-screen overflow-x-hidden">
       <Navbar />
@@ -478,13 +640,49 @@ const ImpactAssessmentPage = () => {
               </div>
             </div>
             <div className="lg:w-1/2">
-              <div className="h-auto" style={{ maxHeight: '180px' }}>
+              <div className="space-y-3">
                 <ShareableLink
                   state={selectedState}
                   district={selectedDistrict}
                   subdistrict={selectedSubdistrict}
                   village={selectedVillage}
                 />
+                
+                {/* Save Button - Show when district is selected */}
+                {selectedDistrict && (
+                  <div className="p-3 border border-green-200 rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-green-800 mb-1">Save this assessment</h3>
+                        <p className="text-xs text-green-600">
+                          {selectedVillage 
+                            ? "Save your current selections as a project" 
+                            : "Complete village selection to save project"
+                          }
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleSaveProject}
+                        disabled={!selectedVillage || !isAuthenticated}
+                        className={`px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-all duration-200 flex items-center gap-2 shadow-sm ${
+                          selectedVillage && isAuthenticated
+                            ? 'bg-green-600 hover:bg-green-700 cursor-pointer' 
+                            : 'bg-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Save
+                      </button>
+                    </div>
+                    {!isAuthenticated && (
+                      <p className="text-xs text-green-600 mt-2 italic">
+                        Login required to save projects
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -498,8 +696,53 @@ const ImpactAssessmentPage = () => {
             />
           )}
 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-3">Land Cover Change</h2>
+          <div className="mb-2">
+            <h2 className="text-xl font-semibold mb-1">Land Cover Change</h2>
+            
+            {/* Intervention Period Selection */}
+            {selectedVillage && availableYears.length > 0 && (
+              <div className="mb-3 p-3 bg-white rounded border border-gray-200">
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="font-medium text-gray-800 whitespace-nowrap">Select Intervention Period:</span>
+                  
+                  <span className="text-sm text-gray-700 whitespace-nowrap">Start Year</span>
+                  <select
+                    value={interventionStartYear?.value || ''}
+                    onChange={(e) => handleStartYearChange(availableYears.find(year => year.value === e.target.value))}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
+                  >
+                    <option value="">Select</option>
+                    {availableYears.map(year => (
+                      <option key={year.value} value={year.value}>
+                        {year.label}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  <span className="text-sm text-gray-700 whitespace-nowrap">End Year</span>
+                  <select
+                    value={interventionEndYear?.value || ''}
+                    onChange={(e) => handleEndYearChange(availableYears.find(year => year.value === e.target.value))}
+                    disabled={!interventionStartYear}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-black disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
+                  >
+                    <option value="">Select</option>
+                    {getEndYearOptions().map(year => (
+                      <option key={year.value} value={year.value}>
+                        {year.label}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {interventionStartYear && interventionEndYear && (
+                    <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                      ({interventionStartYear.label}-{interventionEndYear.label})
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="w-full bg-gray-200 h-70 rounded shadow-inner flex items-center justify-center">
               {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
                 loadingChartData ? (
@@ -509,7 +752,10 @@ const ImpactAssessmentPage = () => {
                     </div>
                   </div>
                 ) : (
-                  <LandCoverChangeChart />
+                  <LandCoverChangeChart 
+                    interventionStartYear={interventionStartYear?.value}
+                    interventionEndYear={interventionEndYear?.value}
+                  />
                 )
               ) : (
                 <p>Select all fields to see the chart</p>
@@ -519,6 +765,8 @@ const ImpactAssessmentPage = () => {
               <DownloadCSVButton
                 data={landCoverChartData}
                 filename="land_cover_chart_data.csv"
+                disabled={!isAuthenticated}
+                isAuthenticated={isAuthenticated}
               />
             )}
           </div>
@@ -532,6 +780,8 @@ const ImpactAssessmentPage = () => {
               selectedSubdistrict={selectedSubdistrict}
               selectedVillage={selectedVillage}
               scrollRef={scrollTargetRef}
+              districtMapRef={districtMapRef}
+              isAuthenticated={isAuthenticated}
             />
           </div>
         </div>
@@ -541,9 +791,9 @@ const ImpactAssessmentPage = () => {
         <>
           <div ref={scrollTargetRef} className="flex flex-col h-full w-full lg:flex-row gap-6 mb-12">
             <div className="flex-1 bg-blue-100 rounded-lg shadow-lg p-5 ml-3 min-h-[700px] flex flex-col justify-start">
-              <div className="flex flex-col lg:flex-row gap-6 ml-3 z-[9900]">
+              <div className="flex flex-col lg:flex-row gap-6 ml-3 z-[9000]">
                 <h2 className="text-l font-semibold text-gray-700 mt-2 mb-2">Intervention Village</h2>
-                <div className="flex flex-col lg:flex-row gap-4 mb-4 z-[9999]">
+                <div className="flex flex-col lg:flex-row gap-4 mb-4 z-[9001]">
                   <SelectDistrict
                     key={selectedDistrict?.value}
                     options={districtOptions}
@@ -570,8 +820,12 @@ const ImpactAssessmentPage = () => {
                   <div className="z-[9999]">
                     <button 
                       onClick={handleUploadButtonClick}
-                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                      disabled={!selectedVillage || isUploading}
+                      className={`font-bold py-2 px-4 rounded ${
+                        isAuthenticated && selectedVillage && !isUploading
+                          ? 'bg-blue-500 hover:bg-blue-700 text-white cursor-pointer'
+                          : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      }`}
+                      disabled={!selectedVillage || isUploading || !isAuthenticated}
                     >
                       {isUploading ? 'Processing...' : 'Polygon'}
                     </button>
@@ -585,56 +839,77 @@ const ImpactAssessmentPage = () => {
                     {uploadError && (
                       <div className="text-red-500 text-sm mt-1">{uploadError}</div>
                     )}
+                    {!isAuthenticated && (
+                      <div className="text-gray-500 text-xs mt-1">Login required</div>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Map Container with Full Height */}
-              <div className="flex-1 bg-gray-200 z-[0] rounded shadow-lg min-h-[500px] h-full flex items-center justify-center">
+              <div className="flex-1 bg-gray-200 z-[100] rounded shadow-lg min-h-[500px] h-full flex items-center justify-center">
                 <InterventionMap
                   selectedState={selectedState}
                   selectedDistrict={selectedDistrict}
                   selectedSubdistrict={selectedSubdistrict}
                   selectedVillage={selectedVillage}
+                  interventionMapRef={interventionMapRef}
                   uploadedGeoJSON={uploadedGeoJSON}
+                  isAuthenticated={isAuthenticated}
                 />
               </div>
             </div>
 
             <div className="flex-1 bg-blue-100 rounded-lg shadow-lg p-5 ml-3 min-h-[700px] flex flex-col justify-start">
-              <div className="flex flex-col lg:flex-row gap-6 ml-3 z-[9900]">
+              <div className="flex flex-col lg:flex-row gap-6 ml-3 z-[9000]">
                 <h2 className="text-l font-semibold text-gray-700 mt-2 mb-2">Control Village</h2>
-                <div className="flex flex-col lg:flex-row gap-4 mb-4 z-[9999]">
-                  {/* <SelectDistrict
-                    key={selectedDistrict?.value}
-                    options={districtOptions}
-                    onChange={handleDistrictChange}
-                    value={selectedDistrict}
-                  />
-                  <SelectSubdistrict
-                    key={`subdistrict-${selectedSubdistrict?.value || 'none'}`}
-                    options={subdistrictOptions}
-                    onChange={handleSubdistrictChange}
-                    placeholder="Select Subdistrict..."
-                    isDisabled={!selectedDistrict}
-                    value={selectedSubdistrict}
-                  /> */}
+                <div className="flex flex-col lg:flex-row gap-4 mb-4 z-[9001]">
                    <SelectVillage2
                   options={villageOptions}
                   onChange={handleControlVillageChange}
                   placeholder="Select Control Village..."
                   value={selectedControlVillage}
                 />
+                
+                {/* Save Project Button */}
+                {selectedVillage && (
+                  <div className="flex items-center">
+                    <button
+                      onClick={handleSaveProject}
+                      disabled={!selectedVillage || !isAuthenticated}
+                      className={`px-4 py-2 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-all duration-200 flex items-center gap-2 shadow-sm ${
+                        selectedVillage && isAuthenticated
+                          ? 'bg-green-600 hover:bg-green-700 cursor-pointer' 
+                          : 'bg-gray-400 cursor-not-allowed'
+                      }`}
+                      title={!isAuthenticated ? "Login required to save project" : "Save current comparison as a project"}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Save Project
+                    </button>
+                  </div>
+                )}
                 </div>
+                
+                {!isAuthenticated && selectedVillage && (
+                  <div className="ml-3 mb-2">
+                    <p className="text-xs text-gray-600 italic">
+                      Login required to save projects
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Map Container with Full Height */}
-              <div className="flex-1 bg-gray-200 z-[0] rounded shadow-lg min-h-[500px] h-full flex items-center justify-center">
+              <div className="flex-1 bg-gray-200 z-[100] rounded shadow-lg min-h-[500px] h-full flex items-center justify-center">
               <CompareMap
                   selectedState={selectedState}
                   selectedDistrict={selectedDistrict}
                   selectedSubdistrict={selectedSubdistrict}
                   selectedVillage={selectedVillage}
+                  compareMapRef={compareMapRef}
                 />
               </div>
             </div>
@@ -665,13 +940,68 @@ const ImpactAssessmentPage = () => {
                 <DownloadCSVButton
                   data={interventionChartData}
                   filename="intervention_chart_data.csv"
+                  disabled={!isAuthenticated}
+                  isAuthenticated={isAuthenticated}
                 />
               )}
             </div>
           </div>
-
         </>
       )}
+      
+      {/* Save Project Modal */}
+      <SaveProjectModal
+        isOpen={showSaveModal}
+        onClose={handleSaveModalClose}
+        onSave={handleProjectSave}
+        projectData={getCurrentProjectData()}
+        isLoading={saving}
+        mapRefs={{
+          districtMap: districtMapRef,
+          interventionMap: interventionMapRef,
+          compareMap: compareMapRef
+        }}
+        selectedVillage={selectedVillage}
+        compareMode={compareVillagesClicked}
+      />
+      
+      {/* Success/Error Messages */}
+      {saveSuccess && (
+        <div className="fixed top-4 right-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg shadow-lg z-[10001] max-w-sm">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <strong className="font-semibold">Success!</strong>
+              <p className="text-sm">Project saved successfully.</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {saveError && (
+        <div className="fixed top-4 right-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg z-[10001] max-w-sm">
+          <div className="flex items-start">
+            <svg className="w-5 h-5 mr-2 text-red-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <strong className="font-semibold">Error!</strong>
+              <p className="text-sm">{saveError}</p>
+            </div>
+            <button
+              onClick={() => setSaveError(null)}
+              className="ml-2 text-red-400 hover:text-red-600 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import {
     selectedStateAtom, selectedDistrictAtom,
@@ -13,9 +14,9 @@ import {
 import { get_area_change, get_rainfall_data } from '../services/api';
 import Spinner from './Spinner'; // Import Spinner
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
 
-const LandCoverChangeChart = ({ onDataChange }) => {
+const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventionEndYear }) => {
     const stateName = useRecoilValue(selectedStateAtom);
     const districtName = useRecoilValue(selectedDistrictAtom);
     const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
@@ -24,117 +25,139 @@ const LandCoverChangeChart = ({ onDataChange }) => {
     const [isLoading, setLoading] = useState(false);
     const chartData = useRecoilValue(landCoverChartDataAtom);
 
-
-    const options = {
-        scales: {
-            y: {
-                beginAtZero: true,
-                position: 'left',
-                ticks: {
-                    color: 'black',
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
-                },
-                title: {
-                    display: true,
-                    text: 'Area (ha)',
-                    color: 'black',
-                },
-            },
-            y1: {
-                beginAtZero: true,
-                position: 'right',
-                ticks: {
-                    color: 'blue',
-                },
-                grid: {
-                    drawOnChartArea: false,
-                },
-                title: {
-                    display: true,
-                    text: 'Rainfall (mm)',
-                    color: 'blue',
-                },
-            },
-            x: {
-                ticks: {
-                    color: 'black',
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                position: 'top',
-                labels: {
-                    color: 'black',
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 20
-                }
-            },
-            title: {
-                display: true,
-                text: 'Land Cover and Rainfall Change Over Time',
-                color: 'black',
-                font: {
-                    size: 18,
-                }
-            },
-            tooltip: {
-                enabled: true,
-                mode: 'index',
-                intersect: false,
-                backgroundColor: 'white',
-                bodyColor: 'black',
-                titleColor: 'black',
-                borderColor: 'black',
-                borderWidth: 1,
-                callbacks: {
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        
-                         // Round off the value to 2 decimal places and add an asterisk
-                        let value = (Math.round(context.raw * 100) / 100).toFixed(2) + '*';
-            
-                        // Append units based on the dataset
-                        if (context.dataset.label === 'Single Cropland' || context.dataset.label === 'Double Cropland' || context.dataset.label === 'Tree Cover' ) {
-                            label += `${value} ha`; // hectares for cropland area
-                        } else if (context.dataset.label === 'Rainfall') {
-                            label += `${value} mm`; // millimeters for rainfall
-                        }
-                        return label;
+    // Create chart options with intervention period highlighting
+    const createChartOptions = () => {
+        const baseOptions = {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    ticks: {
+                        color: 'black',
                     },
-                    footer: function() {
-                        return '*Values rounded off to 2 decimal points';
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Area (ha)',
+                        color: 'black',
+                    },
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    ticks: {
+                        color: 'blue',
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Rainfall (mm)',
+                        color: 'blue',
+                    },
+                },
+                x: {
+                    ticks: {
+                        color: 'black',
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: 'black',
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20
                     }
                 },
-                footerColor: 'black',
-                footerFont: {
-                    size: 10,
-                    style: 'italic',
+                title: {
+                    display: true,
+                    text: 'Land Cover and Rainfall Change Over Time',
+                    color: 'black',
+                    font: {
+                        size: 18,
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'white',
+                    bodyColor: 'black',
+                    titleColor: 'black',
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            
+                             // Round off the value to 2 decimal places and add an asterisk
+                            let value = (Math.round(context.raw * 100) / 100).toFixed(2) + '*';
+                
+                            // Append units based on the dataset
+                            if (context.dataset.label === 'Single Cropland' || context.dataset.label === 'Double Cropland' || context.dataset.label === 'Tree Cover' ) {
+                                label += `${value} ha`; // hectares for cropland area
+                            } else if (context.dataset.label === 'Rainfall') {
+                                label += `${value} mm`; // millimeters for rainfall
+                            }
+                            return label;
+                        },
+                        footer: function() {
+                            return '*Values rounded off to 2 decimal points';
+                        }
+                    },
+                    footerColor: 'black',
+                    footerFont: {
+                        size: 10,
+                        style: 'italic',
+                    }
                 }
-            }
-            
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        elements: {
-            point: {
-                radius: 5,
+                
             },
-            line: {
-                borderWidth: 3,
-            }
-        },
-        backgroundColor: 'white',
+            responsive: true,
+            maintainAspectRatio: false,
+            elements: {
+                point: {
+                    radius: 5,
+                },
+                line: {
+                    borderWidth: 3,
+                }
+            },
+            backgroundColor: 'white',
+        };
+
+        // Add simple background highlighting for intervention period
+        if (interventionStartYear && interventionEndYear) {
+            baseOptions.plugins.annotation = {
+                annotations: {
+                    interventionPeriod: {
+                        type: 'box',
+                        xMin: interventionStartYear,
+                        xMax: interventionEndYear,
+                        backgroundColor: 'rgba(251, 146, 60, 0.2)', // Light orange background
+                        borderWidth: 0,
+                        drawTime: 'beforeDatasetsDraw'
+                    }
+                }
+            };
+        }
+
+        return baseOptions;
     };
+
+    const options = createChartOptions();
 
     useEffect(() => {
         setLoading(true); 
@@ -181,7 +204,9 @@ const LandCoverChangeChart = ({ onDataChange }) => {
                         yAxisID: 'y1',
                     }];
                     setChartData({ labels, datasets });
-                    onDataChange({ labels, datasets });
+                    if (onDataChange) {
+                        onDataChange({ labels, datasets });
+                    }
                     setLoading(false);  // Set loading to false once data is fetched
                 })
                 .catch(error => {
@@ -208,7 +233,15 @@ const LandCoverChangeChart = ({ onDataChange }) => {
 
 
 LandCoverChangeChart.propTypes = {
-    onDataChange: PropTypes.func.isRequired,
+    onDataChange: PropTypes.func,
+    interventionStartYear: PropTypes.string,
+    interventionEndYear: PropTypes.string,
+};
+
+LandCoverChangeChart.defaultProps = {
+    onDataChange: null,
+    interventionStartYear: null,
+    interventionEndYear: null,
 };
 
 export default LandCoverChangeChart;

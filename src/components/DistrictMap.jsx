@@ -12,6 +12,7 @@ import OpacitySlider from './MapComponents/OpacitySlider';
 import html2canvas from 'html2canvas';
 import MultiYearMaps from './MapComponents/MultiYearMap';
 import { mapCoordinator } from '../utils/MapStateCoordinator';
+import { useAuth } from '../context/AuthContext';
 
 const Legend = () => {
   const map = useMap();
@@ -245,7 +246,7 @@ FlyToFeature.propTypes = {
   onFlyToComplete: PropTypes.func,
 };
 
-const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, scrollRef }) => {
+const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, scrollRef, districtMapRef, isAuthenticated }) => {
   const position = [22.3511148, 78.6677428];
   const zoom = 5;
 
@@ -264,6 +265,17 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
   const setCompareVillagesClicked = useSetRecoilState(compareVillagesClickedAtom);
   const mapRef = useRef(null);
   const downloadMapRef = useRef(null);
+
+  const { isAuthenticated: authFromHook } = useAuth();
+  const userIsAuthenticated = isAuthenticated || authFromHook;
+
+  // Update external ref when internal ref changes
+  useEffect(() => {
+    if (districtMapRef && mapRef.current) {
+      districtMapRef.current = mapRef.current;
+      console.log('DistrictMap: External ref updated via useEffect');
+    }
+  }, [districtMapRef, mapRef.current]);
 
   const handleYearChange = (selectedOption) => {
     setSelectedYear(selectedOption.value);
@@ -420,6 +432,18 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         // Register this API call with the coordinator
         const callId = isSharedLink ? mapCoordinator.registerApiCall('boundary', 10) : 'no-shared-link';
         
+        // Store the exact parameters for LULC to ensure consistency
+        const apiParams = {
+          state: selectedState,
+          district: districtValue,
+          subdistrict: subdistrictValue,
+          village: villageValue,
+          villageId: villageId,
+          villageName: villageName
+        };
+        
+        console.log('API parameters for both boundary and LULC:', apiParams);
+        
         // Fetch boundary data with village ID when available
         get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
           .then(data => {
@@ -435,9 +459,11 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
                 
                 if (villageFeature) {
                   console.log("Found matching village feature:", villageFeature.properties.village_na);
+                  console.log("Village feature coordinates:", villageFeature.geometry);
                   setBoundaryData({ ...data, features: [villageFeature] });
                 } else {
                   console.warn("No matching village feature found for:", villageNameToMatch);
+                  console.warn("Available villages:", data.features.map(f => f.properties.village_na));
                   setBoundaryData(null);
                 }
               } else {
@@ -463,11 +489,16 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
             }
           });
 
-        // Similar pattern for LULC data
+        // Fetch LULC data with EXACT same parameters as boundary
         const lulcCallId = isSharedLink ? mapCoordinator.registerApiCall('lulc', 5) : 'no-shared-link';
+        console.log('Fetching LULC with same parameters as boundary:', apiParams);
+        
         get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
           .then(data => {
             console.log("Received LULC raster data:", data.tiles_url ? "has URL" : "no URL");
+            if (data.tiles_url) {
+              console.log("LULC URL:", data.tiles_url);
+            }
             setLulcTilesUrl(data.tiles_url);
             setRasterLoaded(true);
             if (isSharedLink) {
@@ -600,12 +631,13 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         <div className="flex gap-2">
           <button
             onClick={handleDownload}
-            disabled={!lulcTilesUrl || !selectedVillage || isDownloading}
+            disabled={!lulcTilesUrl || !selectedVillage || isDownloading || !userIsAuthenticated}
             className={`${
-              lulcTilesUrl && selectedVillage && !isDownloading
+              lulcTilesUrl && selectedVillage && !isDownloading && userIsAuthenticated
                 ? 'bg-blue-500 hover:bg-blue-600'
                 : 'bg-gray-400 cursor-not-allowed'
             } text-white font-bold py-2 px-4 rounded flex items-center gap-2 transition-all duration-200`}
+            title={!userIsAuthenticated ? "Login required to download" : ""}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -624,12 +656,13 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
 
           <button
             onClick={fetchAllYearsLulc}
-            disabled={!selectedVillage || isLoading}
+            disabled={!selectedVillage || isLoading || !userIsAuthenticated}
             className={`${
-              selectedVillage && !isLoading
+              selectedVillage && !isLoading && userIsAuthenticated
                 ? 'bg-purple-500 hover:bg-purple-600'
                 : 'bg-gray-400 cursor-not-allowed'
             } text-white font-bold py-2 px-4 rounded flex items-center gap-2`}
+            title={!userIsAuthenticated ? "Login required to visualize years" : ""}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -648,16 +681,29 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
           
           <button
             onClick={() => {
-              setCompareVillagesClicked(true);
-              if (scrollRef?.current) {
-                scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+              if (userIsAuthenticated) {
+                setCompareVillagesClicked(true);
+                if (scrollRef?.current) {
+                  scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+                }
               }
             }}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded cursor-pointer"
+            disabled={!userIsAuthenticated}
+            className={`${
+              userIsAuthenticated
+                ? 'bg-green-500 hover:bg-green-600 cursor-pointer'
+                : 'bg-gray-400 cursor-not-allowed'
+            } text-white font-bold py-2 px-4 rounded`}
+            title={!userIsAuthenticated ? "Login required to compare villages" : ""}
           >
             Compare Villages
           </button>
         </div>
+        {!userIsAuthenticated && (
+          <div className="text-gray-600 text-xs mt-2 bg-white bg-opacity-80 p-2 rounded">
+            Login required for advanced features
+          </div>
+        )}
       </div>
       <MapContainer
         center={position}
@@ -667,6 +713,13 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         whenCreated={(map) => {
           mapRef.current = map;
           console.log('Map instance created:', map);
+          
+          // Update external ref immediately when map is created
+          if (districtMapRef) {
+            districtMapRef.current = map;
+            console.log('DistrictMap: External ref updated via whenCreated');
+          }
+          
           // Let coordinator know about the map
           mapCoordinator.init(map);
         }}
@@ -766,6 +819,11 @@ DistrictMap.propTypes = {
     PropTypes.func,
     PropTypes.shape({ current: PropTypes.any })
   ]),
+  districtMapRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.any })
+  ]),
+  isAuthenticated: PropTypes.bool,
 };
 
 export default DistrictMap;
