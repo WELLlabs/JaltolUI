@@ -37,7 +37,7 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
   }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage]);
 
   return (
-    <div className="mb-4 text-neutral-800">
+    <div className=" text-neutral-800">
       <h2 className="text-lg font-semibold mb-2">Village Details</h2>
       <div className="flex justify-between">
         <div>

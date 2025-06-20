@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { get_control_village, get_lulc_raster, get_boundary_data } from '../services/api';
@@ -75,7 +75,13 @@ FlyToFeature.propTypes = {
   onFlyToComplete: PropTypes.func,
 };
 
-const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, selectedVillage }) => {
+const CompareMap = ({ 
+  selectedState, 
+  selectedDistrict, 
+  selectedSubdistrict, 
+  selectedVillage, 
+  compareMapRef
+}) => {
   const position = [22.3511148, 78.6677428]; // Central point of India
   const zoom = 5;
 
@@ -93,6 +99,16 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
 
   const customPolygonData = useRecoilValue(customPolygonDataAtom);
   const circlesSummary = useRecoilValue(circlesSummaryAtom);
+
+  const mapRef = useRef(null);
+
+  // Update external ref when internal ref changes
+  useEffect(() => {
+    if (compareMapRef && mapRef.current) {
+      compareMapRef.current = mapRef.current;
+      console.log('CompareMap: External ref updated via useEffect');
+    }
+  }, [compareMapRef, mapRef.current]);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -277,6 +293,7 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           selectedVillage={controlVillage}
         />
       </div>
+
       <div className="absolute bottom-8 left-10 z-[9999] m-4">
         <div className="w-52 bg-white rounded shadow-md">
           <OpacitySlider
@@ -285,7 +302,22 @@ const CompareMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sele
           />
         </div>
       </div>
-      <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
+      <MapContainer 
+        center={position} 
+        zoom={zoom} 
+        style={{ height: '100%', width: '100%' }} 
+        ref={mapRef}
+        whenCreated={(map) => {
+          mapRef.current = map;
+          console.log('CompareMap: Map instance created:', map);
+          
+          // Update external ref immediately when map is created
+          if (compareMapRef) {
+            compareMapRef.current = map;
+            console.log('CompareMap: External ref updated via whenCreated');
+          }
+        }}
+      >
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="Google Maps">
             <TileLayer
@@ -367,6 +399,7 @@ CompareMap.propTypes = {
   selectedDistrict: PropTypes.object,
   selectedSubdistrict: PropTypes.object,
   selectedVillage: PropTypes.object,
+  compareMapRef: PropTypes.object,
 };
 
 export default CompareMap;

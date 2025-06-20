@@ -3,6 +3,12 @@ import axios from 'axios';
 const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
 // const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
 
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('access_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 // Updated get_boundary_data function to accept villageId as a parameter
 export const get_boundary_data = (stateName, districtName, subdistrictName = '', villageName = '', villageId = '') => {
   // Parameters to include in the request
@@ -156,4 +162,80 @@ export const uploadCustomPolygon = (
       selectedYear: responseData.selected_year
     };
   });
+};
+
+// ========================
+// PROJECT MANAGEMENT APIs
+// ========================
+
+// Get all projects for the authenticated user
+export const getProjects = () => {
+  return axios.get(`${API_URL}/projects/`, {
+    headers: getAuthHeaders()
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching projects:", error);
+      throw error;
+    });
+};
+
+// Get a specific project by ID
+export const getProject = (projectId) => {
+  return axios.get(`${API_URL}/projects/${projectId}/`, {
+    headers: getAuthHeaders()
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching project:", error);
+      throw error;
+    });
+};
+
+// Create a new project
+export const createProject = (projectData) => {
+  return axios.post(`${API_URL}/projects/`, projectData, {
+    headers: getAuthHeaders()
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error creating project:", error);
+      throw error;
+    });
+};
+
+// Update an existing project
+export const updateProject = (projectId, projectData) => {
+  return axios.put(`${API_URL}/projects/${projectId}/`, projectData, {
+    headers: getAuthHeaders()
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error updating project:", error);
+      throw error;
+    });
+};
+
+// Delete a project
+export const deleteProject = (projectId) => {
+  return axios.delete(`${API_URL}/projects/${projectId}/`, {
+    headers: getAuthHeaders()
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error deleting project:", error);
+      throw error;
+    });
+};
+
+// Save project from impact assessment page
+export const saveProjectFromAssessment = (projectData) => {
+  return axios.post(`${API_URL}/projects/save-from-assessment/`, projectData, {
+    headers: getAuthHeaders()
+  })
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error saving project from assessment:", error);
+      throw error;
+    });
 };
