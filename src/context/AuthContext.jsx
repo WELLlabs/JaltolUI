@@ -61,22 +61,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [googleClientId, setGoogleClientId] = useState(null);
-
-  // Fetch Google OAuth2 client ID on mount
-  useEffect(() => {
-    const fetchGoogleConfig = async () => {
-      try {
-        const response = await api.get('/auth/google/config/');
-        setGoogleClientId(response.data.client_id);
-        console.log('Google OAuth2 client ID loaded');
-      } catch (error) {
-        console.error('Failed to load Google OAuth2 config:', error);
-      }
-    };
-    
-    fetchGoogleConfig();
-  }, []);
 
   // Check if user is authenticated on app load
   useEffect(() => {
@@ -102,24 +86,37 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Regular login function
+  const refreshToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await api.post('/auth/token/refresh/', {
+        refresh: refreshToken,
+      });
+
+      const { access } = response.data;
+      localStorage.setItem('access_token', access);
+      
+      console.log('Token refreshed successfully');
+      
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      logout();
+      return false;
+    }
+  };
+
+  // Login function
   const login = async (username, password) => {
-    console.log('Login attempt with:', username);
+    console.log('Login attempt for:', username);
     
     try {
       setError(null);
       
-      // Test the API connection
-      try {
-        await axios.get(`${API_URL}/health/`);
-        console.log('API connection verified');
-      } catch (healthError) {
-        console.error('API health check failed:', healthError);
-        setError('Cannot connect to API server');
-        return { success: false, error: 'Cannot connect to API server' };
-      }
-      
-      console.log('Making login request to:', `${API_URL}/auth/login/`);
       const response = await api.post('/auth/login/', {
         username,
         password,
@@ -195,16 +192,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Register function
   const register = async (userData) => {
-    console.log('Register attempt with:', userData.username);
+    console.log('Registration attempt for:', userData.username);
     
     try {
       setError(null);
       
-      console.log('Making register request to:', `${API_URL}/auth/register/`);
       const response = await api.post('/auth/register/', userData);
       
-      console.log('Register response:', response.data);
+      console.log('Registration response:', response.data);
       const { user: newUser, tokens } = response.data;
       
       // Store tokens and user data
@@ -215,27 +212,11 @@ export const AuthProvider = ({ children }) => {
       setUser(newUser);
       return { success: true, data: response.data };
     } catch (error) {
-      console.error('Registration full error:', error);
+      console.error('Registration error:', error);
       
-      // Better error handling for field-specific errors
       let errorMessage = 'Registration failed';
-      
-      if (error.response?.data) {
-        // Check for field-specific errors
-        const errorData = error.response.data;
-        
-        // Check common fields that might have errors
-        if (errorData.email) {
-          errorMessage = `Email: ${errorData.email[0]}`;
-        } else if (errorData.username) {
-          errorMessage = `Username: ${errorData.username[0]}`;
-        } else if (errorData.password) {
-          errorMessage = `Password: ${errorData.password[0]}`;
-        } else if (errorData.error) {
-          errorMessage = errorData.error;
-        } else if (errorData.non_field_errors) {
-          errorMessage = errorData.non_field_errors[0];
-        }
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
       }
       
       setError(errorMessage);
@@ -243,89 +224,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken) {
-        try {
-          await api.post('/auth/logout/', { refresh_token: refreshToken });
-        } catch (logoutError) {
-          // Just log the error but proceed with local logout
-          console.error('Backend logout error:', logoutError.response?.data || logoutError.message);
-        }
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      // Clear local storage regardless of API call success
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-      setUser(null);
-    }
+  // Logout function
+  const logout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setError(null);
   };
 
-  const refreshToken = async () => {
-    try {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        logout();
-        return;
-      }
-
-      const response = await api.post('/auth/token/refresh/', {
-        refresh: refreshToken,
-      });
-
-      const { access } = response.data;
-      localStorage.setItem('access_token', access);
-      
-      // Get updated user data
-      const userResponse = await api.get('/auth/profile/');
-      const userData = userResponse.data;
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      logout();
-    }
-  };
-
-  const updateProfile = async (profileData) => {
-    try {
-      setError(null);
-      const response = await api.put('/auth/profile/update/', profileData);
-      
-      const updatedUser = response.data.user;
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      
-      return { success: true, data: response.data };
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Profile update failed';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  const changePassword = async (oldPassword, newPassword, newPasswordConfirm) => {
-    try {
-      setError(null);
-      const response = await api.post('/auth/change-password/', {
-        old_password: oldPassword,
-        new_password: newPassword,
-        new_password_confirm: newPasswordConfirm,
-      });
-      
-      return { success: true, data: response.data };
-    } catch (error) {
-      const errorMessage = error.response?.data?.error || 
-                          error.response?.data?.old_password?.[0] ||
-                          error.response?.data?.new_password?.[0] ||
-                          'Password change failed';
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    }
+  // Clear error function
+  const clearError = () => {
+    setError(null);
   };
 
   const value = {
@@ -336,11 +246,9 @@ export const AuthProvider = ({ children }) => {
     googleLogin,
     register,
     logout,
-    updateProfile,
-    changePassword,
+    clearError,
     isAuthenticated: !!user,
-    clearError: () => setError(null),
-    googleClientId,
+    refreshToken,
   };
 
   return (
@@ -350,6 +258,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -357,7 +269,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-AuthProvider.propTypes = {
-    children: PropTypes.node.isRequired,
-  };
