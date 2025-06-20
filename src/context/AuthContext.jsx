@@ -7,8 +7,8 @@ import PropTypes from 'prop-types';
 const AuthContext = createContext();
 
 // Create axios instance with base URL
-// const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
-const API_URL = 'http://127.0.0.1:8000/api'; // For local development
+const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
+// const API_URL = 'http://127.0.0.1:8000/api'; // For local development
 
 // Create a stable API instance outside of the component
 const api = axios.create({
