@@ -23,7 +23,7 @@ import MyProjectsPage from "./pages/MyProjectsPage";
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Get Google Client ID from environment variable or use a placeholder
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID_HERE';
+const GOOGLE_CLIENT_ID = import.meta.env.NEW_GOOGLE_CLIENT_ID;
 
 function App() {
   return (
