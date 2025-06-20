@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { get_boundary_data, get_lulc_raster } from '../services/api';
@@ -79,8 +79,9 @@ const InterventionMap = ({
   selectedState, 
   selectedDistrict, 
   selectedSubdistrict, 
-  selectedVillage,
-  uploadedGeoJSON 
+  selectedVillage, 
+  interventionMapRef,
+  uploadedGeoJSON
 }) => {
   const position = [22.3511148, 78.6677428]; // Central point of India
   const zoom = 5;
@@ -97,6 +98,16 @@ const InterventionMap = ({
   
   // Get processed polygon data from Recoil atom
   const customPolygonData = useRecoilValue(customPolygonDataAtom);
+
+  const mapRef = useRef(null);
+
+  // Update external ref when internal ref changes
+  useEffect(() => {
+    if (interventionMapRef && mapRef.current) {
+      interventionMapRef.current = mapRef.current;
+      console.log('InterventionMap: External ref updated via useEffect');
+    }
+  }, [interventionMapRef, mapRef.current]);
 
   // Function to handle year change from the dropdown
   const handleYearChange = (selectedOption) => {
@@ -348,7 +359,22 @@ const InterventionMap = ({
         </div>
       </div>
 
-      <MapContainer center={position} zoom={zoom} style={{ height: '100%', width: '100%' }}>
+      <MapContainer 
+        center={position} 
+        zoom={zoom} 
+        style={{ height: '100%', width: '100%' }} 
+        ref={mapRef}
+        whenCreated={(map) => {
+          mapRef.current = map;
+          console.log('InterventionMap: Map instance created:', map);
+          
+          // Update external ref immediately when map is created
+          if (interventionMapRef) {
+            interventionMapRef.current = map;
+            console.log('InterventionMap: External ref updated via whenCreated');
+          }
+        }}
+      >
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="Google Maps">
             <TileLayer
@@ -426,9 +452,13 @@ const InterventionMap = ({
 
 InterventionMap.propTypes = {
   selectedState: PropTypes.string,
-  selectedDistrict: PropTypes.string,
-  selectedSubdistrict: PropTypes.string,
-  selectedVillage: PropTypes.string,
+  selectedDistrict: PropTypes.object,
+  selectedSubdistrict: PropTypes.object,
+  selectedVillage: PropTypes.object,
+  interventionMapRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.any })
+  ]),
   uploadedGeoJSON: PropTypes.object
 };
 

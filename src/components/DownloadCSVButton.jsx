@@ -2,8 +2,12 @@
 import Papa from 'papaparse';
 import PropTypes from 'prop-types';
 
-const DownloadCSVButton = ({ data, filename }) => {
+const DownloadCSVButton = ({ data, filename, disabled = false, isAuthenticated = true }) => {
   const downloadCSV = () => {
+    if (!isAuthenticated) {
+      return;
+    }
+    
     const csvData = [];
 
     // Extract headers from the datasets
@@ -32,10 +36,26 @@ const DownloadCSVButton = ({ data, filename }) => {
     document.body.removeChild(link);
   };
 
+  const isDisabled = disabled || !isAuthenticated;
+
   return (
-    <button onClick={downloadCSV} className="mt-4 p-2 bg-blue-500 text-white rounded">
-      Download CSV
-    </button>
+    <div className="flex flex-col items-center">
+      <button 
+        onClick={downloadCSV} 
+        disabled={isDisabled}
+        className={`mt-4 p-2 rounded transition-all duration-200 ${
+          isDisabled 
+            ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+            : 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
+        }`}
+        title={!isAuthenticated ? "Login required to download CSV" : ""}
+      >
+        Download CSV
+      </button>
+      {!isAuthenticated && (
+        <p className="text-xs text-gray-500 mt-1">Login required</p>
+      )}
+    </div>
   );
 };
 
@@ -50,6 +70,8 @@ DownloadCSVButton.propTypes = {
     ).isRequired,
   }).isRequired,
   filename: PropTypes.string.isRequired,
+  disabled: PropTypes.bool,
+  isAuthenticated: PropTypes.bool,
 };
 
 export default DownloadCSVButton;
