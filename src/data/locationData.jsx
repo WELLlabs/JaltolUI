@@ -8,8 +8,11 @@ export const districtDisplayNames = {
     'chitrakoot' : 'Chitrakoot, UP',
     'nashik' : 'Nashik, MH',
     'aurangabad' : 'Aurangabad, MH',
-    'saraikela kharsawan' : 'Saraikela Kharsawan, JH'
-
+    'saraikela kharsawan' : 'Saraikela Kharsawan, JH', 
+    'theni' : 'Theni, TN', 
+    'valsad' : 'Valsad, GJ',
+    'bara banki' : 'Bara Banki, UP',
+    'medak' : 'Medak, AP',
 };
   
 export const districtToStateMap = {
@@ -19,7 +22,11 @@ export const districtToStateMap = {
     'chitrakoot' : 'Uttar Pradesh',
     'nashik' : 'Maharashtra',
     'aurangabad' : 'Maharashtra',
-    'saraikela kharsawan' : 'Jharkhand'
+    'saraikela kharsawan' : 'Jharkhand',
+    'theni' : 'Tamil Nadu',
+    'valsad' : 'Gujarat',
+    'bara banki' : 'Uttar Pradesh',
+    'medak' : 'Andhra Pradesh'
 };
   
 

@@ -351,7 +351,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
   const fetchAllYearsLulc = async () => {
     setLoading(true);
     // Use different years based on state
-    const years = ['maharashtra', 'uttar pradesh', 'jharkhand'].includes(selectedState?.toLowerCase())
+    const years = ['maharashtra', 'uttar pradesh', 'jharkhand', 'tamil nadu', 'gujarat', 'andhra pradesh'].includes(selectedState?.toLowerCase())
       ? ['2018', '2020', '2021', '2022']
       : ['2019', '2020', '2021', '2022'];
     const data = {};

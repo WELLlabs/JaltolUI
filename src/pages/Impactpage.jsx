@@ -82,12 +82,16 @@ const ImpactAssessmentPage = () => {
 
   const districtIdMap = {
     'Karauli, RJ': 1,
-    'Adilabad, AP': 2,
+    // 'Adilabad, AP': 2,
     'Raichur, KA': 3,
     'Chitrakoot, UP': 4,
     'Nashik, MH': 5,
     'Aurangabad, MH': 7,
     'Saraikela Kharsawan, JH': 6,
+    'Medak, AP' : 9, 
+    'Theni, TN' : 11,
+    'Bara Banki, UP' :10 ,
+    'Valsad, GJ' : 12,
   };
 
   const getDistrictIdByName = (districtName) => districtIdMap[districtName] || null;
@@ -553,7 +557,11 @@ const ImpactAssessmentPage = () => {
       'Chitrakoot, UP': 'Bhuvan LULC',
       'Nashik, MH': 'Bhuvan LULC',
       'Aurangabad, MH': 'Bhuvan LULC',
-      'Saraikela Kharsawan, JH': 'Bhuvan LULC'
+      'Saraikela Kharsawan, JH': 'Bhuvan LULC',
+      'Theni, TN': 'Bhuvan LULC',
+      'Valsad, GJ': 'Bhuvan LULC',
+      'Bara Banki, UP': 'Bhuvan LULC',
+      'Medak, AP': 'Bhuvan LULC'
     };
 
     const districtName = districtDisplayNames[key];

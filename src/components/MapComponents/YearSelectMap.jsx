@@ -6,7 +6,7 @@ const YearDropdown = ({ selectedYear, onChange, onMenuOpen, stateName }) => {
   // Get year options based on state
   const getYearOptions = () => {
     // For Maharashtra, Uttar Pradesh, and Jharkhand, use Bhuvan LULC years (2005-2024 excluding 2019)
-    if (['maharashtra', 'uttar pradesh', 'jharkhand'].includes(stateName?.toLowerCase())) {
+    if (['maharashtra', 'uttar pradesh', 'jharkhand', 'tamil nadu', 'gujarat', 'andhra pradesh'].includes(stateName?.toLowerCase())) {
       const years = [];
       for (let year = 2024; year >= 2005; year--) {
         if (year !== 2019) { // Skip 2019 as it's unavailable
