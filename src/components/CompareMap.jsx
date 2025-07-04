@@ -123,7 +123,7 @@ const CompareMap = ({
       setRasterLoaded(false);
       setFlyToComplete(false);
 
-      const districtValue = selectedDistrict.value;
+      const districtName = selectedDistrict.label;
       const subdistrictValue = selectedSubdistrict.label;
       const villageValue = selectedVillage.label;
 
@@ -146,14 +146,14 @@ const CompareMap = ({
       
       console.log('Fetching control village with:', {
         state: selectedState,
-        district: districtValue,
+        district: districtName,
         subdistrict: subdistrictValue,
         villageName: villageName,
         villageId: villageId
       });
 
       // Pass the ID to get_control_village if available
-      get_control_village(selectedState, districtValue, subdistrictValue, villageValue, villageId)
+      get_control_village(selectedState, districtName, subdistrictValue, villageValue, villageId)
         .then(data => {
           const controlSubdistrict = data.properties.subdistric;
           const controlVillageName = data.properties.village_na;
@@ -161,7 +161,7 @@ const CompareMap = ({
           setControlSubdistrict({ label: controlSubdistrict, value: controlSubdistrict });
           setControlVillage({ label: controlVillageName, value: controlVillageName });
 
-          return get_lulc_raster(selectedState, districtValue, controlSubdistrict, controlVillageName, selectedYear);
+          return get_lulc_raster(selectedState, districtName, controlSubdistrict, controlVillageName, selectedYear);
         })
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
@@ -187,7 +187,7 @@ const CompareMap = ({
     if (controlVillage?.value && selectedState && selectedDistrict && selectedSubdistrict) {
       setLoading(true);
 
-      const districtValue = selectedDistrict.value;
+      const districtName = selectedDistrict.label;
       const controlSubdistrictName = controlSubdistrict.label;
       const controlVillageName = controlVillage.label;
       
@@ -208,7 +208,7 @@ const CompareMap = ({
         controlVillageId = controlVillage.value;
       }
 
-      get_lulc_raster(selectedState, districtValue, controlSubdistrictName, controlVillageName, selectedYear)
+      get_lulc_raster(selectedState, districtName, controlSubdistrictName, controlVillageName, selectedYear)
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);
@@ -220,7 +220,7 @@ const CompareMap = ({
         });
 
       // Pass the control village ID when available
-      get_boundary_data(selectedState, districtValue, controlSubdistrictName, controlVillageName, controlVillageId)
+      get_boundary_data(selectedState, districtName, controlSubdistrictName, controlVillageName, controlVillageId)
         .then(data => {
           console.log("Boundary data received:", data);
           if (controlSubdistrictName && controlVillageName) {

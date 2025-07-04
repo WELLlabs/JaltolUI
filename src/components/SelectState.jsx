@@ -2,7 +2,7 @@ import Select from 'react-select';
 import makeAnimated from 'react-select/animated';
 import { components } from 'react-select';
 import PropTypes from 'prop-types';
-import { selectedDistrictAtom } from '../recoil/selectAtoms';
+import { selectedStateAtom } from '../recoil/selectAtoms';
 import { useRecoilState } from 'recoil';
 
 const customStyles = {
@@ -56,60 +56,12 @@ const DropdownIndicator = (props) => {
   );
 };
 
-// Custom Option component to display asset information
-const Option = (props) => {
-  const { data } = props;
-  return (
-    <components.Option {...props}>
-      <div>
-        <div>{data.label}</div>
-        {data.asset && (
-          <div className="text-xs text-gray-600 mt-1">
-            Map: {data.asset}
-          </div>
-        )}
-      </div>
-    </components.Option>
-  );
-};
-
-Option.propTypes = {
-  data: PropTypes.shape({
-    label: PropTypes.string.isRequired,
-    asset: PropTypes.string
-  }).isRequired
-};
-
-// Custom SingleValue component to display asset information in the selected dropdown
-const SingleValue = (props) => {
-  const { data } = props;
-  return (
-    <components.SingleValue {...props}>
-      <div>
-        <div>{data.label}</div>
-        {data.asset && (
-          <div className="text-xs text-gray-500">
-            Asset: {data.asset}
-          </div>
-        )}
-      </div>
-    </components.SingleValue>
-  );
-};
-
-SingleValue.propTypes = {
-  data: PropTypes.shape({
-    label: PropTypes.string.isRequired,
-    asset: PropTypes.string
-  }).isRequired
-};
-
-const SelectDistrict = ({ options, placeholder, onChange, isDisabled }) => {
-  const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
+const SelectState = ({ options, placeholder, onChange }) => {
+  const [selectedState, setSelectedState] = useRecoilState(selectedStateAtom);
   const animatedComponents = makeAnimated();
 
   const handleChange = (selectedOption) => {
-    setSelectedDistrict(selectedOption);
+    setSelectedState(selectedOption);
     if (onChange) {
       onChange(selectedOption);
     }
@@ -117,22 +69,20 @@ const SelectDistrict = ({ options, placeholder, onChange, isDisabled }) => {
 
   return (
     <Select
-      components={{ ...animatedComponents, DropdownIndicator, Option, SingleValue }}
+      components={{ ...animatedComponents, DropdownIndicator }}
       styles={customStyles}
       options={options}
-      value={selectedDistrict || null} // Ensure it's null if undefined
+      value={selectedState || null} // Ensure it's null if undefined
       placeholder={placeholder}
       onChange={handleChange}
-      isDisabled={isDisabled}
     />
   );
 };
 
-SelectDistrict.propTypes = {
+SelectState.propTypes = {
   options: PropTypes.array.isRequired,
   placeholder: PropTypes.string,
   onChange: PropTypes.func, // Add PropTypes for onChange
-  isDisabled: PropTypes.bool,
 };
 
-export default SelectDistrict;
+export default SelectState; 

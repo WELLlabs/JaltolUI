@@ -203,7 +203,7 @@ const InterventionMap = ({
       setRasterLoaded(false); // Reset raster loaded state
       setFlyToComplete(false); // Reset fly to complete state
 
-      const districtValue = selectedDistrict.value;
+      const districtName = selectedDistrict.label;
       const subdistrictValue = selectedSubdistrict ? selectedSubdistrict.label : null;
       const villageValue = selectedVillage ? selectedVillage.label : null;
       
@@ -226,14 +226,14 @@ const InterventionMap = ({
       
       console.log('Fetching boundary with:', {
         state: selectedState,
-        district: districtValue,
+        district: districtName,
         subdistrict: subdistrictValue,
         villageName: villageName,
         villageId: villageId
       });
 
       // Fetch boundary data with village ID when available
-      get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
+      get_boundary_data(selectedState, districtName, subdistrictValue, villageValue, villageId)
         .then(data => {
           console.log("Boundary data received:", data);
           if (selectedVillage) {
@@ -260,12 +260,12 @@ const InterventionMap = ({
         });
 
       // Fetch LULC raster data
-      get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
+      get_lulc_raster(selectedState, districtName, subdistrictValue, villageValue, selectedYear)
         .then(data => {
           setLulcTilesUrl(data.tiles_url);
           setRasterLoaded(true);
           if (selectedSubdistrict && selectedVillage) {
-            get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
+            get_lulc_raster(selectedState, districtName, subdistrictValue, villageValue, selectedYear)
               .then(data => {
                 setLulcTilesUrl(data.tiles_url);
                 setRasterLoaded(true);

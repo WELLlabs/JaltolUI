@@ -106,6 +106,23 @@ export const getVillages = (subdistrictId) => {
     });
 };
 
+export const getStates = () => {
+  return axios.get(`${API_URL}/states/`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching states:", error);
+      throw error;
+    });
+};
+
+export const getDistricts = (stateId) => {
+  return axios.get(`${API_URL}/districts/${stateId}/`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching districts:", error);
+      throw error;
+    });
+};
 
 export const uploadCustomPolygon = (
   stateName,
