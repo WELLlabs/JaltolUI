@@ -160,10 +160,11 @@ const InterventionCompareChart = ({ onDataChange }) => {
         setLoading(true);
         if (stateName && districtName && subdistrictName && villageName) {
             console.log('Fetching control village data');
-            const districtValue = districtName.value;
+            const stateNameValue = stateName?.label || stateName;
+            const districtNameValue = districtName.label;
             const villageValue = villageName.label;
 
-            get_control_village(stateName, districtValue, subdistrictName.label, villageValue)
+            get_control_village(stateNameValue, districtNameValue, subdistrictName.label, villageValue)
                 .then(response => {
                     const controlVillageName = response.properties?.village_na;
                     const controlSubdistrict = response.properties?.subdistric;
@@ -182,20 +183,22 @@ const InterventionCompareChart = ({ onDataChange }) => {
         // This effect runs only when controlVillage is set
         if (controlVillage?.value && controlSubdistrict && stateName && districtName && subdistrictName && villageName) {
             setLoading(true)
-            const districtValue = districtName.value;
+            const stateNameValue = stateName?.label || stateName;
+            const districtNameValue = districtName.label;
             const subdistrictValue = subdistrictName.label;
             const villageValue = villageName.label;
             const controlSubdistrictName = controlSubdistrict.label;
             const controlVillageName = controlVillage.label;
-            console.log('Making API call with:', stateName, districtName, subdistrictName, villageValue);
-            const fetchLandCover = get_area_change(stateName, districtValue, subdistrictValue, villageValue);
-            const fetchRainfall = get_rainfall_data(stateName, districtValue, subdistrictValue, villageValue);
+            console.log('Making API call with:', stateNameValue, districtNameValue, subdistrictName, villageValue);
+            const fetchLandCover = get_area_change(stateNameValue, districtNameValue, subdistrictValue, villageValue);
+            const fetchRainfall = get_rainfall_data(stateNameValue, districtNameValue, subdistrictValue, villageValue);
 
-            const fetchControlLandCover = get_area_change(stateName, districtValue, controlSubdistrictName, controlVillageName);
-            const fetchControlRainfall = get_rainfall_data(stateName, districtValue, controlSubdistrictName, controlVillageName);
+            const fetchControlLandCover = get_area_change(stateNameValue, districtNameValue, controlSubdistrictName, controlVillageName);
+            const fetchControlRainfall = get_rainfall_data(stateNameValue, districtNameValue, controlSubdistrictName, controlVillageName);
 
-            Promise.all([fetchLandCover, fetchRainfall, fetchControlLandCover, fetchControlRainfall])
-                .then(([landCoverData, rainfallData, controlLandCoverData, controlRainfallData]) => {
+            // Handle land cover and rainfall separately to ensure resilience
+            Promise.all([fetchLandCover, fetchControlLandCover])
+                .then(([landCoverData, controlLandCoverData]) => {
                     const labels = Object.keys(landCoverData);
                     const datasets = [
                         {
@@ -224,14 +227,6 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             hidden: true,
                         },
                         {
-                            label: `Rainfall - ${villageValue}`,
-                            type: 'bar',  // Bar chart for rainfall
-                            data: rainfallData.rainfall_data.map(entry => entry[1]),
-                            borderColor: '#00BFFF',
-                            backgroundColor: 'rgba(0, 191, 255, 0.5)',  // Matching light blue, more vivid
-                            yAxisID: 'y1',
-                        },
-                        {
                             label: `Single Cropland - ${controlVillageName}`,
                             type: 'line',  // Line chart for control village single cropland
                             data: labels.map(label => controlLandCoverData[label]['Single cropping cropland']),
@@ -258,33 +253,65 @@ const InterventionCompareChart = ({ onDataChange }) => {
                             yAxisID: 'y',
                             borderDash: [10, 5],  // Dotted line
                             hidden: true,
-                        },
-                        {
-                            label: `Rainfall - ${controlVillageName}`,
-                            type: 'bar',  // Bar chart for control village rainfall
-                            data: controlRainfallData.rainfall_data.map(entry => entry[1]),
-                            borderColor: '#C71585',  // Medium Violet Red
-                            backgroundColor: 'rgba(199, 21, 133, 0.5)',  // Matching color, more vivid
-                            yAxisID: 'y1',
-                            borderDash: [10, 5],  // Dotted line, though typically not noticeable on bars
                         }
                     ];
 
-                    setChartData({ labels, datasets });
+                    // Try to fetch rainfall data, but don't let it block the chart
+                    const rainfallPromises = [fetchRainfall, fetchControlRainfall];
+                    Promise.allSettled(rainfallPromises)
+                        .then(rainfallResults => {
+                            // Handle intervention village rainfall
+                            if (rainfallResults[0].status === 'fulfilled' && 
+                                rainfallResults[0].value && 
+                                rainfallResults[0].value.rainfall_data && 
+                                !rainfallResults[0].value.error) {
+                                datasets.push({
+                                    label: `Rainfall - ${villageValue}`,
+                                    type: 'bar',  // Bar chart for rainfall
+                                    data: rainfallResults[0].value.rainfall_data.map(entry => entry[1]),
+                                    borderColor: '#00BFFF',
+                                    backgroundColor: 'rgba(0, 191, 255, 0.5)',  // Matching light blue, more vivid
+                                    yAxisID: 'y1',
+                                });
+                            }
 
-                    // Initialize dataset visibility state
-                    setDatasetVisibility(
-                        datasets.reduce((acc, dataset, index) => {
-                            acc[index] = !dataset.hidden; // Reflect hidden status
-                            return acc;
-                        }, {})
-                    );
+                            // Handle control village rainfall
+                            if (rainfallResults[1].status === 'fulfilled' && 
+                                rainfallResults[1].value && 
+                                rainfallResults[1].value.rainfall_data && 
+                                !rainfallResults[1].value.error) {
+                                datasets.push({
+                                    label: `Rainfall - ${controlVillageName}`,
+                                    type: 'bar',  // Bar chart for control village rainfall
+                                    data: rainfallResults[1].value.rainfall_data.map(entry => entry[1]),
+                                    borderColor: '#C71585',  // Medium Violet Red
+                                    backgroundColor: 'rgba(199, 21, 133, 0.5)',  // Matching color, more vivid
+                                    yAxisID: 'y1',
+                                    borderDash: [10, 5],  // Dotted line, though typically not noticeable on bars
+                                });
+                            }
+                        })
+                        .catch(rainfallError => {
+                            console.warn('Rainfall data unavailable:', rainfallError);
+                        })
+                        .finally(() => {
+                            // Set chart data regardless of rainfall success/failure
+                            setChartData({ labels, datasets });
 
-                    onDataChange({ labels, datasets });
-                    setLoading(false); // Pass data to the parent component
+                            // Initialize dataset visibility state
+                            setDatasetVisibility(
+                                datasets.reduce((acc, dataset, index) => {
+                                    acc[index] = !dataset.hidden; // Reflect hidden status
+                                    return acc;
+                                }, {})
+                            );
+
+                            onDataChange({ labels, datasets });
+                            setLoading(false); // Pass data to the parent component
+                        });
                 })
                 .catch(error => {
-                    console.error('Error fetching data:', error);
+                    console.error('Error fetching land cover data:', error);
                     setLoading(false);
                 });
         }

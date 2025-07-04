@@ -6,10 +6,10 @@ const VillageDetails = ({ selectedState, selectedDistrict, selectedSubdistrict, 
   const [population, setPopulation] = useState(null);
 
   useEffect(() => {
-    if (selectedDistrict?.value && selectedState && selectedVillage?.label) {
-      const districtValue = selectedDistrict.value;
+    if (selectedDistrict?.label && selectedState && selectedVillage?.label) {
+      const districtName = selectedDistrict.label;
 
-      get_boundary_data(selectedState, districtValue, selectedSubdistrict, selectedVillage.label)
+      get_boundary_data(selectedState, districtName, selectedSubdistrict, selectedVillage.label)
         .then(data => {
           console.log("Boundary data received:", data);
 

@@ -165,11 +165,14 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
         const villageValue = villageName.label; 
         // Set loading to true when API call starts
         if (stateName && districtName && subdistrictName && villageValue) {
-            const fetchLandCover = get_area_change(stateName, districtName.value, subdistrictName.label, villageValue);
-            const fetchRainfall = get_rainfall_data(stateName, districtName.value, subdistrictName.label, villageValue);
+            const stateNameValue = stateName?.label || stateName;
+            const districtNameValue = districtName.label;
+            const fetchLandCover = get_area_change(stateNameValue, districtNameValue, subdistrictName.label, villageValue);
+            const fetchRainfall = get_rainfall_data(stateNameValue, districtNameValue, subdistrictName.label, villageValue);
 
-            Promise.all([fetchLandCover, fetchRainfall])
-                .then(([landCoverData, rainfallData]) => {
+            // Handle land cover and rainfall separately to ensure resilience
+            fetchLandCover
+                .then(landCoverData => {
                     const labels = Object.keys(landCoverData);
                     const datasets = [{
                         label: 'Single Cropland',
@@ -194,23 +197,38 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         backgroundColor: 'rgba(0, 128, 0, 0.5)',
                         yAxisID: 'y',
                         hidden: true,
-                    },
-                    {
-                        label: 'Rainfall',
-                        type: 'bar',
-                        data: rainfallData.rainfall_data.map(entry => entry[1]),
-                        borderColor: 'blue',
-                        backgroundColor: 'rgba(0, 0, 255, 0.5)',
-                        yAxisID: 'y1',
                     }];
-                    setChartData({ labels, datasets });
-                    if (onDataChange) {
-                        onDataChange({ labels, datasets });
-                    }
-                    setLoading(false);  // Set loading to false once data is fetched
+
+                    // Try to fetch rainfall data, but don't let it block the chart
+                    fetchRainfall
+                        .then(rainfallData => {
+                            if (rainfallData && rainfallData.rainfall_data && !rainfallData.error) {
+                                // Add rainfall data if available
+                                datasets.push({
+                                    label: 'Rainfall',
+                                    type: 'bar',
+                                    data: rainfallData.rainfall_data.map(entry => entry[1]),
+                                    borderColor: 'blue',
+                                    backgroundColor: 'rgba(0, 0, 255, 0.5)',
+                                    yAxisID: 'y1',
+                                });
+                            }
+                        })
+                        .catch(rainfallError => {
+                            console.warn('Rainfall data unavailable:', rainfallError);
+                            // Don't block the chart - just proceed without rainfall data
+                        })
+                        .finally(() => {
+                            // Set chart data regardless of rainfall success/failure
+                            setChartData({ labels, datasets });
+                            if (onDataChange) {
+                                onDataChange({ labels, datasets });
+                            }
+                            setLoading(false);
+                        });
                 })
                 .catch(error => {
-                    console.error('Error fetching data:', error);
+                    console.error('Error fetching land cover data:', error);
                     setLoading(false);  // Ensure loading is set to false on error
                 });
         }

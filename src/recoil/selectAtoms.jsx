@@ -3,12 +3,22 @@ import { atom } from 'recoil';
 
 export const selectedStateAtom = atom({
   key: 'selectedState', // unique ID (with respect to other atoms/selectors)
-  default: '', // default value (aka initial value)
+  default: null, // default value (aka initial value)
+});
+
+export const stateOptionsAtom = atom({
+  key: 'stateOptions',
+  default: [],
 });
 
 export const selectedDistrictAtom = atom({
   key: 'selectedDistrict',
   default: null, // Provide a valid default value
+});
+
+export const districtOptionsAtom = atom({
+  key: 'districtOptions',
+  default: [],
 });
 
 export const selectedSubdistrictAtom = atom({

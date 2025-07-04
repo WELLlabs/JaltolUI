@@ -360,7 +360,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
       for (const year of years) {
         const response = await get_lulc_raster(
           selectedState,
-          selectedDistrict.value,
+          selectedDistrict.label,
           selectedSubdistrict?.label || null,
           selectedVillage?.label || null,
           year
@@ -402,7 +402,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
           console.log("Proceeding with map data fetch after delay");
         }
         
-        const districtValue = selectedDistrict.value;
+        const districtName = selectedDistrict.label;
         const subdistrictValue = selectedSubdistrict?.label || null;
         const villageValue = selectedVillage?.label || null;
         
@@ -423,7 +423,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         
         console.log('Fetching boundary with:', {
           state: selectedState,
-          district: districtValue,
+          district: districtName,
           subdistrict: subdistrictValue,
           villageName: villageName,
           villageId: villageId
@@ -435,7 +435,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         // Store the exact parameters for LULC to ensure consistency
         const apiParams = {
           state: selectedState,
-          district: districtValue,
+          district: districtName,
           subdistrict: subdistrictValue,
           village: villageValue,
           villageId: villageId,
@@ -445,7 +445,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         console.log('API parameters for both boundary and LULC:', apiParams);
         
         // Fetch boundary data with village ID when available
-        get_boundary_data(selectedState, districtValue, subdistrictValue, villageValue, villageId)
+        get_boundary_data(selectedState, districtName, subdistrictValue, villageValue, villageId)
           .then(data => {
             if (data && data.features && data.features.length > 0) {
               console.log(`Received boundary data with ${data.features.length} features`);
@@ -493,7 +493,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
         const lulcCallId = isSharedLink ? mapCoordinator.registerApiCall('lulc', 5) : 'no-shared-link';
         console.log('Fetching LULC with same parameters as boundary:', apiParams);
         
-        get_lulc_raster(selectedState, districtValue, subdistrictValue, villageValue, selectedYear)
+        get_lulc_raster(selectedState, districtName, subdistrictValue, villageValue, selectedYear)
           .then(data => {
             console.log("Received LULC raster data:", data.tiles_url ? "has URL" : "no URL");
             if (data.tiles_url) {

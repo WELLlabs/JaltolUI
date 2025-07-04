@@ -10,10 +10,10 @@ const useFetchData = (selectedState, selectedDistrict, selectedSubdistrict, sele
     if (selectedDistrict && selectedState) {
       setIsLoading(true);
 
-      const districtValue = selectedDistrict.value;
+      const districtName = selectedDistrict.label;
       Promise.all([
-        get_boundary_data(selectedState, districtValue, selectedSubdistrict, selectedVillage),
-        get_lulc_raster(selectedState, districtValue, selectedSubdistrict, selectedVillage, selectedYear)
+        get_boundary_data(selectedState, districtName, selectedSubdistrict, selectedVillage),
+        get_lulc_raster(selectedState, districtName, selectedSubdistrict, selectedVillage, selectedYear)
       ])
       .then(([boundaryData, lulcData]) => {
         setBoundaryData(boundaryData);
