@@ -238,6 +238,38 @@ export const AuthProvider = ({ children }) => {
     setError(null);
   };
 
+  // Update profile function
+  const updateProfile = async (profileData) => {
+    console.log('Profile update attempt for:', user?.username);
+    
+    try {
+      setError(null);
+      
+      const response = await api.put('/auth/profile/update/', profileData);
+      
+      console.log('Profile update response:', response.data);
+      const updatedUser = response.data.user || response.data;
+      
+      // Update local storage and state
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error('Profile update error:', error);
+      
+      let errorMessage = 'Profile update failed';
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      setError(errorMessage);
+      return { success: false, error: errorMessage, details: error.response?.data };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -247,6 +279,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     clearError,
+    updateProfile,
     isAuthenticated: !!user,
     refreshToken,
   };

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { captureMapImage } from '../utils/mapCapture';
+import { useSetRecoilState } from 'recoil';
+import { interventionStartYearAtom, interventionEndYearAtom } from '../recoil/selectAtoms';
 
 const SaveProjectModal = ({ 
   isOpen, 
@@ -15,13 +17,28 @@ const SaveProjectModal = ({
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    state: '',
+    district: '',
+    subdistrict: '',
+    village: '',
+    control_state: '',
+    control_district: '',
+    control_subdistrict: '',
+    control_village: '',
     intervention_start_year: '',
     intervention_end_year: '',
+    ...projectData
   });
   const [errors, setErrors] = useState({});
   const [capturingImage, setCapturingImage] = useState(false);
-  const [imageCapture, setImageCapture] = useState({ success: false, error: null });
   const [captureCountdown, setCaptureCountdown] = useState(0);
+  const [imageCapture, setImageCapture] = useState({ success: false, error: null });
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  
+  // Recoil state setters for intervention period
+  const setInterventionStartYear = useSetRecoilState(interventionStartYearAtom);
+  const setInterventionEndYear = useSetRecoilState(interventionEndYearAtom);
 
   // Reset form when modal opens with new project data
   useEffect(() => {
@@ -29,6 +46,14 @@ const SaveProjectModal = ({
       setFormData({
         name: projectData.name || '',
         description: projectData.description || '',
+        state: projectData.state || '',
+        district: projectData.district || '',
+        subdistrict: projectData.subdistrict || '',
+        village: projectData.village || '',
+        control_state: projectData.control_state || '',
+        control_district: projectData.control_district || '',
+        control_subdistrict: projectData.control_subdistrict || '',
+        control_village: projectData.control_village || '',
         intervention_start_year: projectData.intervention_start_year || '',
         intervention_end_year: projectData.intervention_end_year || '',
         ...projectData
@@ -193,27 +218,55 @@ const SaveProjectModal = ({
       return;
     }
     
-    // Capture map image if village is selected
-    let projectImage = null;
-    if (selectedVillage) {
-      console.log('Attempting to capture map image...');
-      projectImage = await captureCurrentMapImage();
-      
-      if (projectImage) {
-        console.log('Map image captured successfully for project save');
-      } else {
-        console.warn('Failed to capture map image, but continuing with project save');
+    setSaveSuccess(false);
+    setSaveError(null);
+    
+    try {
+      // Capture map image if village is selected
+      let projectImage = null;
+      if (selectedVillage) {
+        console.log('Attempting to capture map image...');
+        projectImage = await captureCurrentMapImage();
+        
+        if (projectImage) {
+          console.log('Map image captured successfully for project save');
+        } else {
+          console.warn('Failed to capture map image, but continuing with project save');
+        }
       }
+      
+      const projectPayload = {
+        ...formData,
+        project_type: 'village',
+        project_image: projectImage // Include the captured image
+      };
+      
+      console.log('Saving project with payload:', { ...projectPayload, project_image: projectImage ? 'IMAGE_DATA_PRESENT' : 'NO_IMAGE' });
+      
+      // Update global intervention period state
+      if (formData.intervention_start_year) {
+        setInterventionStartYear(formData.intervention_start_year);
+      }
+      if (formData.intervention_end_year) {
+        setInterventionEndYear(formData.intervention_end_year);
+      }
+      
+      // Call the parent onSave function and handle the response
+      await onSave(projectPayload);
+      
+      // Show success message inside modal
+      setSaveSuccess(true);
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+        onClose();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error saving project:', error);
+      setSaveError(error.message || 'Failed to save project');
     }
-    
-    const projectPayload = {
-      ...formData,
-      project_type: 'village',
-      project_image: projectImage // Include the captured image
-    };
-    
-    console.log('Saving project with payload:', { ...projectPayload, project_image: projectImage ? 'IMAGE_DATA_PRESENT' : 'NO_IMAGE' });
-    onSave(projectPayload);
   };
 
   const handleBackdropClick = (e) => {
@@ -243,6 +296,36 @@ const SaveProjectModal = ({
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Success Message */}
+          {saveSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <span className="text-sm font-medium">Project saved successfully!</span>
+                  <p className="text-xs mt-1 text-green-600">Modal will close automatically</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {saveError && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <span className="text-sm font-medium">Error saving project</span>
+                  <p className="text-xs mt-1 text-red-600">{saveError}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Capturing Image Status */}
           {capturingImage && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md">

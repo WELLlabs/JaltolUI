@@ -3,8 +3,8 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import mapsBackground from '../assets/mapsnew.svg';
-import lulcImage from '../assets/LulcClasses.svg';
-import creators from '../assets/creators.svg';
+// import lulcImage from '../assets/LulcClasses.svg';
+// import creators from '../assets/creators.svg';
 // import aboutBackground from '../assets/Aboutus.png'; // Ensure correct path
 // import mapImage from '../assets/Maps.png'; // Ensure correct path
 
@@ -28,7 +28,19 @@ const IndiaSATPage = () => {
                 About the Bhuvan LULC maps used in Jaltol.
               </p>
               <p className="text-lg mt-4">
-                The Bhuvan [Land Use Land Cover](https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php) (LULC) maps are a map product developed using satellite imagery by the National Remote Sensing Centre (NRSC) the Remote Sensing wing of the Indian Space Research Organisation (ISRO). These maps are produced with a spatial resolution of 50m once annually. These maps are the longest running continuous record of land use, land cover spanning the entirety of India, going back to the year 2005. The Bhuvan LULC maps are especially useful for agricultural change assessments. They have categories such as Kharif only, Kharif+Rabi which indicate the cropping frequency in a given year. The Bhuvan LULC maps are available for free download from the Bhuvan portal. Jaltol makes these maps available to interested users enabling further value added analysis such as village or plot level analysis. To date, Jaltol has Bhuvan LULC maps for 10 states. WELL Labs is looking for organisations to partner with to validate the usefulness and accuracy of the Bhuvan LULC maps in different geographies. Please contact us at welllabs.jaltol@ifmr.ac.in for collaborations. 
+                The Bhuvan <a 
+                  href="https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  Land Use Land Cover
+                </a> (LULC) maps are a map product developed using satellite imagery by the National Remote Sensing Centre (NRSC) the Remote Sensing wing of the Indian Space Research Organisation (ISRO). These maps are produced with a spatial resolution of 50m once annually. These maps are the longest running continuous record of land use, land cover spanning the entirety of India, going back to the year 2005. The Bhuvan LULC maps are especially useful for agricultural change assessments. They have categories such as Kharif only, Kharif+Rabi which indicate the cropping frequency in a given year. The Bhuvan LULC maps are available for free download from the Bhuvan portal. Jaltol makes these maps available to interested users enabling further value added analysis such as village or plot level analysis. To date, Jaltol has Bhuvan LULC maps for 10 states. WELL Labs is looking for organisations to partner with to validate the usefulness and accuracy of the Bhuvan LULC maps in different geographies. Please contact us at <a 
+                  href="mailto:welllabs.jaltol@ifmr.ac.in"
+                  className="text-blue-600 hover:text-blue-800 underline"
+                >
+                  welllabs.jaltol@ifmr.ac.in
+                </a> for collaborations. 
               </p>
             </div>
           </div>
