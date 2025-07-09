@@ -38,14 +38,14 @@ const IndiaSATPage = () => {
         </div>
 
         {/* Uniqueness Section */}
-        <div className='bg-white py-16'>
+        {/* <div className='bg-white py-16'>
           <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl border border-gray-600">
             <h2 className="text-4xl font-semibold mb-10">Uniqueness of IndiaSAT</h2>
             <p className="mt-2 mb-4 text-lg mx-20">
               While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis. It is seasonal, thereby showing cropping frequency in the agricultural fields and seasonal waterbody extents, and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
             </p>
           </div>
-        </div>
+        </div> */}
 
         {/* Co-creators Section */}
         {/* <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
