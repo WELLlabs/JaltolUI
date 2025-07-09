@@ -35,7 +35,9 @@ import {
   selectedControlVillageAtom,
   customPolygonDataAtom,
   showPolygonDataAtom,
-  circlesSummaryAtom
+  circlesSummaryAtom,
+  interventionStartYearAtom,
+  interventionEndYearAtom
 } from '../recoil/selectAtoms';
 import { getSubdistricts, getVillages, getStates, getDistricts } from '../services/api'; // Import API calls
 import Footer from '../components/Footer';
@@ -67,8 +69,8 @@ const ImpactAssessmentPage = () => {
   const [selectedControlVillage, setSelectedControlVillage] = useRecoilState(selectedControlVillageAtom);
 
   // Intervention Period State
-  const [interventionStartYear, setInterventionStartYear] = useState(null);
-  const [interventionEndYear, setInterventionEndYear] = useState(null);
+  const [interventionStartYear, setInterventionStartYear] = useRecoilState(interventionStartYearAtom);
+  const [interventionEndYear, setInterventionEndYear] = useRecoilState(interventionEndYearAtom);
   const [availableYears, setAvailableYears] = useState([]);
 
   // Save Project Modal State
@@ -110,8 +112,7 @@ const ImpactAssessmentPage = () => {
 
       // Validate that we have minimum required selections
       if (!selectedVillage) {
-        setSaveError('Please select a village before saving the project.');
-        return;
+        throw new Error('Please select a village before saving the project.');
       }
 
       // Helper function to convert village ID to proper format
@@ -155,18 +156,14 @@ const ImpactAssessmentPage = () => {
 
       const response = await saveProjectFromAssessment(saveData);
       
-      if (response.success) {
-        setSaveSuccess(true);
-        setTimeout(() => {
-          setShowSaveModal(false);
-          setSaveSuccess(false);
-        }, 2000);
-      } else {
-        setSaveError(response.message || 'Failed to save project');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to save project');
       }
+      
+      return response;
     } catch (error) {
       console.error('Error saving project:', error);
-      setSaveError('Failed to save project. Please try again.');
+      throw error; // Re-throw the error to be caught by the SaveProjectModal
     } finally {
       setSaving(false);
     }
@@ -1005,6 +1002,50 @@ const ImpactAssessmentPage = () => {
 
           {/* Container with extra margin to ensure spacing */}
           <div className="mt-24">
+            {/* Intervention Period Selection for Comparison Chart */}
+            {selectedVillage && availableYears.length > 0 && (
+              <div className="mb-3 p-3 bg-white rounded border border-gray-200 mx-5">
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="font-medium text-gray-800 whitespace-nowrap">Select Intervention Period:</span>
+                  
+                  <span className="text-sm text-gray-700 whitespace-nowrap">Start Year</span>
+                  <select
+                    value={interventionStartYear?.value || ''}
+                    onChange={(e) => handleStartYearChange(availableYears.find(year => year.value === e.target.value))}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-black"
+                  >
+                    <option value="">Select</option>
+                    {availableYears.map(year => (
+                      <option key={year.value} value={year.value}>
+                        {year.label}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  <span className="text-sm text-gray-700 whitespace-nowrap">End Year</span>
+                  <select
+                    value={interventionEndYear?.value || ''}
+                    onChange={(e) => handleEndYearChange(availableYears.find(year => year.value === e.target.value))}
+                    disabled={!interventionStartYear}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white text-black disabled:bg-gray-50 disabled:cursor-not-allowed disabled:text-gray-500"
+                  >
+                    <option value="">Select</option>
+                    {getEndYearOptions().map(year => (
+                      <option key={year.value} value={year.value}>
+                        {year.label}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {interventionStartYear && interventionEndYear && (
+                    <span className="text-sm font-medium text-gray-600 whitespace-nowrap">
+                      ({interventionStartYear.label}-{interventionEndYear.label})
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Chart Section */}
             <div className="bg-white rounded shadow-inner flex items-center justify-center p-5 mb-5">
               {selectedState && selectedDistrict && selectedSubdistrict && selectedVillage ? (
@@ -1015,7 +1056,10 @@ const ImpactAssessmentPage = () => {
                     </div>
                   </div>
                 ) : (
-                  <InterventionCompareChart />
+                  <InterventionCompareChart 
+                    interventionStartYear={interventionStartYear?.value} 
+                    interventionEndYear={interventionEndYear?.value} 
+                  />
                 )
               ) : (
                 <p>Select all fields to see the chart</p>

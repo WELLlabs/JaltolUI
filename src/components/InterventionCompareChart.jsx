@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import { get_area_change, get_control_village, get_rainfall_data } from '../services/api';
 import { useRecoilValue, useSetRecoilState, useRecoilState } from 'recoil';
 import {
@@ -15,9 +16,9 @@ import {
 import Spinner from './Spinner';
 import DataToggle from './DataToggle';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, annotationPlugin);
 
-const InterventionCompareChart = ({ onDataChange }) => {
+const InterventionCompareChart = ({ onDataChange, interventionStartYear, interventionEndYear }) => {
     const stateName = useRecoilValue(selectedStateAtom);
     const districtName = useRecoilValue(selectedDistrictAtom);
     const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
@@ -35,125 +36,148 @@ const InterventionCompareChart = ({ onDataChange }) => {
     const showPolygonData = useRecoilValue(showPolygonDataAtom);
     const [polygonChartData, setPolygonChartData] = useRecoilState(polygonChartDataAtom);
 
-    const options = {
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    color: 'black',
-                    font: {
-                        size: 11
-                    }
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)',
-                },
-                title: {
-                    display: true,
-                    text: 'Area (ha)',
-                    color: 'black',
-                    font: {
-                        size: 12,
-                        weight: 'bold'
-                    }
-                },
-                position: 'left'
-            },
-            y1: {
-                beginAtZero: true,
-                position: 'right',
-                grid: {
-                    drawOnChartArea: false, // only want the grid lines for y1 axis
-                },
-                ticks: {
-                    color: '#00BFFF',
-                    font: {
-                        size: 11
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Rainfall (mm)',
-                    color: '#00BFFF',
-                    font: {
-                        size: 12,
-                        weight: 'bold'
-                    }
-                },
-            },
-            x: {
-                ticks: {
-                    color: 'black',
-                    font: {
-                        size: 11
-                    }
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)',
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false, // Hide the default legend
-            },
-            title: {
-                display: false, // Hide the default title
-            },
-            tooltip: {
-                enabled: true,
-                mode: 'index',
-                intersect: false,
-                backgroundColor: 'white',
-                bodyColor: 'black',
-                titleColor: 'black',
-                borderColor: 'black',
-                borderWidth: 1,
-                padding: 10,
-                callbacks: {
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
+    // Create chart options with intervention period highlighting
+    const createChartOptions = () => {
+        const baseOptions = {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: 'black',
+                        font: {
+                            size: 11
                         }
-            
-                        // Use context.parsed.y to access the displayed value and round it off
-                        let value = (Math.round(context.parsed.y * 100) / 100).toFixed(2) + '*';
-            
-                        // Append units based on the dataset
-                        if (context.dataset.label.includes('Single Cropland') || context.dataset.label.includes('Double Cropland')) {
-                            label += `${value} ha`; // hectares for cropland area
-                        } else if (context.dataset.label.includes('Rainfall')) {
-                            label += `${value} mm`; // millimeters for rainfall
-                        }
-                        return label;
                     },
-                    footer: function() {
-                        return '*Values rounded off to 2 decimal points';
-                    }
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Area (ha)',
+                        color: 'black',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                    position: 'left'
                 },
-                footerColor: 'black', // Set footer text color to black
-                footerFont: {
-                    size: 10,
-                    style: 'italic',
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false, // only want the grid lines for y1 axis
+                    },
+                    ticks: {
+                        color: '#00BFFF',
+                        font: {
+                            size: 11
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Rainfall (mm)',
+                        color: '#00BFFF',
+                        font: {
+                            size: 12,
+                            weight: 'bold'
+                        }
+                    },
+                },
+                x: {
+                    ticks: {
+                        color: 'black',
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                    }
                 }
-            }
-            
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        elements: {
-            point: {
-                radius: 4,
-                hoverRadius: 6
             },
-            line: {
-                borderWidth: 2,
-                tension: 0.1
-            }
-        },
-        backgroundColor: 'white',
+            plugins: {
+                legend: {
+                    display: false, // Hide the default legend
+                },
+                title: {
+                    display: false, // Hide the default title
+                },
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'white',
+                    bodyColor: 'black',
+                    titleColor: 'black',
+                    borderColor: 'black',
+                    borderWidth: 1,
+                    padding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                
+                            // Use context.parsed.y to access the displayed value and round it off
+                            let value = (Math.round(context.parsed.y * 100) / 100).toFixed(2) + '*';
+                
+                            // Append units based on the dataset
+                            if (context.dataset.label.includes('Single Cropland') || context.dataset.label.includes('Double Cropland')) {
+                                label += `${value} ha`; // hectares for cropland area
+                            } else if (context.dataset.label.includes('Rainfall')) {
+                                label += `${value} mm`; // millimeters for rainfall
+                            }
+                            return label;
+                        },
+                        footer: function() {
+                            return '*Values rounded off to 2 decimal points';
+                        }
+                    },
+                    footerColor: 'black', // Set footer text color to black
+                    footerFont: {
+                        size: 10,
+                        style: 'italic',
+                    }
+                }
+                
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            elements: {
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                },
+                line: {
+                    borderWidth: 2,
+                    tension: 0.1
+                }
+            },
+            backgroundColor: 'white',
+        };
+
+        // Add intervention period highlighting if both start and end years are provided
+        if (interventionStartYear && interventionEndYear) {
+            baseOptions.plugins.annotation = {
+                annotations: {
+                    interventionPeriod: {
+                        type: 'box',
+                        xMin: interventionStartYear,
+                        xMax: interventionEndYear,
+                        backgroundColor: 'rgba(251, 146, 60, 0.2)', // Light orange background
+                        borderWidth: 0,
+                        drawTime: 'beforeDatasetsDraw'
+                    }
+                }
+            };
+        }
+
+        return baseOptions;
     };
+
+    const options = createChartOptions();
 
     // Effect for fetching control village data
     useEffect(() => {
@@ -502,6 +526,8 @@ const InterventionCompareChart = ({ onDataChange }) => {
 
 InterventionCompareChart.propTypes = {
     onDataChange: PropTypes.func.isRequired,
+    interventionStartYear: PropTypes.string,
+    interventionEndYear: PropTypes.string,
 };
 
 export default InterventionCompareChart;

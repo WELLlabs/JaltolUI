@@ -92,3 +92,13 @@ export const showPolygonDataAtom = atom({
   key: 'showPolygonData',
   default: false, // Toggle between village (false) and polygon (true) data
 });
+
+export const interventionStartYearAtom = atom({
+  key: 'interventionStartYear',
+  default: null, // Will contain the intervention start year
+});
+
+export const interventionEndYearAtom = atom({
+  key: 'interventionEndYear',
+  default: null, // Will contain the intervention end year
+});
