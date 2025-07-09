@@ -19,13 +19,16 @@ const IndiaSATPage = () => {
         {/* About Section */}
         <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
           <div className="ml-20 flex flex-col justify-center">
-            <h1 className="text-4xl font-bold">The IndiaSAT Land Use, Land Cover (LULC) map</h1>
+            <h1 className="text-4xl font-bold">What are Land Use, Land Cover (LULC) maps?</h1>
             <div>
-              <p className="text-2xl mt-5 font-bold">
-                What are LULC maps?
-              </p>
               <p className="text-lg mt-4">
                 Land Use Land Cover (LULC) maps provide information to help users understand the current landscape. Land cover indicates the physical land type such as forest or open water, whereas land use documents how people are using the land. These maps establish the baseline information for activities like thematic mapping and change detection analysis, which are important for global monitoring studies, resource management, and planning activities.
+              </p>
+              <p className="text-2xl mt-5 font-bold">
+                About the Bhuvan LULC maps used in Jaltol.
+              </p>
+              <p className="text-lg mt-4">
+                The Bhuvan [Land Use Land Cover](https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php) (LULC) maps are a map product developed using satellite imagery by the National Remote Sensing Centre (NRSC) the Remote Sensing wing of the Indian Space Research Organisation (ISRO). These maps are produced with a spatial resolution of 50m once annually. These maps are the longest running continuous record of land use, land cover spanning the entirety of India, going back to the year 2005. The Bhuvan LULC maps are especially useful for agricultural change assessments. They have categories such as Kharif only, Kharif+Rabi which indicate the cropping frequency in a given year. The Bhuvan LULC maps are available for free download from the Bhuvan portal. Jaltol makes these maps available to interested users enabling further value added analysis such as village or plot level analysis. To date, Jaltol has Bhuvan LULC maps for 10 states. WELL Labs is looking for organisations to partner with to validate the usefulness and accuracy of the Bhuvan LULC maps in different geographies. Please contact us at welllabs.jaltol@ifmr.ac.in for collaborations. 
               </p>
             </div>
           </div>
@@ -45,7 +48,7 @@ const IndiaSATPage = () => {
         </div>
 
         {/* Co-creators Section */}
-        <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
+        {/* <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
           <div className="flex flex-col md:flex-row items-center mt-6 mb-6">
             <div className="md:w-2/3 p-4 m-20 pr-20 text-white">
               <h2 className="text-5xl font-semibold ">Co-creators of India SAT</h2>
@@ -63,9 +66,9 @@ const IndiaSATPage = () => {
               <img src={creators} alt="Co-creators of India SAT" className="w-full h-auto shadow-lg rounded" />
             </div>
           </div>
-        </div>
+        </div> */}
 
-        {/* LU/LC Classes Section */}
+        {/* LU/LC Classes Section
         <div className="py-16 px-8 flex flex-col items-center bg-white">
           <h2 className="text-3xl font-semibold text-black">The LULC classes of IndiaSAT</h2>
           <p className="text-lg text-gray-700 mt-4 text-center">
@@ -118,20 +121,20 @@ const IndiaSATPage = () => {
           <p className="text-lg text-gray-700 mt-8 text-center">
             The Level-3 classification carried out by IndiaSAT shows deep classification into croplands as “single-cropped”, “double-cropped” and “triple-cropped”; this level of classification at a finer level enables Panchayats and NGOs to track the impact of their watershed interventions.
           </p>
-        </div>
+        </div> */}
 
         {/* Methodology Section */}
-        <div className="py-16 px-8 flex flex-col items-center bg-white">
+        {/* <div className="py-16 px-8 flex flex-col items-center bg-white"> */}
           {/* Top divider */}
-          <div className="w-full flex justify-center items-center mb-8">
+          {/* <div className="w-full flex justify-center items-center mb-8">
             <div className="border-t border-gray-300 flex-grow"></div>
             <div className="mx-4 text-gray-300">•</div>
             <div className="border-t border-gray-300 flex-grow"></div>
-          </div>
+          </div> */}
 
-          <h2 className="text-3xl font-semibold text-black text-center">The IndiaSAT Methodology</h2>
+          {/* <h2 className="text-3xl font-semibold text-black text-center">The IndiaSAT Methodology</h2> */}
 
-          <div className="max-w-4xl text-center">
+          {/* <div className="max-w-4xl text-center">
             <p className="text-lg text-gray-700 leading-relaxed">
               To achieve the Level-1 classification, multi-spectral data is subjected to classification by a random forest classifier trained using data from OSM and manual marking of polygons for different classes throughout the nation, this per-pixel classifier is combined with Dynamic World, an object-based classifier, and further subjected to a rule-based method to achieve Level-1 classification.
             </p>
@@ -142,19 +145,19 @@ const IndiaSATPage = () => {
               To perform Level-3 classification, there is no existing dataset with a significant amount of data, so the input considered for this classification is 8-16 day NDVI time series that is derived from a combination of Landsat-7, Landsat-8, Sentinel-2, and MODIS data based on QCI-30 paper methodology, subject to unsupervised classification using k-nearest neighbor algorithm to achieve Single, Double and Triple cropping class.
             </p>
           </div>
-        </div>
+        </div> */}
 
         {/* Bottom divider */}
-        <div className="w-full flex justify-center items-center mt-8 mb-16">
+        {/* <div className="w-full flex justify-center items-center mt-8 mb-16">
           <div className="border-t border-gray-300 flex-grow"></div>
           <div className="mx-4 text-gray-300">•</div>
           <div className="border-t border-gray-300 flex-grow"></div>
-        </div>
+        </div> */}
 
 
 
         {/* Validation Section */}
-        <div className="flex justify-center py-16 px-8 bg-white">
+        {/* <div className="flex justify-center py-16 px-8 bg-white">
           <div className="max-w-6xl w-full flex flex-col md:flex-row justify-between items-start space-y-6 md:space-y-0 md:space-x-6">
             <div className="md:w-1/2 bg-white p-8 rounded-lg shadow-md border border-gray-200">
               <h2 className="text-2xl font-semibold text-center text-black">Validation of the IndiaSAT map</h2>
@@ -169,7 +172,7 @@ const IndiaSATPage = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
 
       </div>
