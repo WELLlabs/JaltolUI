@@ -51,7 +51,7 @@ const Homepage = () => {
             <div className="md:w-2/3 p-20">
               <h2 className="text-5xl font-semibold text-black">Maps</h2>
               <p className="text-2xl text-gray-700 mt-4">
-                Developed by IITD and WELL Labs in partnership, these high resolution (10-30m) land use maps are produced annually since 2000. They show plot level land use categories important for agriculture, namely - Single and Double cropping.
+                Developed by the National Remote Sensing Centre, the Bhuvan LULC maps made available via Jaltol are powerful, historical maps (2005 to present day) that users can leverage to track land use changes pan India.
               </p>
               <button 
               className="mt-4 bg-jaltol-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" 
