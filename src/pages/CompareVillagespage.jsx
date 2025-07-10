@@ -45,7 +45,7 @@ const CompareVillagesPage = () => {
     const villageOptions = villages.map(village => ({
       value: village.toLowerCase(),
       label: village
-    }));
+    })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
     setVillageOptions(villageOptions);
   }, []); // Empty dependency array ensures this runs only once on mount
 
@@ -56,7 +56,7 @@ const CompareVillagesPage = () => {
     const villageOptions = villages.map(village => ({
       value: village.toLowerCase(),
       label: village
-    }));
+    })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
     setVillageOptions(villageOptions);
   };
 

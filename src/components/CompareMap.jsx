@@ -289,7 +289,6 @@ const CompareMap = ({
         <VillageDetails
           selectedState={selectedState}
           selectedDistrict={selectedDistrict}
-          selectedSubdistrict={controlSubdistrict}
           selectedVillage={controlVillage}
         />
       </div>

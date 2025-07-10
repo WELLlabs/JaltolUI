@@ -1,12 +1,13 @@
 import Select from 'react-select';
 import PropTypes from 'prop-types';
+import { isBhuvanLulcState } from '../../constants';
 
 
 const YearDropdown = ({ selectedYear, onChange, onMenuOpen, stateName }) => {
   // Get year options based on state
   const getYearOptions = () => {
-    // For Maharashtra, Uttar Pradesh, and Jharkhand, use Bhuvan LULC years (2005-2024 excluding 2019)
-    if (['maharashtra', 'uttar pradesh', 'jharkhand', 'tamil nadu', 'gujarat', 'andhra pradesh'].includes(stateName?.toLowerCase())) {
+    // For Bhuvan LULC states, use Bhuvan LULC years (2005-2024 excluding 2019)
+    if (isBhuvanLulcState(stateName)) {
       const years = [];
       for (let year = 2024; year >= 2005; year--) {
         if (year !== 2019) { // Skip 2019 as it's unavailable
