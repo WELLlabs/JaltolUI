@@ -9,6 +9,7 @@ import 'leaflet/dist/leaflet.css';
 import { useSetRecoilState } from 'recoil';
 import { compareVillagesClickedAtom } from '../recoil/selectAtoms';
 import OpacitySlider from './MapComponents/OpacitySlider';
+import { isBhuvanLulcState } from '../constants';
 import html2canvas from 'html2canvas';
 import MultiYearMaps from './MapComponents/MultiYearMap';
 import { mapCoordinator } from '../utils/MapStateCoordinator';
@@ -351,7 +352,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
   const fetchAllYearsLulc = async () => {
     setLoading(true);
     // Use different years based on state
-    const years = ['maharashtra', 'uttar pradesh', 'jharkhand', 'tamil nadu', 'gujarat', 'andhra pradesh'].includes(selectedState?.toLowerCase())
+    const years = isBhuvanLulcState(selectedState)
       ? ['2018', '2020', '2021', '2022']
       : ['2019', '2020', '2021', '2022'];
     const data = {};

@@ -346,7 +346,6 @@ const InterventionMap = ({
         <VillageDetails
           selectedState={selectedState}
           selectedDistrict={selectedDistrict}
-          selectedSubdistrict={selectedSubdistrict}
           selectedVillage={selectedVillage}
         />
       </div>

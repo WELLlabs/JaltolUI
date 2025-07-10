@@ -236,7 +236,7 @@ const ImpactAssessmentPage = () => {
             const districtsList = districts.map(district => ({
               value: district.id,
               label: district.display_name || district.name
-            }));
+            })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
             setDistrictOptions(districtsList);
             
             // Wait for districts to load
@@ -267,7 +267,7 @@ const ImpactAssessmentPage = () => {
                   label: item.display_name || item.name, // Use display_name (e.g., "Dhar Kalan - 00200") if available
                   name: item.name,
                   subdistrict_id: item.subdistrict_id
-                }));
+                })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
                 setSubdistrictOptions(subdistrictsList);
                 console.log("Subdistrict options set with", subdistrictsList.length, "items");
                 
@@ -369,7 +369,7 @@ const ImpactAssessmentPage = () => {
               label: subdistrict.display_name || subdistrict.name, // Use display_name (e.g., "Dhar Kalan - 00200") if available
               name: subdistrict.name,
               subdistrict_id: subdistrict.subdistrict_id
-            }))
+            })).sort((a, b) => a.label.localeCompare(b.label)) // Sort alphabetically by label
           );
           setSelectedSubdistrict(null); // Reset subdistrict when district changes
           setVillageOptions([]); // Also reset villages
@@ -589,7 +589,7 @@ const ImpactAssessmentPage = () => {
           label: state.display_name || state.name,
           name: state.name,
           state_id: state.state_id
-        }));
+        })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
         setStateOptions(statesList);
       } catch (error) {
         console.error('Error fetching states:', error);
@@ -610,7 +610,7 @@ const ImpactAssessmentPage = () => {
             label: district.display_name || district.name,
             name: district.name,
             district_id: district.district_id
-          }));
+          })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
           setDistrictOptions(districtsList);
           
           // Reset dependent selections
@@ -689,6 +689,7 @@ const ImpactAssessmentPage = () => {
               </div>
               <div className="mb-4 text-black max-w-xs">
                 <SelectDistrict
+                  key={selectedState?.value || 'no-state'} // Force re-render when state changes
                   options={districtOptions}
                   onChange={handleDistrictChange}
                   value={selectedDistrict}
@@ -769,7 +770,6 @@ const ImpactAssessmentPage = () => {
             <VillageDetails
               selectedState={selectedState?.label || selectedState}
               selectedDistrict={selectedDistrict}
-              selectedSubdistrict={selectedSubdistrict}
               selectedVillage={selectedVillage}
             />
           )}
@@ -879,7 +879,7 @@ const ImpactAssessmentPage = () => {
                     value={selectedState}
                   />
                   <SelectDistrict
-                    key={selectedDistrict?.value}
+                    key={selectedState?.value || 'no-state'} // Force re-render when state changes
                     options={districtOptions}
                     onChange={handleDistrictChange}
                     value={selectedDistrict}

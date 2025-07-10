@@ -88,6 +88,14 @@ export const get_rainfall_data = (stateName, districtName, subdistrictName, vill
   }).then(response => response.data);
 };
 
+export const get_village_details = (villageId) => {
+  return axios.get(`${API_URL}/get_village_details/`, {
+    params: {
+      village_id: villageId,
+    }
+  }).then(response => response.data);
+};
+
 export const getSubdistricts = (districtId) => {
   return axios.get(`${API_URL}/subdistricts/${districtId}/`)
     .then(response => response.data)
