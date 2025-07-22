@@ -9,6 +9,17 @@ const getAuthHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+// Create axios instance with authentication
+const createAuthenticatedRequest = () => {
+  const token = localStorage.getItem('access_token');
+  return {
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+      'Content-Type': 'application/json',
+    }
+  };
+};
+
 // Updated get_boundary_data function to accept villageId as a parameter
 export const get_boundary_data = (stateName, districtName, subdistrictName = '', villageName = '', villageId = '') => {
   // Parameters to include in the request
@@ -253,6 +264,52 @@ export const saveProjectFromAssessment = (projectData) => {
     .then(response => response.data)
     .catch(error => {
       console.error("Error saving project from assessment:", error);
+      throw error;
+    });
+};
+
+// Plan Management API functions
+export const getAvailablePlans = () => {
+  return axios.get(`${API_URL}/plans/`)
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching available plans:", error);
+      throw error;
+    });
+};
+
+export const getUserPlan = () => {
+  return axios.get(`${API_URL}/plans/user/`, createAuthenticatedRequest())
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error fetching user plan:", error);
+      throw error;
+    });
+};
+
+export const selectPlan = (planId) => {
+  return axios.post(`${API_URL}/plans/select/`, { plan_id: planId }, createAuthenticatedRequest())
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error selecting plan:", error);
+      throw error;
+    });
+};
+
+export const changePlan = (planId) => {
+  return axios.post(`${API_URL}/plans/change/`, { plan_id: planId }, createAuthenticatedRequest())
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error changing plan:", error);
+      throw error;
+    });
+};
+
+export const checkPlanRequirements = () => {
+  return axios.get(`${API_URL}/plans/check-requirements/`, createAuthenticatedRequest())
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error checking plan requirements:", error);
       throw error;
     });
 };

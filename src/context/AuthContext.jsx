@@ -1,8 +1,15 @@
 // src/context/AuthContext.jsx
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import PropTypes from 'prop-types';
+import { 
+  getAvailablePlans, 
+  getUserPlan, 
+  selectPlan, 
+  changePlan, 
+  checkPlanRequirements 
+} from '../services/api';
 
 const AuthContext = createContext();
 
@@ -59,34 +66,49 @@ api.interceptors.response.use(
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [availablePlans, setAvailablePlans] = useState([]);
+  const [userPlan, setUserPlan] = useState(null);
+  const [showPlanSelection, setShowPlanSelection] = useState(false);
+  const [planRequirements, setPlanRequirements] = useState(null);
 
-  // Check if user is authenticated on app load
-  useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const userData = localStorage.getItem('user');
+  const loadPlanData = useCallback(async () => {
+    try {
+      // Load available plans
+      const plansResponse = await getAvailablePlans();
+      if (plansResponse.success) {
+        setAvailablePlans(plansResponse.plans);
+      }
 
-    if (token && userData) {
+      // Load user's current plan
       try {
-        const decodedToken = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-
-        if (decodedToken.exp > currentTime) {
-          setUser(JSON.parse(userData));
-        } else {
-          // Token expired, try to refresh
-          refreshToken();
+        const userPlanResponse = await getUserPlan();
+        if (userPlanResponse.success) {
+          setUserPlan(userPlanResponse.user_plan);
         }
       } catch (error) {
-        console.error('Invalid token:', error);
-        logout();
+        // User might not have a plan assigned yet
+        console.log('User plan not found:', error);
       }
+    } catch (error) {
+      console.error('Error loading plan data:', error);
     }
-    setLoading(false);
   }, []);
 
-  const refreshToken = async () => {
+  const checkUserPlanRequirements = useCallback(async () => {
+    try {
+      const response = await checkPlanRequirements();
+      if (response.success) {
+        setPlanRequirements(response);
+        setShowPlanSelection(response.needs_plan_selection);
+      }
+    } catch (error) {
+      console.error('Error checking plan requirements:', error);
+    }
+  }, []);
+
+  const refreshToken = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
       if (!refreshToken) {
@@ -94,194 +116,279 @@ export const AuthProvider = ({ children }) => {
       }
 
       const response = await api.post('/auth/token/refresh/', {
-        refresh: refreshToken,
+        refresh: refreshToken
       });
 
-      const { access } = response.data;
-      localStorage.setItem('access_token', access);
-      
+      localStorage.setItem('access_token', response.data.access);
       console.log('Token refreshed successfully');
-      
       return true;
     } catch (error) {
-      console.error('Token refresh failed:', error);
-      logout();
+      console.error('Error refreshing token:', error);
       return false;
     }
-  };
+  }, []);
 
-  // Login function
-  const login = async (username, password) => {
-    console.log('Login attempt for:', username);
-    
+  const checkAuthStatus = useCallback(async () => {
     try {
-      setError(null);
+      const token = localStorage.getItem('access_token');
       
-      const response = await api.post('/auth/login/', {
-        username,
-        password,
-      });
-      
-      console.log('Login response:', response.data);
-      const { user: userData, tokens } = response.data;
-      
-      // Store tokens and user data
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      setUser(userData);
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Login full error:', error);
-      
-      // Better error handling for field-specific errors
-      let errorMessage = 'Login failed';
-      
-      if (error.response?.data) {
-        // Check for field-specific errors
-        const errorData = error.response.data;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Check if token is expired
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
         
-        if (errorData.username) {
-          errorMessage = `Username: ${errorData.username[0]}`;
-        } else if (errorData.password) {
-          errorMessage = `Password: ${errorData.password[0]}`;
-        } else if (errorData.non_field_errors) {
-          errorMessage = errorData.non_field_errors[0];
-        } else if (errorData.error) {
-          errorMessage = errorData.error;
+        if (decodedToken.exp < currentTime) {
+          console.log('Token expired, attempting refresh...');
+          const refreshed = await refreshToken();
+          if (!refreshed) {
+            logout();
+            return;
+          }
+        }
+      } catch (decodeError) {
+        console.error('Error decoding token:', decodeError);
+        logout();
+        return;
+      }
+
+      // Verify token with backend
+      try {
+        const response = await api.get('/auth/profile/');
+        setUser(response.data);
+        setIsAuthenticated(true);
+        console.log('Auth status verified, user:', response.data.username);
+      } catch (error) {
+        console.error('Error verifying auth status:', error);
+        if (error.response?.status === 401) {
+          const refreshed = await refreshToken();
+          if (!refreshed) {
+            logout();
+          }
         }
       }
-      
-      setError(errorMessage);
-      return { success: false, error: errorMessage, details: error.response?.data };
-    }
-  };
-
-  // Google login function
-  const googleLogin = async (googleToken) => {
-    console.log('Google login attempt');
-    
-    try {
-      setError(null);
-      
-      const response = await api.post('/auth/google/', {
-        id_token: googleToken,
-      });
-      
-      console.log('Google login response:', response.data);
-      const { user: userData, tokens } = response.data;
-      
-      // Store tokens and user data
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      setUser(userData);
-      return { success: true, data: response.data };
     } catch (error) {
-      console.error('Google login error:', error);
+      console.error('Error checking auth status:', error);
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshToken]);
+
+  // Initialize authentication state
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  // Load plan information when user is authenticated (but only once)
+  useEffect(() => {
+    if (isAuthenticated && user && availablePlans.length === 0) {
+      loadPlanData();
+      checkUserPlanRequirements();
+    }
+  }, [isAuthenticated, user, loadPlanData, checkUserPlanRequirements, availablePlans.length]);
+
+  const login = useCallback(async (credentials) => {
+    try {
+      setLoading(true);
+      const response = await api.post('/auth/login/', credentials);
       
-      let errorMessage = 'Google login failed';
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
+      if (response.data.tokens) {
+        localStorage.setItem('access_token', response.data.tokens.access);
+        localStorage.setItem('refresh_token', response.data.tokens.refresh);
+        
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        
+        console.log('Login successful for user:', response.data.user.username);
+        
+        return { success: true, user: response.data.user };
       }
       
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
+      return { success: false, error: 'Invalid response format' };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || error.message || 'Login failed' 
+      };
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  // Register function
-  const register = async (userData) => {
-    console.log('Registration attempt for:', userData.username);
-    
+  const register = useCallback(async (userData) => {
     try {
-      setError(null);
-      
+      setLoading(true);
       const response = await api.post('/auth/register/', userData);
       
-      console.log('Registration response:', response.data);
-      const { user: newUser, tokens } = response.data;
+      if (response.data.tokens) {
+        localStorage.setItem('access_token', response.data.tokens.access);
+        localStorage.setItem('refresh_token', response.data.tokens.refresh);
+        
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        
+        console.log('Registration successful for user:', response.data.user.username);
+        
+        return { success: true, user: response.data.user };
+      }
       
-      // Store tokens and user data
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      
-      setUser(newUser);
-      return { success: true, data: response.data };
+      return { success: false, error: 'Invalid response format' };
     } catch (error) {
       console.error('Registration error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data || error.message || 'Registration failed' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const googleLogin = useCallback(async (idToken) => {
+    try {
+      setLoading(true);
+      const response = await api.post('/auth/google/', {
+        id_token: idToken
+      });
       
-      let errorMessage = 'Registration failed';
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
+      if (response.data.tokens) {
+        localStorage.setItem('access_token', response.data.tokens.access);
+        localStorage.setItem('refresh_token', response.data.tokens.refresh);
+        
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        
+        console.log('Google login successful for user:', response.data.user.username);
+        
+        return { 
+          success: true, 
+          user: response.data.user,
+          isNewUser: response.data.is_new_user || false
+        };
       }
       
-      setError(errorMessage);
-      return { success: false, error: errorMessage, details: error.response?.data };
+      return { success: false, error: 'Invalid response format' };
+    } catch (error) {
+      console.error('Google login error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.error || error.message || 'Google login failed' 
+      };
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  // Logout function
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user');
     setUser(null);
-    setError(null);
-  };
+    setIsAuthenticated(false);
+    setUserPlan(null);
+    setShowPlanSelection(false);
+    setPlanRequirements(null);
+    setAvailablePlans([]); // Clear plans on logout
+    console.log('User logged out');
+  }, []);
 
-  // Clear error function
-  const clearError = () => {
-    setError(null);
-  };
-
-  // Update profile function
-  const updateProfile = async (profileData) => {
-    console.log('Profile update attempt for:', user?.username);
-    
+  const updateProfile = useCallback(async (profileData) => {
     try {
-      setError(null);
-      
       const response = await api.put('/auth/profile/update/', profileData);
       
-      console.log('Profile update response:', response.data);
-      const updatedUser = response.data.user || response.data;
-      
-      // Update local storage and state
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setUser(updatedUser);
-      
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Profile update error:', error);
-      
-      let errorMessage = 'Profile update failed';
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      if (response.data.user) {
+        setUser(response.data.user);
+        console.log('Profile updated successfully');
+        return { success: true, user: response.data.user };
       }
       
-      setError(errorMessage);
-      return { success: false, error: errorMessage, details: error.response?.data };
+      return { success: false, error: 'Invalid response format' };
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data || error.message || 'Profile update failed' 
+      };
     }
-  };
+  }, []);
+
+  // Plan management functions
+  const handleSelectPlan = useCallback(async (planId) => {
+    try {
+      setLoading(true);
+      const response = await selectPlan(planId);
+      
+      if (response.success) {
+        setUser(response.user);
+        setShowPlanSelection(false);
+        await loadPlanData(); // Reload plan data
+        console.log('Plan selected successfully:', response.message);
+        return { success: true, message: response.message };
+      }
+      
+      return { success: false, error: response.errors || 'Plan selection failed' };
+    } catch (error) {
+      console.error('Plan selection error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.errors || error.message || 'Plan selection failed' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, [loadPlanData]);
+
+  const handleChangePlan = useCallback(async (planId) => {
+    try {
+      setLoading(true);
+      const response = await changePlan(planId);
+      
+      if (response.success) {
+        setUser(response.user);
+        await loadPlanData(); // Reload plan data
+        console.log('Plan changed successfully:', response.message);
+        return { success: true, message: response.message };
+      }
+      
+      return { success: false, error: response.errors || 'Plan change failed' };
+    } catch (error) {
+      console.error('Plan change error:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.errors || error.message || 'Plan change failed' 
+      };
+    } finally {
+      setLoading(false);
+    }
+  }, [loadPlanData]);
+
+  const dismissPlanSelection = useCallback(() => {
+    setShowPlanSelection(false);
+  }, []);
 
   const value = {
     user,
+    isAuthenticated,
     loading,
-    error,
+    availablePlans,
+    userPlan,
+    showPlanSelection,
+    planRequirements,
     login,
-    googleLogin,
     register,
+    googleLogin,
     logout,
-    clearError,
     updateProfile,
-    isAuthenticated: !!user,
-    refreshToken,
+    handleSelectPlan,
+    handleChangePlan,
+    dismissPlanSelection,
+    refreshPlanData: loadPlanData,
+    checkUserPlanRequirements
   };
 
   return (

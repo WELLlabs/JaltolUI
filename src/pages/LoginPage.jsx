@@ -13,7 +13,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
-  const { login, googleLogin, error, isAuthenticated, clearError } = useAuth();
+  const { login, googleLogin, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -22,11 +22,6 @@ const LoginPage = () => {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
-
-  // Clear errors when component mounts
-  useEffect(() => {
-    clearError();
-  }, [clearError]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,16 +64,16 @@ const LoginPage = () => {
     }
 
     setIsLoading(true);
-    clearError();
+    setFormErrors({}); // Clear any previous errors
 
     try {
       console.log('Calling login with:', formData.username);
-      const result = await login(formData.username, formData.password);
+      const result = await login(formData);
       console.log('Login result:', result);
       
       if (result.success) {
         // Check if user needs profile setup (no organization set)
-        const userData = result.data?.user;
+        const userData = result.user;
         if (userData && !userData.organization) {
           navigate('/profile-setup');
         } else {
@@ -88,26 +83,11 @@ const LoginPage = () => {
         }
       } else {
         console.error('Login failed:', result.error);
-        
-        // Display username/password errors if provided by the API
-        if (result.details) {
-          const apiErrors = {};
-          
-          if (result.details.username) {
-            apiErrors.username = result.details.username[0];
-          }
-          if (result.details.password) {
-            apiErrors.password = result.details.password[0];
-          }
-          
-          // Update form errors if we have field-specific errors
-          if (Object.keys(apiErrors).length > 0) {
-            setFormErrors(apiErrors);
-          }
-        }
+        setFormErrors({ general: result.error });
       }
     } catch (error) {
       console.error('Login error:', error);
+      setFormErrors({ general: 'An error occurred during login. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -116,21 +96,24 @@ const LoginPage = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     console.log('Google login success:', credentialResponse);
     setIsLoading(true);
-    clearError();
+    setFormErrors({}); // Clear any previous errors
 
     try {
       const result = await googleLogin(credentialResponse.credential);
       if (result.success) {
         // Check if this is a new user who needs profile setup
-        if (result.data?.is_new_user) {
+        if (result.isNewUser) {
           navigate('/profile-setup');
         } else {
           const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
           navigate(redirectTo);
         }
+      } else {
+        setFormErrors({ google: result.error });
       }
     } catch (error) {
       console.error('Google login error:', error);
+      setFormErrors({ google: 'Google login failed. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -208,9 +191,9 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {error && (
+              {formErrors.general && (
                 <div className="rounded-md bg-red-50 p-4">
-                  <div className="text-sm text-red-700">{error}</div>
+                  <div className="text-sm text-red-700">{formErrors.general}</div>
                 </div>
               )}
 

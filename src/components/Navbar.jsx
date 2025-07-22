@@ -54,9 +54,9 @@ const Navbar = () => {
         )}
         
         {/* Pricing link - only show when authenticated */}
-        {/* {isAuthenticated && (
+        {isAuthenticated && (
           <Link to="/pricing" className="text-xl text-white hover:text-gray-300">Pricing</Link>
-        )} */}
+        )}
         
         {/* Authentication Section */}
         {isAuthenticated ? (
