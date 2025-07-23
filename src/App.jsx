@@ -47,16 +47,12 @@ const AppContent = () => {
           <Route path="/" element={<Homepage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
           
           {/* Protected routes */}
           <Route path="/profile-setup" element={
             <ProtectedRoute>
               <ProfileSetupPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/pricing" element={
-            <ProtectedRoute>
-              <PricingPage />
             </ProtectedRoute>
           } />
           <Route path="/my-projects" element={
