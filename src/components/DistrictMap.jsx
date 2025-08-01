@@ -394,7 +394,9 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
       village: selectedVillage?.label
     });
 
-    if (selectedDistrict && selectedState) {
+    // Add debouncing to prevent excessive API calls
+    const debounceTimer = setTimeout(() => {
+      if (selectedDistrict && selectedState) {
       // If on a shared link, add a small delay before fetching
       const delayFetch = async () => {
         if (isSharedLink) {
@@ -516,13 +518,19 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
           });
       };
       
-      delayFetch();
-    } else {
-      console.log("Missing required selections, clearing map data");
-      setBoundaryData(null);
-      setLulcTilesUrl(null);
-      setLoading(false);
-    }
+        delayFetch();
+      } else {
+        console.log("Missing required selections, clearing map data");
+        setBoundaryData(null);
+        setLulcTilesUrl(null);
+        setLoading(false);
+      }
+    }, isSharedLink ? 500 : 300); // Longer debounce for shared links
+    
+    // Cleanup function to cancel the timer if component unmounts or dependencies change
+    return () => {
+      clearTimeout(debounceTimer);
+    };
   }, [selectedState, selectedDistrict, selectedSubdistrict, selectedVillage, selectedYear]);
 
   useEffect(() => {

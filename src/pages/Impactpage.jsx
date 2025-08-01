@@ -78,6 +78,8 @@ const ImpactAssessmentPage = () => {
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [isLoadingFromUrl, setIsLoadingFromUrl] = useState(false);
+  const [urlProjectLoaded, setUrlProjectLoaded] = useState(false);
   
   const { isAuthenticated } = useAuth();
   const [uploadedGeoJSON, setUploadedGeoJSON] = useState(null);
@@ -194,171 +196,274 @@ const ImpactAssessmentPage = () => {
     };
   };
 
-  // Add this effect to load from URL parameters
+  // Load saved project from URL parameters
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const isSharedLink = params.get('shared') === 'true';
     
-    if (!isSharedLink) return;
+    // Get URL parameters and decode them properly
+    const stateParam = decodeURIComponent(params.get('state') || '');
+    const districtParam = decodeURIComponent(params.get('district') || '');
+    const subdistrictParam = decodeURIComponent(params.get('subdistrict') || '');
+    const villageParam = decodeURIComponent(params.get('village') || '');
+    const projectId = params.get('projectId');
     
-    // Extract parameters
-    const stateParam = params.get('state');
-    const districtParam = params.get('district');
-    const subdistrictParam = params.get('subdistrict');
-    const villageParam = params.get('village');
+    // Only proceed if we have parameters and state options are loaded
+    if (!stateParam || !stateOptions || stateOptions.length === 0) {
+      return;
+    }
     
-    console.log('Loading from shared link parameters:', 
-      { state: stateParam, district: districtParam, subdistrict: subdistrictParam, village: villageParam });
+    // Don't reload if we already successfully loaded this project
+    const currentProjectKey = `${stateParam}-${districtParam}-${subdistrictParam}-${villageParam}`;
+    if (urlProjectLoaded === currentProjectKey) {
+      console.log('Project already loaded, skipping...');
+      return;
+    }
     
-    // We need to load these sequentially due to dependencies
-    const loadData = async () => {
+    console.log('Loading saved project from URL:', { 
+      stateParam, 
+      districtParam, 
+      subdistrictParam, 
+      villageParam, 
+      projectId 
+    });
+    
+    const loadProject = async () => {
       try {
-        // Initial delay before starting the loading process
-        console.log("Starting shared link loading with initial delay...");
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsLoadingFromUrl(true);
+        console.log('🚀 Starting URL project loading...');
         
         // 1. Find and set state
-        if (stateParam) {
-          console.log("Finding and setting state:", stateParam);
-          const stateOption = stateOptions.find(
-            option => option.label.toLowerCase() === stateParam.toLowerCase()
-          );
-          
-          if (stateOption) {
+        console.log('Available states:', stateOptions.map(s => s.label));
+        const stateOption = stateOptions.find(s => 
+          s.label.toLowerCase().trim() === stateParam.toLowerCase().trim()
+        );
+        
+        if (!stateOption) {
+          console.error('State not found:', stateParam);
+          console.log('Available state options:', stateOptions);
+          return;
+        }
+        
+        console.log('✅ State found and setting:', stateOption);
             setSelectedState(stateOption);
-            console.log("State set to:", stateOption.label);
             
-            // Wait for state to be set and districts to load
-            await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait a bit for state to be set
+        await new Promise(resolve => setTimeout(resolve, 100));
             
-            // Load districts for this state
+        // 2. Load and set district if provided
+        if (districtParam) {
+          console.log('Loading districts for state ID:', stateOption.value);
             const districts = await getDistricts(stateOption.value);
-            const districtsList = districts.map(district => ({
-              value: district.id,
-              label: district.display_name || district.name
-            })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
+          console.log('Districts loaded:', districts.length, districts);
+          
+          const districtsList = districts.map(d => ({
+            value: d.id,
+            label: d.display_name || d.name,
+            name: d.name,
+            district_id: d.district_id
+          }));
             setDistrictOptions(districtsList);
             
-            // Wait for districts to load
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // 2. Find and set district
-            if (districtParam) {
-              console.log("Finding and setting district:", districtParam);
-              const districtOption = districtsList.find(
-                option => option.label.toLowerCase() === districtParam.toLowerCase()
-              );
+          console.log('Looking for district:', districtParam);
+          console.log('Available districts:', districtsList.map(d => d.label));
+          
+          // Try multiple matching strategies for district names
+          let districtOption = null;
+          
+          // Strategy 1: Exact match
+          districtOption = districtsList.find(d => 
+            d.label.toLowerCase().trim() === districtParam.toLowerCase().trim() ||
+            d.name.toLowerCase().trim() === districtParam.toLowerCase().trim()
+          );
+          
+          // Strategy 2: If no exact match, try matching without suffix (e.g., "Adilabad, AP" -> "Adilabad")
+          if (!districtOption && districtParam.includes(',')) {
+            const districtBaseName = districtParam.split(',')[0].trim();
+            console.log('Trying district base name:', districtBaseName);
+            districtOption = districtsList.find(d => 
+              d.label.toLowerCase().trim() === districtBaseName.toLowerCase().trim() ||
+              d.name.toLowerCase().trim() === districtBaseName.toLowerCase().trim()
+            );
+          }
+          
+          // Strategy 3: If still no match, try finding districts that start with the parameter
+          if (!districtOption) {
+            console.log('Trying partial match for district');
+            districtOption = districtsList.find(d => 
+              d.label.toLowerCase().startsWith(districtParam.toLowerCase().trim()) ||
+              d.name.toLowerCase().startsWith(districtParam.toLowerCase().trim()) ||
+              districtParam.toLowerCase().startsWith(d.label.toLowerCase().trim()) ||
+              districtParam.toLowerCase().startsWith(d.name.toLowerCase().trim())
+            );
+          }
           
           if (districtOption) {
+            console.log('✅ District found and setting:', districtOption);
             setSelectedDistrict(districtOption);
-            console.log("District set to:", districtOption.label);
+            await new Promise(resolve => setTimeout(resolve, 100));
             
-            // Fetch subdistricts for this district
-            if (districtOption.value) {
-              // Wait longer for the state to update
-              console.log("Waiting for district state to update before fetching subdistricts...");
-              await new Promise(resolve => setTimeout(resolve, 3000));
-              
-              try {
-                console.log("Fetching subdistricts for district ID:", districtOption.value);
+            // 3. Load and set subdistrict if provided
+            if (subdistrictParam) {
+              console.log('Loading subdistricts for district ID:', districtOption.value);
                 const subdistricts = await getSubdistricts(districtOption.value);
-                const subdistrictsList = subdistricts.map(item => ({
-                  value: item.id,
-                  label: item.display_name || item.name, // Use display_name (e.g., "Dhar Kalan - 00200") if available
-                  name: item.name,
-                  subdistrict_id: item.subdistrict_id
-                })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
+              console.log('Subdistricts loaded:', subdistricts.length, subdistricts);
+              
+              const subdistrictsList = subdistricts.map(s => ({
+                value: s.id,
+                label: s.display_name || s.name,
+                name: s.name,
+                subdistrict_id: s.subdistrict_id
+              }));
                 setSubdistrictOptions(subdistrictsList);
-                console.log("Subdistrict options set with", subdistrictsList.length, "items");
-                
-                // 3. Find and set subdistrict
-                if (subdistrictParam && subdistrictsList.length > 0) {
-                  // Wait longer for options to be set
-                  console.log("Waiting for subdistricts to load...");
-                  await new Promise(resolve => setTimeout(resolve, 3000));
-                  
-                  console.log("Finding subdistrict:", subdistrictParam);
-                  const subdistrictOption = subdistrictsList.find(
-                    option => option.label.toLowerCase() === subdistrictParam.toLowerCase()
-                  );
+              
+                             console.log('Looking for subdistrict:', subdistrictParam);
+               console.log('Available subdistricts:', subdistrictsList.map(s => s.label));
+               
+               // Try multiple matching strategies for subdistrict names
+               let subdistrictOption = null;
+               
+               // Strategy 1: Exact match
+               subdistrictOption = subdistrictsList.find(s => 
+                 s.label.toLowerCase().trim() === subdistrictParam.toLowerCase().trim() ||
+                 s.name.toLowerCase().trim() === subdistrictParam.toLowerCase().trim()
+               );
+               
+               // Strategy 2: If no exact match, try matching without suffix
+               if (!subdistrictOption && subdistrictParam.includes(',')) {
+                 const subdistrictBaseName = subdistrictParam.split(',')[0].trim();
+                 console.log('Trying subdistrict base name:', subdistrictBaseName);
+                 subdistrictOption = subdistrictsList.find(s => 
+                   s.label.toLowerCase().trim() === subdistrictBaseName.toLowerCase().trim() ||
+                   s.name.toLowerCase().trim() === subdistrictBaseName.toLowerCase().trim()
+                 );
+               }
+               
+               // Strategy 3: If still no match, try partial matching
+               if (!subdistrictOption) {
+                 console.log('Trying partial match for subdistrict');
+                 subdistrictOption = subdistrictsList.find(s => 
+                   s.label.toLowerCase().includes(subdistrictParam.toLowerCase().trim()) ||
+                   s.name.toLowerCase().includes(subdistrictParam.toLowerCase().trim()) ||
+                   subdistrictParam.toLowerCase().includes(s.label.toLowerCase().trim()) ||
+                   subdistrictParam.toLowerCase().includes(s.name.toLowerCase().trim())
+                 );
+               }
                   
                   if (subdistrictOption) {
-                    console.log("Setting subdistrict to:", subdistrictOption.label);
+                console.log('✅ Subdistrict found and setting:', subdistrictOption);
                     setSelectedSubdistrict(subdistrictOption);
-                    
-                    // 4. Fetch and set village
-                    console.log("Waiting before fetching villages...");
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    
-                    try {
-                      console.log("Fetching villages for subdistrict ID:", subdistrictOption.value);
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // 4. Load and set village if provided
+                if (villageParam) {
+                  console.log('Loading villages for subdistrict ID:', subdistrictOption.value);
                       const villages = await getVillages(subdistrictOption.value);
-                      const sortedVillageOptions = villages.map(village => {
-                        console.log("Processing village:", village);  // Debug each village
-                        return { 
-                          value: village.id, 
-                          label: village.display_name || village.name, // Use display_name (with ID) or fallback to name
-                          villageName: village.name, 
-                          villageId: village.village_id,
-                          total_population: village.total_population,
-                          sc_population: village.sc_population,
-                          st_population: village.st_population
-                        };
-                      }).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
-                      setVillageOptions(sortedVillageOptions);
-                      console.log("Village options set with", sortedVillageOptions.length, "items");
-                      
-                      // Find and set village
-                      if (villageParam && sortedVillageOptions.length > 0) {
-                        // Wait longer for villages to be set
-                        console.log("Waiting for villages to load...");
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                        
-                        console.log("Finding village:", villageParam);
-                        const villageOption = sortedVillageOptions.find(
-                          option => option.label.toLowerCase() === villageParam.toLowerCase()
-                        );
+                  console.log('Villages loaded:', villages.length, villages);
+                  
+                  const villagesList = villages.map(v => ({
+                    value: v.id,
+                    label: v.display_name || v.name,
+                    villageName: v.name,
+                    villageId: v.village_id,
+                    total_population: v.total_population,
+                    sc_population: v.sc_population,
+                    st_population: v.st_population
+                  }));
+                  setVillageOptions(villagesList);
+                  
+                                     console.log('Looking for village:', villageParam);
+                   console.log('Available villages:', villagesList.map(v => v.label));
+                   
+                   // Try multiple matching strategies for village names
+                   let villageOption = null;
+                   
+                   // Strategy 1: Exact match
+                   villageOption = villagesList.find(v => 
+                     v.label.toLowerCase().trim() === villageParam.toLowerCase().trim() ||
+                     v.villageName.toLowerCase().trim() === villageParam.toLowerCase().trim()
+                   );
+                   
+                   // Strategy 2: If no exact match, try matching without suffix
+                   if (!villageOption && villageParam.includes(',')) {
+                     const villageBaseName = villageParam.split(',')[0].trim();
+                     console.log('Trying village base name:', villageBaseName);
+                     villageOption = villagesList.find(v => 
+                       v.label.toLowerCase().trim() === villageBaseName.toLowerCase().trim() ||
+                       v.villageName.toLowerCase().trim() === villageBaseName.toLowerCase().trim()
+                     );
+                   }
+                   
+                   // Strategy 3: If still no match, try matching by extracting name from display format
+                   if (!villageOption && villageParam.includes('-')) {
+                     const villageNamePart = villageParam.split('-')[0].trim();
+                     console.log('Trying village name part:', villageNamePart);
+                     villageOption = villagesList.find(v => 
+                       v.label.toLowerCase().includes(villageNamePart.toLowerCase()) ||
+                       v.villageName.toLowerCase().trim() === villageNamePart.toLowerCase().trim()
+                     );
+                   }
+                   
+                   // Strategy 4: If still no match, try partial matching
+                   if (!villageOption) {
+                     console.log('Trying partial match for village');
+                     villageOption = villagesList.find(v => 
+                       v.label.toLowerCase().includes(villageParam.toLowerCase().trim()) ||
+                       v.villageName.toLowerCase().includes(villageParam.toLowerCase().trim()) ||
+                       villageParam.toLowerCase().includes(v.villageName.toLowerCase().trim())
+                     );
+                   }
                         
                         if (villageOption) {
-                          console.log("Setting village to:", villageOption.label);
+                    console.log('✅ Village found and setting:', villageOption);
                           setSelectedVillage(villageOption);
-                          
-                          // Final delay to ensure map loads properly
-                          console.log("Final delay before map updates...");
-                          await new Promise(resolve => setTimeout(resolve, 4000));
-                          console.log("Shared link loading process complete.");
                         } else {
-                          console.warn("Village not found:", villageParam);
+                    console.error('❌ Village not found:', villageParam);
+                    console.log('Available village names:', villagesList.map(v => ({ label: v.label, name: v.villageName })));
                         }
+                } else {
+                  console.log('No village parameter provided');
                       }
-                    } catch (error) {
-                      console.error('Error fetching villages:', error);
+              } else {
+                console.error('❌ Subdistrict not found:', subdistrictParam);
+                console.log('Available subdistrict names:', subdistrictsList.map(s => ({ label: s.label, name: s.name })));
                     }
                   } else {
-                    console.warn("Subdistrict not found:", subdistrictParam);
-                  }
-                }
-              } catch (error) {
-                console.error('Error fetching subdistricts:', error);
-              }
+              console.log('No subdistrict parameter provided');
             }
           } else {
-            console.warn("District not found:", districtParam);
-          }
+            console.error('❌ District not found:', districtParam);
+            console.log('Available district names:', districtsList.map(d => ({ label: d.label, name: d.name })));
             }
           } else {
-            console.warn("State not found:", stateParam);
+          console.log('No district parameter provided');
           }
-        }
+        
+        console.log('✅ Project loading completed');
+        // Mark this project as successfully loaded
+        setUrlProjectLoaded(currentProjectKey);
+        
+        // Wait a bit before allowing other useEffects to run
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
       } catch (error) {
-        console.error('Error processing shared link:', error);
+        console.error('❌ Error loading project from URL:', error);
+      } finally {
+        setIsLoadingFromUrl(false);
+        console.log('🏁 URL project loading finished');
       }
     };
     
-    loadData();
-  }, [location.search, stateOptions, districtOptions]);
+    // Run the loading function
+    loadProject();
+  }, [stateOptions, location.search]);
 
   useEffect(() => {
+    // Don't auto-load if we're currently loading from URL or just finished loading
+    if (isLoadingFromUrl || urlProjectLoaded) {
+      console.log('⏸️ Skipping district auto-load - URL loading in progress or completed');
+      return;
+    }
+    
     if (selectedDistrict?.value) {
       // Fetch subdistricts from API using district.value (the district ID)
       getSubdistricts(selectedDistrict.value)
@@ -383,11 +488,17 @@ const ImpactAssessmentPage = () => {
       setVillageOptions([]);
       setSelectedVillage(null);
     }
-  }, [selectedDistrict]);
+  }, [selectedDistrict, isLoadingFromUrl, urlProjectLoaded]);
 
   // Fetch villages based on selected subdistrict
   useEffect(() => {
-    if (selectedSubdistrict) {
+    // Don't auto-load if we're currently loading from URL or just finished loading
+    if (isLoadingFromUrl || urlProjectLoaded) {
+      console.log('⏸️ Skipping village auto-load - URL loading in progress or completed');
+      return;
+    }
+    
+    if (selectedSubdistrict && selectedSubdistrict.value) {
       const subdistrictId = selectedSubdistrict.value;
   
       if (!subdistrictId) {
@@ -401,7 +512,9 @@ const ImpactAssessmentPage = () => {
           console.log("API Response - Villages:", villages); // Debug the raw API response
           
           const sortedVillageOptions = villages.map(village => {
-              console.log("Processing village:", village);  // Debug each village
+              if (import.meta.env.DEV && villages.length <= 5) {
+                console.log("Processing village:", village.name);  // Only log if few villages to prevent spam
+              }
               return { 
                 value: village.id, 
                 label: village.display_name || village.name, // Use display_name (with ID) or fallback to name
@@ -414,7 +527,7 @@ const ImpactAssessmentPage = () => {
             }).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
           
           setVillageOptions(sortedVillageOptions);
-          console.log("Set village options completed");
+          console.log(`Village options set with ${sortedVillageOptions.length} items`);
           setSelectedVillage(null);
         })
         .catch(error => {
@@ -423,7 +536,7 @@ const ImpactAssessmentPage = () => {
     } else {
       setVillageOptions([]);
     }
-  }, [selectedSubdistrict]);
+  }, [selectedSubdistrict, isLoadingFromUrl, urlProjectLoaded]);
 
   useEffect(() => {
     if (compareVillagesClicked) {
@@ -441,6 +554,9 @@ const ImpactAssessmentPage = () => {
     sessionStorage.removeItem('zoomLocked');
     sessionStorage.removeItem('villageBounds');
     
+    // Reset URL project loaded flag to allow normal useEffect behavior
+    setUrlProjectLoaded(false);
+    
     setSelectedState(option);
     // Reset all dependent selections when state changes
     setSelectedDistrict(null);
@@ -456,6 +572,9 @@ const ImpactAssessmentPage = () => {
     sessionStorage.removeItem('zoomLocked');
     sessionStorage.removeItem('villageBounds');
     
+    // Reset URL project loaded flag to allow normal useEffect behavior
+    setUrlProjectLoaded(false);
+    
     setSelectedDistrict(option); // Update selected district
     setSelectedSubdistrict(null); // Reset subdistrict when district changes
     setSelectedVillage(null); // Reset village when district changes
@@ -468,11 +587,14 @@ const ImpactAssessmentPage = () => {
     sessionStorage.removeItem('zoomLocked');
     sessionStorage.removeItem('villageBounds');
     
+    // Reset URL project loaded flag to allow normal useEffect behavior
+    setUrlProjectLoaded(false);
+    
     // Log the change to make sure it's being called
     console.log("Subdistrict selected:", option);
 
-    // Store the subdistrict label (name) and still pass it as an object for consistency
-    setSelectedSubdistrict({ value: option.value, label: option.label.toLowerCase() });
+    // Store the full subdistrict object as-is (don't modify the label)
+    setSelectedSubdistrict(option);
     // Reset the selected village and village options when a new subdistrict is selected
     setSelectedVillage(null);
     setVillageOptions([]);
@@ -483,6 +605,9 @@ const ImpactAssessmentPage = () => {
     // Clear any existing zoom lock state when selection changes
     sessionStorage.removeItem('zoomLocked');
     sessionStorage.removeItem('villageBounds');
+    
+    // Reset URL project loaded flag to allow normal useEffect behavior
+    setUrlProjectLoaded(false);
     
     console.log("Village selected:", option);
     setSelectedVillage(option); // Store the entire option object with all properties
@@ -591,16 +716,27 @@ const ImpactAssessmentPage = () => {
           state_id: state.state_id
         })).sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
         setStateOptions(statesList);
+        console.log('State options loaded:', statesList.length, 'states');
       } catch (error) {
         console.error('Error fetching states:', error);
       }
     };
 
+    // Simple state loading on mount
+
     loadStates();
   }, []);
 
+
+
   // Load districts when state changes
   useEffect(() => {
+    // Don't auto-load if we're currently loading from URL or just finished loading
+    if (isLoadingFromUrl || urlProjectLoaded) {
+      console.log('⏸️ Skipping state auto-load - URL loading in progress or completed');
+      return;
+    }
+    
     if (selectedState?.value) {
       const loadDistricts = async () => {
         try {
@@ -633,7 +769,7 @@ const ImpactAssessmentPage = () => {
       setVillageOptions([]);
       setSelectedVillage(null);
     }
-  }, [selectedState]);
+  }, [selectedState, isLoadingFromUrl, urlProjectLoaded]);
 
   // Update available years when chart data changes
   useEffect(() => {
@@ -726,6 +862,8 @@ const ImpactAssessmentPage = () => {
                   subdistrict={selectedSubdistrict}
                   village={selectedVillage}
                 />
+                
+
                 
                 {/* Save Button - Show when district is selected */}
                 {selectedDistrict && (
