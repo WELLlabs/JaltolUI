@@ -49,12 +49,14 @@ const SelectSubdistrict = ({ options, placeholder }) => {
     const animatedComponents = makeAnimated();
 
     const handleChange = (selectedOption) => {
-        console.log("Option selected:", selectedOption);
+        console.log("Subdistrict option selected:", selectedOption?.label);
         setSelectedSubdistrict(selectedOption);
     };
 
-    console.log("Selected Subdistrict in Recoil:", selectedSubdistrict);
-    console.log("Current options:", options);
+    // Reduced logging to prevent spam - only log when there are significant changes
+    if (import.meta.env.DEV && selectedSubdistrict && options.length > 0) {
+        console.log("Selected Subdistrict:", selectedSubdistrict?.label, "Available options:", options.length);
+    }
 
     return (
         <Select

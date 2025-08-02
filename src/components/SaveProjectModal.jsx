@@ -40,24 +40,49 @@ const SaveProjectModal = ({
   const setInterventionStartYear = useSetRecoilState(interventionStartYearAtom);
   const setInterventionEndYear = useSetRecoilState(interventionEndYearAtom);
 
-  // Reset form when modal opens with new project data
+  // Reset form when modal opens with new project data (but preserve user input)
   useEffect(() => {
     if (isOpen) {
-      setFormData({
-        name: projectData.name || '',
-        description: projectData.description || '',
-        state: projectData.state || '',
-        district: projectData.district || '',
-        subdistrict: projectData.subdistrict || '',
-        village: projectData.village || '',
-        control_state: projectData.control_state || '',
-        control_district: projectData.control_district || '',
-        control_subdistrict: projectData.control_subdistrict || '',
-        control_village: projectData.control_village || '',
-        intervention_start_year: projectData.intervention_start_year || '',
-        intervention_end_year: projectData.intervention_end_year || '',
-        ...projectData
+      // Only reset form data if it's empty (first time opening) or if projectData has a name
+      // This prevents clearing user input when they scroll down and fill other fields
+      setFormData(prev => {
+        // If this is the first time opening the modal (name is empty) or 
+        // if projectData has actual data (not default empty values), then reset
+        const shouldReset = !prev.name || projectData.name;
+        
+        if (shouldReset) {
+          return {
+            ...projectData,
+            name: projectData.name || '',
+            description: projectData.description || '',
+            state: projectData.state || '',
+            district: projectData.district || '',
+            subdistrict: projectData.subdistrict || '',
+            village: projectData.village || '',
+            control_state: projectData.control_state || '',
+            control_district: projectData.control_district || '',
+            control_subdistrict: projectData.control_subdistrict || '',
+            control_village: projectData.control_village || '',
+            // Override year fields to be empty (after spreading projectData)
+            intervention_start_year: '',
+            intervention_end_year: ''
+          };
+        }
+        
+        // Don't reset if user already has input, just update non-input fields
+        return {
+          ...prev,
+          state: projectData.state || prev.state,
+          district: projectData.district || prev.district,
+          subdistrict: projectData.subdistrict || prev.subdistrict,
+          village: projectData.village || prev.village,
+          control_state: projectData.control_state || prev.control_state,
+          control_district: projectData.control_district || prev.control_district,
+          control_subdistrict: projectData.control_subdistrict || prev.control_subdistrict,
+          control_village: projectData.control_village || prev.control_village,
+        };
       });
+      
       setErrors({});
       setImageCapture({ success: false, error: null });
       
@@ -72,7 +97,7 @@ const SaveProjectModal = ({
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isOpen, projectData]);
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -451,7 +476,7 @@ const SaveProjectModal = ({
                 min="2000"
                 max="2030"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
-                placeholder="2014"
+                placeholder=""
                 disabled={isLoading || capturingImage}
               />
             </div>
@@ -470,7 +495,7 @@ const SaveProjectModal = ({
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500 ${
                   errors.intervention_end_year ? 'border-red-300' : 'border-gray-300'
                 }`}
-                placeholder="2017"
+                placeholder=""
                 disabled={isLoading || capturingImage}
               />
               {errors.intervention_end_year && (

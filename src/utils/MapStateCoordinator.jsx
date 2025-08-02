@@ -21,11 +21,11 @@ class MapStateCoordinator {
         this.villageZoomComplete = false;
         this.pendingApiCalls = [];
         
-        // Clear session storage if we're not in shared link mode
-        if (sessionStorage.getItem('zoomLocked') === 'true') {
-          sessionStorage.removeItem('zoomLocked');
-          sessionStorage.removeItem('villageBounds');
-        }
+        // Clear all shared link related session storage
+        sessionStorage.removeItem('zoomLocked');
+        sessionStorage.removeItem('villageBounds');
+        sessionStorage.removeItem('sharedLinkProcessed');
+        sessionStorage.removeItem('sharedLinkProcessing');
         
         // Reset map constraints if we have a map reference
         if (this.mapRef) {

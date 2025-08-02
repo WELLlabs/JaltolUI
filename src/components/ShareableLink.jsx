@@ -57,7 +57,7 @@ const ShareableLink = ({ state, district, subdistrict, village }) => {
       const newUrl = generateShareableLink();
       const newSearchParams = new URL(newUrl).searchParams.toString();
       
-      // Only update if this is already a shared link or if we have all selections
+      // Only update if this is already a shared link
       if (window.location.search.includes('shared=true')) {
         navigate(`/impact-assessment?${newSearchParams}`, { replace: true });
       }
