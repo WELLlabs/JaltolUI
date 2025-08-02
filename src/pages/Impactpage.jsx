@@ -89,6 +89,29 @@ const ImpactAssessmentPage = () => {
   const setShowPolygonData = useSetRecoilState(showPolygonDataAtom);
   const setCirclesSummary = useSetRecoilState(circlesSummaryAtom);
 
+  // Clear all state when navigating away from impact assessment page
+  useEffect(() => {
+    return () => {
+      // Clear all selections when component unmounts (user navigates away)
+      setSelectedState(null);
+      setSelectedDistrict(null);
+      setSelectedSubdistrict(null);
+      setSelectedVillage(null);
+      setSelectedControlVillage(null);
+      setStateOptions([]);
+      setDistrictOptions([]);
+      setSubdistrictOptions([]);
+      setVillageOptions([]);
+      setUrlProjectLoaded(false);
+      
+      // Clear session storage
+      sessionStorage.removeItem('zoomLocked');
+      sessionStorage.removeItem('villageBounds');
+      
+      console.log('🧹 Cleared all selections on navigation away from impact assessment');
+    };
+  }, []); // Empty dependency array means this runs only on unmount
+
 
 
   // Handle Save Project functionality
