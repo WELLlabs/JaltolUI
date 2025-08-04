@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
-// const API_URL = 'http://127.0.0.1:8000/api';  // Your Django app URL
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

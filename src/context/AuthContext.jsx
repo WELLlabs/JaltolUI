@@ -13,9 +13,8 @@ import {
 
 const AuthContext = createContext();
 
-// Create axios instance with base URL
-const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
-// const API_URL = 'http://127.0.0.1:8000/api'; // For local development
+// Create axios instance with base URL - Use environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 // Create a stable API instance outside of the component
 const api = axios.create({
