@@ -23,6 +23,12 @@ A React-based frontend application for the Jaltol platform, built with Vite, pro
    npm install
    ```
 
+   **If you encounter dependency errors, install these additional packages:**
+   ```bash
+   npm install react react-dom
+   npm install --save-dev @babel/core @babel/preset-env @babel/preset-react babel-loader
+   ```
+
 3. **Set up environment variables** (see [Environment Configuration](#environment-configuration))
 
 4. **Start development server**
