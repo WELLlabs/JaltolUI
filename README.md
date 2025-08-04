@@ -20,8 +20,8 @@ A React-based frontend application for the Jaltol platform, built with Vite, pro
 
 2. **Install dependencies**
    ```bash
-   npm install
-   ```
+  npm install
+  ```
 
    **If you encounter dependency errors, install these additional packages:**
    ```bash
@@ -33,8 +33,8 @@ A React-based frontend application for the Jaltol platform, built with Vite, pro
 
 4. **Start development server**
    ```bash
-   npm run dev
-   ```
+    npm run dev
+     ```
 
 5. **Open in browser**
    - Visit: `http://localhost:5173`

@@ -330,7 +330,10 @@ const InterventionCompareChart = ({ onDataChange, interventionStartYear, interve
                                 }, {})
                             );
 
-                            onDataChange({ labels, datasets });
+                            // Only call onDataChange if it's a valid function
+                            if (typeof onDataChange === 'function') {
+                                onDataChange({ labels, datasets });
+                            }
                             setLoading(false); // Pass data to the parent component
                         });
                 })
@@ -339,7 +342,7 @@ const InterventionCompareChart = ({ onDataChange, interventionStartYear, interve
                     setLoading(false);
                 });
         }
-    }, [controlVillage, stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
+    }, [controlVillage, stateName, districtName, subdistrictName, villageName, setChartData]);
 
     // New effect to create polygon chart data when custom polygon data changes
     useEffect(() => {
@@ -525,7 +528,7 @@ const InterventionCompareChart = ({ onDataChange, interventionStartYear, interve
 };
 
 InterventionCompareChart.propTypes = {
-    onDataChange: PropTypes.func.isRequired,
+    onDataChange: PropTypes.func, // Made optional since parent might not always pass it
     interventionStartYear: PropTypes.string,
     interventionEndYear: PropTypes.string,
 };
