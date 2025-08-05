@@ -638,6 +638,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
           />
         </div>
         <div className="flex gap-2">
+          {/* Commented out download LULC button as it's not properly downloading
           <button
             onClick={handleDownload}
             disabled={!lulcTilesUrl || !selectedVillage || isDownloading || !userIsAuthenticated}
@@ -662,6 +663,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
             </svg>
             {isDownloading ? 'Downloading...' : 'Download LULC'}
           </button>
+          */}
 
           <button
             onClick={fetchAllYearsLulc}
