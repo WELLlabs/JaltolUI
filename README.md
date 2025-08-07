@@ -20,8 +20,8 @@ A React-based frontend application for the Jaltol platform, built with Vite, pro
 
 2. **Install dependencies**
    ```bash
-  npm install
-  ```
+   npm install
+   ```
 
    **If you encounter dependency errors, install these additional packages:**
    ```bash
