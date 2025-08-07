@@ -23,6 +23,7 @@ import MyProjectsPage from "./pages/MyProjectsPage";
 // Import components
 import ProtectedRoute from './components/ProtectedRoute';
 import PlanSelectionModal from './components/PlanSelectionModal';
+import { PostHogIdentifier } from './components/PostHogIdentifier';
 
 // Loading component
 const AppLoading = () => (
@@ -40,6 +41,7 @@ const AppContent = () => {
 
   return (
     <>
+      <PostHogIdentifier />
       <div className="App">
         <ScrollToTop />
         <Routes>
