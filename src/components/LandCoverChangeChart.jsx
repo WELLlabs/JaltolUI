@@ -130,6 +130,8 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                                 label += `${value} ha`; // hectares for cropland area
                             } else if (context.dataset.label === 'Rainfall') {
                                 label += `${value} mm`; // millimeters for rainfall
+                            } else if (context.dataset.label === 'Water Equity') {
+                                label += value; // ratio, no units
                             }
                             return label;
                         },
@@ -225,6 +227,15 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         backgroundColor: 'rgba(0, 128, 0, 0.5)',
                         yAxisID: 'y',
                         hidden: true,
+                    },
+                    {
+                        label: 'Water Equity',
+                        type: 'line',
+                        data: labels.map(label => waterEquity[label]),
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.5)',
+                        yAxisID: 'y',
+                        hidden: true
                     }];
 
                     // Try to fetch rainfall data, but don't let it block the chart
