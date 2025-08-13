@@ -25,6 +25,26 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
     const [isLoading, setLoading] = useState(false);
     const chartData = useRecoilValue(landCoverChartDataAtom);
 
+    // Calculate water equity from land cover data
+    const calculateWaterEquity = (landCoverData) => {
+        const waterEquityData = {};
+        
+        Object.keys(landCoverData).forEach(year => {
+            const singleCrop = landCoverData[year]['Single cropping cropland'] || 0;
+            const doubleCrop = landCoverData[year]['Double cropping cropland'] || 0;
+            
+            // Calculate water equity: (single + double) / single
+            let waterEquity = 1; // Default value
+            if (singleCrop > 0) {
+                waterEquity = (singleCrop + doubleCrop) / singleCrop;
+            }
+            
+            waterEquityData[year] = Math.round(waterEquity * 100) / 100; // Round to 2 decimal places
+        });
+        
+        return waterEquityData;
+    };
+
     // Create chart options with intervention period highlighting
     const createChartOptions = () => {
         const baseOptions = {
@@ -174,6 +194,14 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
             fetchLandCover
                 .then(landCoverData => {
                     const labels = Object.keys(landCoverData);
+                    
+                    // Calculate and log water equity
+                    const waterEquity = calculateWaterEquity(landCoverData);
+                    
+                    console.log('=== WATER EQUITY CALCULATION (Single Village) ===');
+                    console.log(`Village (${villageValue}) Water Equity:`, waterEquity);
+                    console.log('Water Equity Formula: (Single Cropping + Double Cropping) / Single Cropping');
+                    console.log('==================================================');
                     const datasets = [{
                         label: 'Single Cropland',
                         type: 'line',
