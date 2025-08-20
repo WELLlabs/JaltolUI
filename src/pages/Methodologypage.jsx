@@ -1,8 +1,17 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Difference from '../assets/difference.svg';
+import { useEffect } from 'react';
+import { usePostHogEvents } from '../utils/posthogEvents';
 
 const MethodologyPage = () => {
+  const { trackMethodologyVisited } = usePostHogEvents();
+
+  useEffect(() => {
+    const sourceUrl = document.referrer || null;
+    trackMethodologyVisited(sourceUrl);
+  }, []);
+
   return (
     <>
       <Navbar />

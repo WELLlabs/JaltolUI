@@ -15,10 +15,18 @@ export const POSTHOG_EVENTS = {
   STATE_SELECTED: 'state_selected',
   
   // Data analysis events
+  IMPACT_ASSESSMENT_VISITED: 'impact_assessment_visited',
   IMPACT_ASSESSMENT_STARTED: 'impact_assessment_started',
   IMPACT_ASSESSMENT_COMPLETED: 'impact_assessment_completed',
   VILLAGE_COMPARISON_STARTED: 'village_comparison_started',
   VILLAGE_COMPARISON_COMPLETED: 'village_comparison_completed',
+  
+  // Page visit events
+  MAPS_VISITED: 'maps_visited',
+  METHODOLOGY_VISITED: 'methodology_visited',
+  PRICING_VISITED: 'pricing_visited',
+  LOGIN_VISITED: 'login_visited',
+  REGISTER_VISITED: 'register_visited',
   
   // Data export and sharing events
   DATA_DOWNLOADED: 'data_downloaded',
@@ -73,6 +81,33 @@ export const createEventProperties = {
   }),
 
   // Data analysis events
+  impactAssessmentVisited: (sourceUrl = null) => ({
+    source_url: sourceUrl,
+    timestamp: new Date().toISOString(),
+  }),
+
+  // Page visit events
+  mapsVisited: (sourceUrl = null) => ({
+    source_url: sourceUrl,
+    timestamp: new Date().toISOString(),
+  }),
+  methodologyVisited: (sourceUrl = null) => ({
+    source_url: sourceUrl,
+    timestamp: new Date().toISOString(),
+  }),
+  pricingVisited: (sourceUrl = null) => ({
+    source_url: sourceUrl,
+    timestamp: new Date().toISOString(),
+  }),
+  loginVisited: (sourceUrl = null) => ({
+    source_url: sourceUrl,
+    timestamp: new Date().toISOString(),
+  }),
+  registerVisited: (sourceUrl = null) => ({
+    source_url: sourceUrl,
+    timestamp: new Date().toISOString(),
+  }),
+
   impactAssessmentStarted: (parameters = {}) => ({
     assessment_parameters: parameters,
     timestamp: new Date().toISOString(),
@@ -184,6 +219,27 @@ export const usePostHogEvents = () => {
   };
 
   // Data analysis tracking methods
+  const trackImpactAssessmentVisited = (sourceUrl = null) => {
+    trackEvent(POSTHOG_EVENTS.IMPACT_ASSESSMENT_VISITED, createEventProperties.impactAssessmentVisited(sourceUrl));
+  };
+
+  // Page visit tracking methods
+  const trackMapsVisited = (sourceUrl = null) => {
+    trackEvent(POSTHOG_EVENTS.MAPS_VISITED, createEventProperties.mapsVisited(sourceUrl));
+  };
+  const trackMethodologyVisited = (sourceUrl = null) => {
+    trackEvent(POSTHOG_EVENTS.METHODOLOGY_VISITED, createEventProperties.methodologyVisited(sourceUrl));
+  };
+  const trackPricingVisited = (sourceUrl = null) => {
+    trackEvent(POSTHOG_EVENTS.PRICING_VISITED, createEventProperties.pricingVisited(sourceUrl));
+  };
+  const trackLoginVisited = (sourceUrl = null) => {
+    trackEvent(POSTHOG_EVENTS.LOGIN_VISITED, createEventProperties.loginVisited(sourceUrl));
+  };
+  const trackRegisterVisited = (sourceUrl = null) => {
+    trackEvent(POSTHOG_EVENTS.REGISTER_VISITED, createEventProperties.registerVisited(sourceUrl));
+  };
+
   const trackImpactAssessmentStarted = (parameters = {}) => {
     trackEvent(POSTHOG_EVENTS.IMPACT_ASSESSMENT_STARTED, createEventProperties.impactAssessmentStarted(parameters));
   };
@@ -241,6 +297,12 @@ export const usePostHogEvents = () => {
     trackImpactAssessmentCompleted,
     trackVillageComparisonStarted,
     trackVillageComparisonCompleted,
+    trackImpactAssessmentVisited,
+    trackMapsVisited,
+    trackMethodologyVisited,
+    trackPricingVisited,
+    trackLoginVisited,
+    trackRegisterVisited,
     
     // Data export and sharing methods
     trackDataDownloaded,

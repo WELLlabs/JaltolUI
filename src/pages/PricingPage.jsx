@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getAvailablePlans } from '../services/api';
+import { usePostHogEvents } from '../utils/posthogEvents';
 
 const PricingPage = () => {
+  const { trackPricingVisited } = usePostHogEvents();
   const { 
     isAuthenticated, 
     availablePlans, 
@@ -23,6 +25,12 @@ const PricingPage = () => {
   const [error, setError] = useState(null);
   const [publicPlans, setPublicPlans] = useState([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
+
+  // Track pricing page visit
+  useEffect(() => {
+    const sourceUrl = document.referrer || null;
+    trackPricingVisited(sourceUrl);
+  }, []);
 
   // Load plans for non-authenticated users
   useEffect(() => {

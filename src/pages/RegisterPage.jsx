@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { usePostHogEvents } from '../utils/posthogEvents';
 
 const RegisterPage = () => {
+  const { trackRegisterVisited } = usePostHogEvents();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -27,6 +29,12 @@ const RegisterPage = () => {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
+
+  // Track register page visit
+  useEffect(() => {
+    const sourceUrl = document.referrer || null;
+    trackRegisterVisited(sourceUrl);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

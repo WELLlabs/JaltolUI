@@ -41,6 +41,7 @@ import {
 } from '../recoil/selectAtoms';
 import { getSubdistricts, getVillages, getStates, getDistricts } from '../services/api'; // Import API calls
 import Footer from '../components/Footer';
+import { usePostHogEvents } from '../utils/posthogEvents';
 
 
 
@@ -51,6 +52,7 @@ const ImpactAssessmentPage = () => {
   const compareMapRef = useRef(null);
   const fileInputRef = useRef(null);
   const location = useLocation();
+  const { trackImpactAssessmentVisited } = usePostHogEvents();
 
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
   const [selectedSubdistrict, setSelectedSubdistrict] = useRecoilState(selectedSubdistrictAtom);
@@ -88,6 +90,12 @@ const ImpactAssessmentPage = () => {
   const setCustomPolygonData = useSetRecoilState(customPolygonDataAtom);
   const setShowPolygonData = useSetRecoilState(showPolygonDataAtom);
   const setCirclesSummary = useSetRecoilState(circlesSummaryAtom);
+
+  // Track page visit with source URL
+  useEffect(() => {
+    const sourceUrl = document.referrer || null;
+    trackImpactAssessmentVisited(sourceUrl);
+  }, []);
 
   // Clear all state when navigating away from impact assessment page
   useEffect(() => {

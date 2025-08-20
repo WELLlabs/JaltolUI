@@ -3,6 +3,8 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import mapsBackground from '../assets/mapsnew.svg';
+import { useEffect } from 'react';
+import { usePostHogEvents } from '../utils/posthogEvents';
 // import lulcImage from '../assets/LulcClasses.svg';
 // import creators from '../assets/creators.svg';
 // import aboutBackground from '../assets/Aboutus.png'; // Ensure correct path
@@ -10,6 +12,12 @@ import mapsBackground from '../assets/mapsnew.svg';
 
 
 const IndiaSATPage = () => {
+  const { trackMapsVisited } = usePostHogEvents();
+
+  useEffect(() => {
+    const sourceUrl = document.referrer || null;
+    trackMapsVisited(sourceUrl);
+  }, []);
 
   return (
     <>
