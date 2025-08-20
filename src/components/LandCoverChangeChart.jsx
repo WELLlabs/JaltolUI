@@ -1,5 +1,5 @@
 // src/components/LandCoverChangeChart.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
@@ -22,27 +22,28 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
     const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
     const villageName = useRecoilValue(selectedVillageAtom);
     const setChartData = useSetRecoilState(landCoverChartDataAtom);
+    const chartRef = useRef(null);
     const [isLoading, setLoading] = useState(false);
     const chartData = useRecoilValue(landCoverChartDataAtom);
 
-    // Calculate water equity from land cover data
-    const calculateWaterEquity = (landCoverData) => {
-        const waterEquityData = {};
+    // Calculate water access from land cover data
+    const calculateWaterAccess = (landCoverData) => {
+        const waterAccessData = {};
         
         Object.keys(landCoverData).forEach(year => {
             const singleCrop = landCoverData[year]['Single cropping cropland'] || 0;
             const doubleCrop = landCoverData[year]['Double cropping cropland'] || 0;
             
-            // Calculate water equity: (single + double) / single
-            let waterEquity = 1; // Default value
+            // Calculate water access: (single + double) / single
+            let waterAccess = 1; // Default value
             if (singleCrop > 0) {
-                waterEquity = (singleCrop + doubleCrop) / singleCrop;
+                waterAccess = (singleCrop + doubleCrop) / singleCrop;
             }
             
-            waterEquityData[year] = Math.round(waterEquity * 100) / 100; // Round to 2 decimal places
+            waterAccessData[year] = Math.round(waterAccess * 100) / 100; // Round to 2 decimal places
         });
         
-        return waterEquityData;
+        return waterAccessData;
     };
 
     // Create chart options with intervention period highlighting
@@ -60,7 +61,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                     },
                     title: {
                         display: true,
-                        text: 'Area (ha)',
+                        text: 'Cropping Area (Hectares)',
                         color: 'black',
                     },
                 },
@@ -96,6 +97,92 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         usePointStyle: true,
                         pointStyle: 'circle',
                         padding: 20
+                    },
+                    onClick: (e, legendItem, legend) => {
+                        const chart = legend.chart;
+                        const datasetIndex = legendItem.datasetIndex;
+                        const datasets = chart.data.datasets;
+                        const clicked = datasets[datasetIndex];
+
+                        const label = clicked.label;
+                        const isSingle = label === 'Single Cropland';
+                        const isDouble = label === 'Double Cropland';
+                        const isTree = label === 'Tree Cover';
+                        const isWater = label === 'Water Access';
+                        const isRain = label === 'Rainfall';
+
+                        // Helper to set primary Y axis title
+                        const setPrimaryAxisTitle = () => {
+                            const visible = (l) => {
+                                const ds = datasets.find(d => d.label === l);
+                                return ds ? !ds.hidden : false;
+                            };
+                            if (visible('Water Access')) {
+                                chart.options.scales.y.title.text = 'Water Access';
+                                return;
+                            }
+                            if (visible('Tree Cover')) {
+                                chart.options.scales.y.title.text = 'Tree Cover Area (Hectares)';
+                                return;
+                            }
+                            if (visible('Single Cropland') || visible('Double Cropland')) {
+                                chart.options.scales.y.title.text = 'Cropping Area (Hectares)';
+                                return;
+                            }
+                            chart.options.scales.y.title.text = 'Cropping Area (Hectares)';
+                        };
+
+                        if (isRain) {
+                            // Toggle rainfall independently
+                            clicked.hidden = !clicked.hidden;
+                            chart.update();
+                            return;
+                        }
+
+                        if (isSingle || isDouble) {
+                            // Toggle clicked cropland series
+                            clicked.hidden = !clicked.hidden;
+                            // Ensure Tree Cover and Water Access are off
+                            const tree = datasets.find(d => d.label === 'Tree Cover');
+                            const water = datasets.find(d => d.label === 'Water Access');
+                            if (tree) tree.hidden = true;
+                            if (water) water.hidden = true;
+                            setPrimaryAxisTitle();
+                            chart.update();
+                            return;
+                        }
+
+                        if (isTree) {
+                            // Toggle tree cover and turn off cropland and water
+                            clicked.hidden = !clicked.hidden;
+                            const single = datasets.find(d => d.label === 'Single Cropland');
+                            const doubleC = datasets.find(d => d.label === 'Double Cropland');
+                            const water = datasets.find(d => d.label === 'Water Access');
+                            if (!clicked.hidden) {
+                                if (single) single.hidden = true;
+                                if (doubleC) doubleC.hidden = true;
+                                if (water) water.hidden = true;
+                            }
+                            setPrimaryAxisTitle();
+                            chart.update();
+                            return;
+                        }
+
+                        if (isWater) {
+                            // Toggle water access and turn off cropland and tree
+                            clicked.hidden = !clicked.hidden;
+                            const single = datasets.find(d => d.label === 'Single Cropland');
+                            const doubleC = datasets.find(d => d.label === 'Double Cropland');
+                            const tree = datasets.find(d => d.label === 'Tree Cover');
+                            if (!clicked.hidden) {
+                                if (single) single.hidden = true;
+                                if (doubleC) doubleC.hidden = true;
+                                if (tree) tree.hidden = true;
+                            }
+                            setPrimaryAxisTitle();
+                            chart.update();
+                            return;
+                        }
                     }
                 },
                 title: {
@@ -130,7 +217,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                                 label += `${value} ha`; // hectares for cropland area
                             } else if (context.dataset.label === 'Rainfall') {
                                 label += `${value} mm`; // millimeters for rainfall
-                            } else if (context.dataset.label === 'Water Equity') {
+                            } else if (context.dataset.label === 'Water Access') {
                                 label += value; // ratio, no units
                             }
                             return label;
@@ -197,13 +284,13 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                 .then(landCoverData => {
                     const labels = Object.keys(landCoverData);
                     
-                    // Calculate and log water equity
-                    const waterEquity = calculateWaterEquity(landCoverData);
+                    // Calculate and log water access
+                    const waterAccess = calculateWaterAccess(landCoverData);
                     
-                    console.log('=== WATER EQUITY CALCULATION (Single Village) ===');
-                    console.log(`Village (${villageValue}) Water Equity:`, waterEquity);
-                    console.log('Water Equity Formula: (Single Cropping + Double Cropping) / Single Cropping');
-                    console.log('==================================================');
+                    console.log('=== WATER ACCESS CALCULATION (Single Village) ===');
+                    console.log(`Village (${villageValue}) Water Access:`, waterAccess);
+                    console.log('Water Access Formula: (Single Cropping + Double Cropping) / Single Cropping');
+                    console.log('================================================');
                     const datasets = [{
                         label: 'Single Cropland',
                         type: 'line',
@@ -211,6 +298,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         borderColor: '#8b9dc3',
                         backgroundColor: 'rgba(139, 157, 195, 0.5)',
                         yAxisID: 'y',
+                        hidden: false,
                     }, {
                         label: 'Double Cropland',
                         type: 'line',
@@ -218,6 +306,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         borderColor: '#222f5b',
                         backgroundColor: 'rgba(34, 47, 91, 0.5)',
                         yAxisID: 'y',
+                        hidden: false,
                     },
                     {
                         label: 'Tree Cover',
@@ -229,9 +318,9 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         hidden: true,
                     },
                     {
-                        label: 'Water Equity',
+                        label: 'Water Access',
                         type: 'line',
-                        data: labels.map(label => waterEquity[label]),
+                        data: labels.map(label => waterAccess[label]),
                         borderColor: '#ff6b6b',
                         backgroundColor: 'rgba(255, 107, 107, 0.5)',
                         yAxisID: 'y',
@@ -250,6 +339,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                                     borderColor: 'blue',
                                     backgroundColor: 'rgba(0, 0, 255, 0.5)',
                                     yAxisID: 'y1',
+                                    hidden: false,
                                 });
                             }
                         })
@@ -260,6 +350,9 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         .finally(() => {
                             // Set chart data regardless of rainfall success/failure
                             setChartData({ labels, datasets });
+                            // Ensure initial axis title for cropping area
+                            // This will be respected by legend onClick handler updates
+                            
                             if (onDataChange) {
                                 onDataChange({ labels, datasets });
                             }
