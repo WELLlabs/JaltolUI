@@ -196,6 +196,32 @@ const IndiaSATPage = () => {
 
 
       </div>
+      <div className="w-full bg-white py-12">
+          <div className="max-w-6xl mx-auto px-6">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-700">Data Availability</h2>
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Dataset</th>
+                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Availability</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-600">Bhuvan LULC Maps</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">Crop intensity available for following 18 states: Andhra Pradesh, Bihar, Chhattisgarh, Gujarat, Haryana, Himachal Pradesh, Jharkhand, Karnataka, Kerala, Madhya Pradesh, Maharashtra, Odisha, Punjab, Rajasthan, Tamil nadu, Uttar Pradesh, Uttarakhand, and West Bengal</td>
+                  </tr>
+                  {/*<tr className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm text-gray-600">datasetName</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">AvaialbilityStatus</td>
+                  </tr>*/}
+                  {/* Add more rows or map over data */}
+                </tbody>
+              </table>
+            </div>
+          </div>
+      </div>
       <Footer />
     </>
   );
