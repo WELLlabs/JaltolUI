@@ -15,13 +15,13 @@ export const POSTHOG_EVENTS = {
   STATE_SELECTED: 'state_selected',
   
   // Data analysis events
-  IMPACT_ASSESSMENT_VISITED: 'impact_assessment_visited',
   IMPACT_ASSESSMENT_STARTED: 'impact_assessment_started',
   IMPACT_ASSESSMENT_COMPLETED: 'impact_assessment_completed',
   VILLAGE_COMPARISON_STARTED: 'village_comparison_started',
   VILLAGE_COMPARISON_COMPLETED: 'village_comparison_completed',
   
   // Page visit events
+  IMPACT_ASSESSMENT_VISITED: 'impact_assessment_visited',
   MAPS_VISITED: 'maps_visited',
   METHODOLOGY_VISITED: 'methodology_visited',
   PRICING_VISITED: 'pricing_visited',

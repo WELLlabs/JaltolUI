@@ -1,0 +1,38 @@
+/* Design tokens: colors, typography, radii, shadows */
+:root {
+  /* Brand */
+  --color-primary: #4A69BC; /* jaltol-blue */
+  --color-primary-foreground: #ffffff;
+  --color-accent: #4a83ec; /* highlight used in maps */
+
+  /* Semantic */
+  --color-info: #00BFFF;
+  --color-success: #397d49; /* forests */
+  --color-warning: #ff7800;
+  --color-danger: #FF4433;
+
+  /* Extended palette seen in charts/maps */
+  --color-navy-800: #222f5b; /* double cropping */
+  --color-navy-300: #8b9dc3; /* single cropping */
+  --color-brown-600: #946b2d; /* scrub */
+
+  /* Surfaces and borders */
+  --color-surface: #ffffff;
+  --color-surface-variant: #f9f9f9;
+  --color-outline: #ced4da;
+
+  /* Typography */
+  --font-heading: 'Poppins', 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-body: 'Montserrat', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 8px rgba(16, 24, 40, 0.08);
+}
+
+
