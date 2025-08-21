@@ -2,7 +2,10 @@
 
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import mapsBackground from '../assets/mapsnew.svg';
+import mapsBg from '../assets/maps-1920.jpg';
+import mapsBg768 from '../assets/maps-768.jpg';
+import mapsBg1280 from '../assets/maps-1280.jpg';
+import mapsBg1920 from '../assets/maps-1920.jpg';
 import { useEffect } from 'react';
 import { usePostHogEvents } from '../utils/posthogEvents';
 // import lulcImage from '../assets/LulcClasses.svg';
@@ -24,16 +27,40 @@ const IndiaSATPage = () => {
       <Navbar />
       <div className="bg-white text-gray-800 flex-col">
 
-        {/* About Section */}
-        <div className="flex flex-col lg:flex-row items-center justify-between flex-grow">
-          <div className="ml-20 flex flex-col justify-center">
-            <h1 className="text-4xl font-bold">What are Land Use, Land Cover (LULC) maps?</h1>
+        {/* Hero: Maps backdrop */}
+        <section className="relative isolate overflow-hidden">
+          <picture>
+            <img
+              src={mapsBg}
+              srcSet={`${mapsBg768} 768w, ${mapsBg1280} 1280w, ${mapsBg1920} 1920w`}
+              sizes="100vw"
+              alt="India land use and land cover map mosaic"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              className="absolute inset-0 -z-10 h-full w-full object-cover object-left md:object-center"
+            />
+          </picture>
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/50 via-black/30 to-transparent"></div>
+          <div className="mx-auto w-[90%] md:w-[80%] px-6 py-16 md:py-20 lg:py-28">
+            <div className="max-w-3xl">
+              <h1 className="text-5xl md:text-6xl font-bold text-white">Data Sources</h1>
+              <p className="text-xl md:text-2xl mt-4 text-white/90">Jaltol calculates Village level statistics using annually updated land use/land cover maps from NRSC, and gridded IMD rainfall data.</p>
+              <br />
+            </div>
+          </div>
+        </section>
+
+        {/* About Section (text only) */}
+        <div className="mx-auto w-[90%] md:w-[80%] px-6 py-12">
+          <div className="flex flex-col justify-center">
+            <h1 className="text-4xl font-bold">1. Land Use, Land Cover (LULC) maps</h1>
             <div>
               <p className="text-lg mt-4">
-                Land Use Land Cover (LULC) maps provide information to help users understand the current landscape. Land cover indicates the physical land type such as forest or open water, whereas land use documents how people are using the land. These maps establish the baseline information for activities like thematic mapping and change detection analysis, which are important for global monitoring studies, resource management, and planning activities.
+                Land Use Land Cover (LULC) maps help understand the current and historical state of land use and land cover. Land cover indicates the physical land type such as forest or open water, whereas land use documents how people are using the land. These maps establish the baseline information for activities like thematic mapping and change detection analysis, which are important for global monitoring studies, resource management, and planning activities.
               </p>
               <p className="text-2xl mt-5 font-bold">
-                About the Bhuvan LULC maps used in Jaltol.
+                The Bhuvan LULC maps
               </p>
               <p className="text-lg mt-4">
                 The Bhuvan <a 
@@ -43,185 +70,69 @@ const IndiaSATPage = () => {
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
                   Land Use Land Cover
-                </a> (LULC) maps are a map product developed using satellite imagery by the National Remote Sensing Centre (NRSC) the Remote Sensing wing of the Indian Space Research Organisation (ISRO). These maps are produced with a spatial resolution of 50m once annually. These maps are the longest running continuous record of land use, land cover spanning the entirety of India, going back to the year 2005. The Bhuvan LULC maps are especially useful for agricultural change assessments. They have categories such as Kharif only, Kharif+Rabi which indicate the cropping frequency in a given year. The Bhuvan LULC maps are available for free download from the Bhuvan portal. Jaltol makes these maps available to interested users enabling further value added analysis such as village or plot level analysis. To date, Jaltol has Bhuvan LULC maps for 10 states. WELL Labs is looking for organisations to partner with to validate the usefulness and accuracy of the Bhuvan LULC maps in different geographies. Please contact us at <a 
+                </a> (LULC) maps are a map product developed using satellite imagery by the National Remote Sensing Centre (NRSC) the Remote Sensing wing of the Indian Space Research Organisation (ISRO). These maps are produced with a spatial resolution of 50m once annually. These maps are the longest running continuous record of land use, land cover spanning the entirety of India, going back to the year 2005. The Bhuvan LULC maps are especially useful for agricultural change assessments. They have categories such as Kharif only, Kharif+Rabi which indicate the cropping frequency in a given year.
+                <br/> <br/> The Bhuvan LULC maps are available for free download from the Bhuvan portal. Jaltol makes these maps available to interested users enabling further value added analysis such as village or plot level analysis. To date, Jaltol has Bhuvan LULC maps for 10 states. WELL Labs is looking for organisations to partner with to validate the usefulness and accuracy of the Bhuvan LULC maps in different geographies. Please contact us at <a 
                   href="mailto:welllabs.jaltol@ifmr.ac.in"
                   className="text-blue-600 hover:text-blue-800 underline"
                 >
                   welllabs.jaltol@ifmr.ac.in
                 </a> for collaborations. 
               </p>
+              {/* Source: Bhuvan LULC */}
+              <div className="mt-6 rounded-lg border border-gray-200 bg-white/90 p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-gray-900">Source</h3>
+                <dl className="mt-2 text-sm text-gray-700 space-y-1">
+                  <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Dataset:</dt><dd>Bhuvan LULC Maps</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Provider:</dt><dd>National Remote Sensing Centre (NRSC)</dd></div>
+                  <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">URL:</dt><dd><a href="https://bhuvan-app1.nrsc.gov.in/thematic/thematic/index.php" target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 underline">Bhuvan LULC portal</a></dd></div>
+                  <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Availability:</dt><dd>18 states with crop intensity</dd></div>
+                </dl>
+              </div>
             </div>
-          </div>
-          <div className="lg:w-1/2 h-screen relative flex-shrink-0">
-            <img src={mapsBackground} alt="LULC Map" className="absolute top-0 left-0 w-full h-full" />
-          </div>
-        </div>
-
-        {/* Uniqueness Section */}
-        {/* <div className='bg-white py-16'>
-          <div className="p-10 text-black rounded-lg mx-auto text-center max-w-5xl border border-gray-600">
-            <h2 className="text-4xl font-semibold mb-10">Uniqueness of IndiaSAT</h2>
-            <p className="mt-2 mb-4 text-lg mx-20">
-              While land use maps are available from many different sources, including the Government of India, it is still hard to find maps with high-resolution and seasonal variation. This is where IndiaSAT’s land use maps come in. The uniqueness of IndiaSAT over other products is that it is produced at a higher resolution of 10m which makes it useful for village-level analysis. It is seasonal, thereby showing cropping frequency in the agricultural fields and seasonal waterbody extents, and it is available annually from the year 2000 onwards. Moreover, the map and the model that produced the map are open source.
+            <br/>
+            <h1 className="text-4xl font-bold">2.IMD Rainfall Data</h1>
+            <p className="text-lg mt-4">
+              The Indian Meteorological Department (IMD) provides gridded (0.25°x0.25°) daily rainfall data for India from 1901 to 2024.
+              This data is available for free download from the IMD portal (see source below).
+              Jaltol aggregates this daily data to the annual timescale and computes village level rainfall using SHRUG village boundaries.
             </p>
-          </div>
-        </div> */}
-
-        {/* Co-creators Section */}
-        {/* <div className="py-16 px-8 flex flex-col items-center bg-jaltol-blue">
-          <div className="flex flex-col md:flex-row items-center mt-6 mb-6">
-            <div className="md:w-2/3 p-4 m-20 pr-20 text-white">
-              <h2 className="text-5xl font-semibold ">Co-creators of India SAT</h2>
-              <p className="text-lg mt-4 text-left">
-                IndiaSAT is a research work spearheaded by the Indian Institute of Technology-Delhi focusing on improving land use land cover (LULC) classification, an open-source methodology to capture landscape changes annually to mine valuable insights that can prepare the community for sustainability.
-              </p>
-              <p className="text-lg mt-4 text-left">
-                Other partners in this effort include WELL Labs as a Research Partner, Gram Vaani as an Engineering and Product Development Partner, and NYAS Research as a Data Collection Partner.
-              </p>
-              <p className="text-lg mt-4 text-left">
-                The current version of the IndiaSAT model is version 3, which includes the generation of maps from the year 2000 and temporal correction for increased accuracy.
-              </p>
+            {/* Source: IMD Rainfall */}
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white/90 p-4 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900">Source</h3>
+              <dl className="mt-2 text-sm text-gray-700 space-y-1">
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Dataset:</dt><dd>Gridded Rainfall Data</dd></div>
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Provider:</dt><dd>Indian Meteorological Department (IMD)</dd></div>
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">URL:</dt><dd><a href="https://www.imdpune.gov.in/cmpg/Griddata/Rainfall_25_NetCDF.html" target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 underline">IMD Grid Rainfall</a></dd></div>
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Availability:</dt><dd>Pan India</dd></div>
+              </dl>
             </div>
-            <div className="md:w-1/3 p-4 mr-20">
-              <img src={creators} alt="Co-creators of India SAT" className="w-full h-auto shadow-lg rounded" />
-            </div>
-          </div>
-        </div> */}
-
-        {/* LU/LC Classes Section
-        <div className="py-16 px-8 flex flex-col items-center bg-white">
-          <h2 className="text-3xl font-semibold text-black">The LULC classes of IndiaSAT</h2>
-          <p className="text-lg text-gray-700 mt-4 text-center">
-            IndiaSAT follows a hierarchical classification approach shown below to cover a variety of LULC classes.
-          </p>
-          <div className="flex justify-center mt-6 mb-6">
-            <img src={lulcImage} alt="The LULC classes of IndiaSAT" className="w-full h-auto shadow-lg rounded" />
-          </div>
-        </div>
-        <div className="py-16 px-16 flex flex-col items-center bg-white">
-          <h2 className="text-3xl font-semibold text-black">The LULC classes of IndiaSAT</h2>
-          <div className="flex flex-col md:flex-row items-start justify-center mt-6 mb-6 space-y-6 md:space-y-0 md:space-x-6">
-            <div className="bg-green-100 p-6 rounded-lg shadow-lg flex-1 h-96 overflow-auto">
-              <h3 className="text-xl font-semibold text-black">Level-1 classification</h3>
-              <p className="mt-4 text-gray-700">
-                In level-1 classification, the first stage, four high-level classes are classified.
-              </p>
-              <ul className="list-disc list-inside mt-4 text-gray-700">
-                <li>Greenery: These are vegetative patches of land like croplands, grass, forests, and orchards.</li>
-                <li>Water bodies: These cover both seasonal and perennial water bodies.</li>
-                <li>Built-up: These are man-made constructions on the Earth’s surface that include roads, buildings, etc.</li>
-                <li>Barren land: These areas are non-vegetative patches of rocky, wastelands, and barren areas.</li>
-              </ul>
-            </div>
-            <div className="bg-green-200 p-6 rounded-lg shadow-lg flex-1 h-96 overflow-auto">
-              <h3 className="text-xl font-semibold text-black">Level-2 classification</h3>
-              <p className="mt-4 text-gray-700">
-                In level-2 classification, the level-1 classes are further classified into:
-              </p>
-              <ul className="list-disc list-inside mt-4 text-gray-700">
-                <li>Cropland: These are farm lands that are cultivated annually.</li>
-                <li>Forest: These include dense and open forests.</li>
-                <li>Seasonal water body: These water bodies hold water for less than three agricultural seasons in a year.</li>
-                <li>Perennial water body: These water bodies hold water for more than three agricultural seasons in a year.</li>
-              </ul>
-            </div>
-            <div className="bg-blue-100 p-6 rounded-lg shadow-lg flex-1 h-96 overflow-auto">
-              <h3 className="text-xl font-semibold text-black">Level-3 classification</h3>
-              <p className="mt-4 text-gray-700">
-                In level-3 classification, the cropland class is further classified based on their cropping frequency in a year:
-              </p>
-              <ul className="list-disc list-inside mt-4 text-gray-700">
-                <li>Single-cropped: Agricultural lands cultivated once in a year.</li>
-                <li>Double-cropped: Agricultural lands cultivated twice in a year.</li>
-                <li>Triple-cropped: Agricultural lands cultivated thrice in a year.</li>
-              </ul>
-            </div>
-          </div>
-
-          <p className="text-lg text-gray-700 mt-8 text-center">
-            The Level-3 classification carried out by IndiaSAT shows deep classification into croplands as “single-cropped”, “double-cropped” and “triple-cropped”; this level of classification at a finer level enables Panchayats and NGOs to track the impact of their watershed interventions.
-          </p>
-        </div> */}
-
-        {/* Methodology Section */}
-        {/* <div className="py-16 px-8 flex flex-col items-center bg-white"> */}
-          {/* Top divider */}
-          {/* <div className="w-full flex justify-center items-center mb-8">
-            <div className="border-t border-gray-300 flex-grow"></div>
-            <div className="mx-4 text-gray-300">•</div>
-            <div className="border-t border-gray-300 flex-grow"></div>
-          </div> */}
-
-          {/* <h2 className="text-3xl font-semibold text-black text-center">The IndiaSAT Methodology</h2> */}
-
-          {/* <div className="max-w-4xl text-center">
-            <p className="text-lg text-gray-700 leading-relaxed">
-              To achieve the Level-1 classification, multi-spectral data is subjected to classification by a random forest classifier trained using data from OSM and manual marking of polygons for different classes throughout the nation, this per-pixel classifier is combined with Dynamic World, an object-based classifier, and further subjected to a rule-based method to achieve Level-1 classification.
+            
+            <br/>
+            <h1 className="text-4xl font-bold">3. SHRUG v2 Village Boundaries</h1>
+            <p className="text-lg mt-4">
+              The SHRUG v2 Village Boundaries are a vector dataset of village boundaries for India.
+              This data is available for free download from the SHRUG portal (see source below).
+              Jaltol uses this data to compute village level statistics of LULC and rainfall for impact assessment.
             </p>
-            <p className="text-lg text-gray-700 leading-relaxed mt-4">
-              At Level-2, to perform cropland and forest classification, Sentinel-1 SAR data time series, both VV and VH bands are used as input for the Random Forest Classifier. Further Slope information from SRTM DEM and a threshold of 30 degrees is used to correct misclassifications in croplands. For the seasonality of water bodies, a combination of SAR data (threshold over VV-band) and Dynamic World&apos;s water output for prediction, followed by a rule-based error correction using NDWI and NDVI on derived bands.
-            </p>
-            <p className="text-lg text-gray-700 leading-relaxed mt-4">
-              To perform Level-3 classification, there is no existing dataset with a significant amount of data, so the input considered for this classification is 8-16 day NDVI time series that is derived from a combination of Landsat-7, Landsat-8, Sentinel-2, and MODIS data based on QCI-30 paper methodology, subject to unsupervised classification using k-nearest neighbor algorithm to achieve Single, Double and Triple cropping class.
-            </p>
-          </div>
-        </div> */}
 
-        {/* Bottom divider */}
-        {/* <div className="w-full flex justify-center items-center mt-8 mb-16">
-          <div className="border-t border-gray-300 flex-grow"></div>
-          <div className="mx-4 text-gray-300">•</div>
-          <div className="border-t border-gray-300 flex-grow"></div>
-        </div> */}
-
-
-
-        {/* Validation Section */}
-        {/* <div className="flex justify-center py-16 px-8 bg-white">
-          <div className="max-w-6xl w-full flex flex-col md:flex-row justify-between items-start space-y-6 md:space-y-0 md:space-x-6">
-            <div className="md:w-1/2 bg-white p-8 rounded-lg shadow-md border border-gray-200">
-              <h2 className="text-2xl font-semibold text-center text-black">Validation of the IndiaSAT map</h2>
-              <p className="text-lg text-gray-700 leading-relaxed mt-4 text-justify">
-                Ground Truth data is used to carry out validation of the LULC maps, partnering with NYAS research, points with location, and several metadata are collected for districts in the Tungabhadra river basin using the ODK platform for Kharif and Rabi season in 2023-24. The collection of ground data is a resource-heavy task, so in addition, we validate the maps with points labeled by experts using Google Satellite images and other sources. With this method, we could validate the accuracy of LULC images at the national level and also for images that date back in time.
-              </p>
-            </div>
-            <div className="md:w-1/2 bg-white p-8 rounded-lg shadow-md border border-gray-200">
-              <h2 className="text-2xl font-semibold text-center text-black">Invitation to collaborate</h2>
-              <p className="text-lg text-gray-700 leading-relaxed mt-4 text-justify">
-                Producing and validating a map like IndiaSAT for the entire country is no small task. We invite partners from across the country to help us further validate the maps in their geographies with some primary data collection. To partner with us, get in touch at welllabs.jaltol@ifmr.ac.in or contact@core-stack.org. As a partner, you get priority access to maps for your region of interest for purposes such as impact assessment.
-              </p>
+            {/* Source: SHRUG v2 */}
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white/90 p-4 shadow-sm">
+              <h3 className="text-lg font-semibold text-gray-900">Source</h3>
+              <dl className="mt-2 text-sm text-gray-700 space-y-1">
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Dataset:</dt><dd>SHRUG v2 Village Boundaries</dd></div>
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Provider:</dt><dd>Dev Data Lab</dd></div>
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">URL:</dt><dd><a href="https://www.devdatalab.org/shrug" target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800 underline">SHRUG Portal</a></dd></div>
+                <div className="flex flex-col sm:flex-row sm:gap-2"><dt className="font-medium">Availability:</dt><dd>Pan India</dd></div>
+              </dl>
             </div>
           </div>
-        </div> */}
+          </div>
+
+
 
 
       </div>
-      <div className="w-full bg-white py-12">
-          <div className="max-w-6xl mx-auto px-6">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-700">Data Availability</h2>
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Dataset</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Availability</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  <tr className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-600">Bhuvan LULC Maps</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">Crop intensity available for following 18 states: Andhra Pradesh, Bihar, Chhattisgarh, Gujarat, Haryana, Himachal Pradesh, Jharkhand, Karnataka, Kerala, Madhya Pradesh, Maharashtra, Odisha, Punjab, Rajasthan, Tamil nadu, Uttar Pradesh, Uttarakhand, and West Bengal</td>
-                  </tr>
-                  {/*<tr className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-600">datasetName</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">AvaialbilityStatus</td>
-                  </tr>*/}
-                  {/* Add more rows or map over data */}
-                </tbody>
-              </table>
-            </div>
-          </div>
-      </div>
+      {/* Replaced the large table with per-section Source cards above for better mobile readability */}
       <Footer />
     </>
   );
