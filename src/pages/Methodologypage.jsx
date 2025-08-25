@@ -16,7 +16,7 @@ const MethodologyPage = () => {
     <>
       <Navbar />
       <div className="bg-white text-gray-800 w-screen">
-        <div className="mx-auto w-[90%] md:w-[80%] px-6 py-12 md:py-16">
+        <div className="mx-auto w-[90%] md:w-[80%] px-6 py-6 md:py-6">
           {/* About Section */}
           <div className="mx-auto w-[90%] md:w-[80%] my-8">
             <h2 className="text-3xl font-semibold text-center">The Methodology for Impact Assessment</h2>
@@ -43,6 +43,7 @@ const MethodologyPage = () => {
             <div className="border-t border-gray-300"></div>
           </div>
 
+          {/* Difference in Difference Estimator */}
           <div className="mx-auto w-[90%] md:w-[80%] py-6">
             <h2 className="text-3xl font-semibold text-center mb-4">The Difference in Difference Estimator</h2>
               <div className="flex-1">

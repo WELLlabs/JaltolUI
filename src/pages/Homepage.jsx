@@ -8,7 +8,11 @@ import mapsBg from '../assets/maps-1920.jpg';
 import mapsBg1920 from '../assets/maps-1920.jpg';
 import mapsBg1280 from '../assets/maps-1280.jpg';
 import mapsBg768 from '../assets/maps-768.jpg';
-import methodologyBg from '../assets/methodology.jpg'; 
+import methodologyBg from '../assets/methodology-1920.jpg';
+import methodologyBg768 from '../assets/methodology-768.jpg';
+import methodologyBg1280 from '../assets/methodology-1280.jpg';
+import methodologyBg1920 from '../assets/methodology-1920.jpg';
+
 // Ensure correct path
 import { useNavigate } from 'react-router-dom';
 
@@ -99,6 +103,7 @@ const Homepage = () => {
           <picture>
             <img
               src={methodologyBg}
+              srcSet={`${methodologyBg768} 768w, ${methodologyBg1280} 1280w, ${methodologyBg1920} 1920w`}
               sizes="100vw"
               alt="Methodology illustration"
               loading="lazy"
@@ -109,10 +114,12 @@ const Homepage = () => {
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/50 via-black/30 to-transparent"></div>
           <div className="mx-auto max-w-7xl px-6 py-16 md:py-20 lg:py-24">
             <div className="max-w-3xl">
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 md:text-white">Methodology</h2>
-              <p className="text-xl md:text-2xl text-gray-900 md:text-white/90 mt-4">
+              <h2 className="text-4xl md:text-5xl font-bold text-white/90 md:text-white">Methodology</h2>
+              <p className="text-xl md:text-2xl text-white/90 md:text-white/90 mt-4">
                 Interpreting changes in cropping patterns from land use maps is not simple. Annual precipitation is the major driver of crop choices. At times however, land and water interventions undertaken by CSOs and Government drive change. We share how the Treatment and Control Difference in Difference methodology can be employed, along with the land use maps to assess the impact of interventions.
               </p>
+              <br />
+              <br />
               <button
                 className="mt-6 btn btn-primary hover:bg-warning"
                 onClick={handleMethodologyClick}
