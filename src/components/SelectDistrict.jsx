@@ -3,7 +3,8 @@ import makeAnimated from 'react-select/animated';
 import { components } from 'react-select';
 import PropTypes from 'prop-types';
 import { selectedDistrictAtom } from '../recoil/selectAtoms';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { useEffect } from 'react';
 
 const customStyles = {
   control: (provided) => ({
@@ -104,9 +105,17 @@ SingleValue.propTypes = {
   }).isRequired
 };
 
-const SelectDistrict = ({ options, placeholder, onChange, isDisabled }) => {
+const SelectDistrict = ({ options, placeholder, onChange, isDisabled, value }) => {
   const [selectedDistrict, setSelectedDistrict] = useRecoilState(selectedDistrictAtom);
+  const clearSelectedDistrict = useSetRecoilState(selectedDistrictAtom);
   const animatedComponents = makeAnimated();
+
+  // Clear selected district when options become empty
+  useEffect(() => {
+    if (!options || options.length === 0) {
+      clearSelectedDistrict(null);
+    }
+  }, [options, clearSelectedDistrict]);
 
   const handleChange = (selectedOption) => {
     setSelectedDistrict(selectedOption);
@@ -115,12 +124,28 @@ const SelectDistrict = ({ options, placeholder, onChange, isDisabled }) => {
     }
   };
 
+  const resolvedValue = (() => {
+    if (!options || options.length === 0) {
+      return null; // Explicitly return null for empty options
+    }
+    if (value === null || value === undefined) {
+      return null; // Explicitly return null when value is cleared
+    }
+    // Try to find the selected option in current options
+    const foundOption = options.find(option => option.value === selectedDistrict?.value);
+    return foundOption || null;
+  })();
+
+  // Force re-mount when value changes to null to ensure placeholder shows
+  const selectKey = resolvedValue ? 'selected' : 'cleared';
+
   return (
     <Select
+      key={selectKey}
       components={{ ...animatedComponents, DropdownIndicator, Option, SingleValue }}
       styles={customStyles}
       options={options}
-      value={selectedDistrict || null} // Ensure it's null if undefined
+      value={resolvedValue}
       placeholder={placeholder}
       onChange={handleChange}
       isDisabled={isDisabled}

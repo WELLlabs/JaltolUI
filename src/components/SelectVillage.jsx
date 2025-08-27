@@ -1,4 +1,4 @@
-import Select from 'react-select';
+import Select, { components } from 'react-select';
 import makeAnimated from 'react-select/animated';
 import PropTypes from 'prop-types';
 import { useRecoilState } from 'recoil';
@@ -43,23 +43,30 @@ const customStyles = {
   }),
 };
 
-const SelectVillage = ({ options, placeholder }) => {
+const DropdownIndicator = (props) => (
+  <components.DropdownIndicator {...props}>
+    <span className="material-icons-outlined">search</span>
+  </components.DropdownIndicator>
+);
+
+const SelectVillage = ({ options, placeholder, onChange, value, isDisabled }) => {
   const [selectedVillage, setSelectedVillage] = useRecoilState(selectedVillageAtom);
   const animatedComponents = makeAnimated();
 
   const handleChange = (selectedOption) => {
     console.log("Village selected:", selectedOption);
     setSelectedVillage(selectedOption); // Store the entire { value, label } object
+    if (onChange) onChange(selectedOption);
   };
 
   return (
     <Select
-      components={animatedComponents}
+      components={{ ...animatedComponents, DropdownIndicator }}
       styles={customStyles}
       options={options}
-      value={options.find(option => option.value === selectedVillage?.value)} // Correct retrieval of selected option
+      value={value ?? options.find(option => option.value === selectedVillage?.value) ?? null}
       placeholder={placeholder}
-      isDisabled={!options.length}
+      isDisabled={isDisabled ?? !options.length}
       onChange={handleChange}
     />
   );
@@ -71,6 +78,9 @@ SelectVillage.propTypes = {
     label: PropTypes.string.isRequired,
   })).isRequired,
   placeholder: PropTypes.string,
+  onChange: PropTypes.func,
+  value: PropTypes.any,
+  isDisabled: PropTypes.bool,
 };
 
 export default SelectVillage;

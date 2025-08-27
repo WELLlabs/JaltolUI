@@ -23,6 +23,7 @@
     "html2canvas": "^1.4.1",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
+    "lucide-react": "^0.463.0",
     "leaflet-easyprint": "^2.1.9",
     "leaflet-image": "^0.4.0",
     "leaflet-spin": "^1.1.2",

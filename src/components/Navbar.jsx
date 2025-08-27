@@ -49,7 +49,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-primary text-primary-foreground p-4 w-full">
+    <nav className="bg-primary text-primary-foreground py-2 px-4 w-full">
       <div className="flex justify-between items-center w-full">
         {/* Logo */}
         <div className="flex-shrink-0">

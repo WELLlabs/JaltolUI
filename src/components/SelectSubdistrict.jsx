@@ -1,4 +1,4 @@
-import Select from 'react-select';
+import Select, { components } from 'react-select';
 import makeAnimated from 'react-select/animated';
 import PropTypes from 'prop-types';
 import { useRecoilState } from 'recoil';
@@ -44,13 +44,21 @@ const customStyles = {
     }),
 };
 
-const SelectSubdistrict = ({ options, placeholder }) => {
+// Add a search indicator like state/district selectors
+const DropdownIndicator = (props) => (
+    <components.DropdownIndicator {...props}>
+        <span className="material-icons-outlined">search</span>
+    </components.DropdownIndicator>
+);
+
+const SelectSubdistrict = ({ options, placeholder, onChange, value, isDisabled }) => {
     const [selectedSubdistrict, setSelectedSubdistrict] = useRecoilState(selectedSubdistrictAtom);
     const animatedComponents = makeAnimated();
 
     const handleChange = (selectedOption) => {
         console.log("Subdistrict option selected:", selectedOption?.label);
         setSelectedSubdistrict(selectedOption);
+        if (onChange) onChange(selectedOption);
     };
 
     // Reduced logging to prevent spam - only log when there are significant changes
@@ -60,15 +68,14 @@ const SelectSubdistrict = ({ options, placeholder }) => {
 
     return (
         <Select
-  components={animatedComponents}
-  styles={customStyles}
-  options={options}
-  value={options.find(option => option.value === selectedSubdistrict?.value)} // Correct retrieval of selected option
-  placeholder={placeholder}
-  isDisabled={options.length === 0}
-  onChange={handleChange}
-/>
-
+            components={{ ...animatedComponents, DropdownIndicator }}
+            styles={customStyles}
+            options={options}
+            value={value ?? options.find(option => option.value === selectedSubdistrict?.value) ?? null}
+            placeholder={placeholder}
+            isDisabled={isDisabled ?? options.length === 0}
+            onChange={handleChange}
+        />
     );
 };
 
@@ -78,6 +85,9 @@ SelectSubdistrict.propTypes = {
         label: PropTypes.string.isRequired,
     })).isRequired,
     placeholder: PropTypes.string,
+    onChange: PropTypes.func,
+    value: PropTypes.any,
+    isDisabled: PropTypes.bool,
 };
 
 export default SelectSubdistrict;

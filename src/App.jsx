@@ -12,6 +12,8 @@ import CompareVillagesPage from "./pages/CompareVillagespage";
 // import AboutUsPage from "./pages/AboutUspage";
 import IndiaSATPage from "./pages/Mapspage";
 import MethodologyPage from "./pages/Methodologypage";
+import ImpactAssessmentV2 from "./pages/ImpactAssessmentV2";
+import AppLayout from './components/AppLayout';
 import ScrollToTop from './components/ScrollToTop';
 import ApiDocumentationPage from "./pages/ApiDocumentationPage";
 import LoginPage from "./pages/LoginPage";
@@ -69,6 +71,10 @@ const AppContent = () => {
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/maps-page" element={<IndiaSATPage />} />
           <Route path="/api-documentation" element={<ApiDocumentationPage />} />
+          {/* Internal route for V2 review under shared layout only */}
+          <Route element={<AppLayout />}>
+            <Route path="/internal/impact-assessment-v2" element={<ImpactAssessmentV2 />} />
+          </Route>
         </Routes>
       </div>
 

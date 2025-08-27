@@ -23,12 +23,12 @@ export const districtOptionsAtom = atom({
 
 export const selectedSubdistrictAtom = atom({
   key: 'selectedSubdistrict',
-  default: { value: '', label: '' },  // Ensure proper default initialization
+  default: null,
 });
 
 export const selectedVillageAtom = atom({
   key: 'selectedVillage',
-  default: { value: '', label: '' }, // Match the structure used in SelectSubdistrict
+  default: null,
 });
 
 export const villageOptionsAtom = atom({

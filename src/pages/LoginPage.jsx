@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import Navbar from '../components/Navbar';
@@ -17,13 +17,20 @@ const LoginPage = () => {
 
   const { login, googleLogin, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectTarget = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('redirect') || localStorage.getItem('postAuthRedirect') || '/';
+  }, [location.search]);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      console.log('[Login] Already authenticated, redirecting to', redirectTarget);
+      navigate(redirectTarget);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, redirectTarget]);
 
   // Track login page visit
   useEffect(() => {
@@ -83,11 +90,12 @@ const LoginPage = () => {
         // Check if user needs profile setup (no organization set)
         const userData = result.user;
         if (userData && !userData.organization) {
+          console.log('[Login] No organization, redirecting to /profile-setup');
           navigate('/profile-setup');
         } else {
-          // Redirect to the page they were trying to access, or home
-          const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
-          navigate(redirectTo);
+          console.log('[Login] Login success, redirecting to', redirectTarget);
+          navigate(redirectTarget);
+          localStorage.removeItem('postAuthRedirect');
         }
       } else {
         console.error('Login failed:', result.error);
@@ -111,10 +119,12 @@ const LoginPage = () => {
       if (result.success) {
         // Check if this is a new user who needs profile setup
         if (result.isNewUser) {
+          console.log('[Login] Google new user, redirecting to /profile-setup');
           navigate('/profile-setup');
         } else {
-          const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
-          navigate(redirectTo);
+          console.log('[Login] Google login success, redirecting to', redirectTarget);
+          navigate(redirectTarget);
+          localStorage.removeItem('postAuthRedirect');
         }
       } else {
         setFormErrors({ google: result.error });

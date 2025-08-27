@@ -687,7 +687,7 @@ const ImpactAssessmentPage = () => {
       }
 
       // Get current year from the URL or use default
-      const year = (new URLSearchParams(location.search).get('year')) || '2022';
+      const year = (new URLSearchParams(location.search).get('year')) || '2023';
 
       // Call the backend API to process the GeoJSON
       const result = await uploadCustomPolygon(

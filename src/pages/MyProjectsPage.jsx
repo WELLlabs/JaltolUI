@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getProjects, deleteProject } from '../services/api';
+import { saveProjectFromAssessment } from '../services/api';
 
 // Delete Confirmation Modal Component
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, projectName, isDeleting }) => {
@@ -217,6 +218,32 @@ const MyProjectsPage = () => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
+    }
+    // If we arrive with a pending project to save after registration/login
+    const pending = localStorage.getItem('pendingSaveVillage');
+    if (pending) {
+      const payload = JSON.parse(pending);
+      console.log('[MyProjects] Found pendingSaveVillage, attempting auto-save', payload);
+      (async () => {
+        try {
+          const res = await saveProjectFromAssessment(payload);
+          console.log('[MyProjects] Auto-save result', res);
+          if (!res?.success && res?.errors?.name) {
+            // Retry with a generated name if API requires it
+            const ts = new Date().toISOString().slice(0,10);
+            const fallback = {
+              ...payload,
+              name: payload.name || `${payload.state || ''} ${payload.district || ''} ${payload.subdistrict || ''} ${payload.village || ''} – ${ts}`.trim()
+            };
+            console.log('[MyProjects] Retrying auto-save with fallback name', fallback.name);
+            await saveProjectFromAssessment(fallback);
+          }
+        } catch (e) {
+          console.error('[MyProjects] Auto-save pending village failed', e);
+        } finally {
+          localStorage.removeItem('pendingSaveVillage');
+        }
+      })();
     }
     fetchProjects();
   }, [isAuthenticated, navigate]);

@@ -619,7 +619,7 @@ const DistrictMap = ({ selectedState, selectedDistrict, selectedSubdistrict, sel
   }, [boundaryData, selectedVillage, boundaryLoaded, rasterLoaded]);
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full bg-blue-100 rounded-lg p-5 min-h-[700px]">
       {isLoading && <Spinner />}
       {!selectedDistrict && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 

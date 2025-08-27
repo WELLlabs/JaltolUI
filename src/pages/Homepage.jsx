@@ -57,6 +57,8 @@ const Homepage = () => {
               <p className="text-xl md:text-2xl mt-4 text-white/90">
                 Jaltol is a web application meant to support <em>NGOs</em> and <em>donors</em> with scientific problem diagnosis and impact assessment in watershed management in India. <br /> <br /> In version 1.0, it leverages novel high spatial resolution agricultural land use maps to help quantify plot level changes in agricultural patterns in peninsular India over the last two decades.
               </p>
+              <br />
+              <br />
               <button
                 className="mt-6 btn btn-primary hover:bg-warning"
                 onClick={handleTryClick}
@@ -88,6 +90,8 @@ const Homepage = () => {
               <p className="text-xl md:text-2xl font-normal text-gray-900 md:text-white/90 mt-4">
                 Developed by the National Remote Sensing Centre (NRSC), the Bhuvan Land Use Land Cover (LULC) maps made available via Jaltol are the longest running continuous record of land use, land cover spanning the entirety of India, going back to the year 2005. <br /> <br /> NGOs, donors and researchers can leverage these maps to track land use changes pan India.
               </p>
+              <br />
+              <br />
               <button
                 className="mt-6 btn btn-primary hover:bg-warning"
                 onClick={handleMapsClick}

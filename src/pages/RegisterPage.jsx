@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import Navbar from '../components/Navbar';
@@ -22,13 +22,20 @@ const RegisterPage = () => {
 
   const { register, googleLogin, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const redirectTarget = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('redirect') || localStorage.getItem('postAuthRedirect') || '/my-projects';
+  }, [location.search]);
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      console.log('[Register] Already authenticated, redirecting to', redirectTarget);
+      navigate(redirectTarget);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, redirectTarget]);
 
   // Track register page visit
   useEffect(() => {
@@ -113,8 +120,9 @@ const RegisterPage = () => {
       console.log('Register result:', result);
       
       if (result.success) {
-        // Redirect to profile setup after successful registration
-        navigate('/profile-setup');
+        console.log('[Register] Registration success, redirecting to', redirectTarget);
+        navigate(redirectTarget);
+        localStorage.removeItem('postAuthRedirect');
       } else {
         console.error('Registration failed:', result.error);
         setFormErrors({ general: result.error });
@@ -135,8 +143,9 @@ const RegisterPage = () => {
     try {
       const result = await googleLogin(credentialResponse.credential);
       if (result.success) {
-        // Always redirect to profile setup after Google sign up
-        navigate('/profile-setup');
+        console.log('[Register] Google success, redirecting to', redirectTarget, 'isNewUser?', result.isNewUser);
+        navigate(redirectTarget);
+        localStorage.removeItem('postAuthRedirect');
       } else {
         setFormErrors({ google: result.error });
       }

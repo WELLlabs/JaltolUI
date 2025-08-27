@@ -21,6 +21,8 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
     const districtName = useRecoilValue(selectedDistrictAtom);
     const subdistrictName = useRecoilValue(selectedSubdistrictAtom);
     const villageName = useRecoilValue(selectedVillageAtom);
+
+
     const setChartData = useSetRecoilState(landCoverChartDataAtom);
     const chartRef = useRef(null);
     const [isLoading, setLoading] = useState(false);
@@ -55,6 +57,14 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                     position: 'left',
                     ticks: {
                         color: 'black',
+                        autoSkip: true,
+                        maxTicksLimit: 6,
+                        callback: (value) => {
+                            // Add compact formatting similar to V1 for readability
+                            const n = Number(value);
+                            if (Math.abs(n) >= 1000) return `${Math.round(n / 100) / 10}k`;
+                            return `${n}`;
+                        }
                     },
                     grid: {
                         color: 'rgba(0, 0, 0, 0.1)',
@@ -70,6 +80,8 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                     position: 'right',
                     ticks: {
                         color: 'blue',
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     },
                     grid: {
                         drawOnChartArea: false,
@@ -83,6 +95,8 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                 x: {
                     ticks: {
                         color: 'black',
+                        autoSkip: true,
+                        maxTicksLimit: 10
                     },
                     grid: {
                         color: 'rgba(0, 0, 0, 0.1)',
@@ -91,12 +105,16 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
             },
             plugins: {
                 legend: {
-                    position: 'top',
+                    position: 'bottom',
                     labels: {
                         color: 'black',
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        padding: 20
+                        padding: 8,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        // Hide only the Rainfall legend item while keeping the dataset visible
+                        filter: (legendItem) => legendItem.text !== 'Rainfall'
                     },
                     onClick: (e, legendItem, legend) => {
                         const chart = legend.chart;
@@ -186,12 +204,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                     }
                 },
                 title: {
-                    display: true,
-                    text: 'Land Cover and Rainfall Change Over Time',
-                    color: 'black',
-                    font: {
-                        size: 18,
-                    }
+                    display: false
                 },
                 tooltip: {
                     enabled: true,
@@ -238,7 +251,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
             maintainAspectRatio: false,
             elements: {
                 point: {
-                    radius: 5,
+                    radius: 3,
                 },
                 line: {
                     borderWidth: 3,
@@ -269,15 +282,19 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
     const options = createChartOptions();
 
     useEffect(() => {
-        setLoading(true); 
-        
-        const villageValue = villageName.label; 
-        // Set loading to true when API call starts
-        if (stateName && districtName && subdistrictName && villageValue) {
-            const stateNameValue = stateName?.label || stateName;
-            const districtNameValue = districtName.label;
-            const fetchLandCover = get_area_change(stateNameValue, districtNameValue, subdistrictName.label, villageValue);
-            const fetchRainfall = get_rainfall_data(stateNameValue, districtNameValue, subdistrictName.label, villageValue);
+        setLoading(true);
+
+        const stateNameValue = stateName?.label || stateName;
+        const districtNameValue = districtName?.label || districtName;
+        const subdistrictValue = subdistrictName?.label || subdistrictName;
+        const villageValue = villageName?.label || villageName;
+
+        if (!(stateNameValue && districtNameValue && subdistrictValue && villageValue)) {
+            setLoading(false);
+            return;
+        }
+        const fetchLandCover = get_area_change(stateNameValue, districtNameValue, subdistrictValue, villageValue);
+        const fetchRainfall = get_rainfall_data(stateNameValue, districtNameValue, subdistrictValue, villageValue);
 
             // Handle land cover and rainfall separately to ensure resilience
             fetchLandCover
@@ -330,6 +347,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                     // Try to fetch rainfall data, but don't let it block the chart
                     fetchRainfall
                         .then(rainfallData => {
+                            console.log('[Chart] rainfall response', rainfallData);
                             if (rainfallData && rainfallData.rainfall_data && !rainfallData.error) {
                                 // Add rainfall data if available
                                 datasets.push({
@@ -344,18 +362,17 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                             }
                         })
                         .catch(rainfallError => {
-                            console.warn('Rainfall data unavailable:', rainfallError);
+                            console.warn('[Chart] Rainfall data unavailable:', rainfallError);
                             // Don't block the chart - just proceed without rainfall data
                         })
                         .finally(() => {
                             // Set chart data regardless of rainfall success/failure
                             setChartData({ labels, datasets });
-                            // Ensure initial axis title for cropping area
-                            // This will be respected by legend onClick handler updates
-                            
+
                             if (onDataChange) {
                                 onDataChange({ labels, datasets });
                             }
+
                             setLoading(false);
                         });
                 })
@@ -363,19 +380,26 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                     console.error('Error fetching land cover data:', error);
                     setLoading(false);  // Ensure loading is set to false on error
                 });
-        }
+
     }, [stateName, districtName, subdistrictName, villageName, onDataChange, setChartData]);
 
+
+
+    const hasData = chartData && Array.isArray(chartData.datasets) && chartData.datasets.length > 0;
     return (
-        <div className="w-full h-64 bg-white flex justify-center items-center relative">
-            {isLoading ? (
+        <div className="w-full h-full bg-white flex justify-center items-center relative">
+            {!hasData && isLoading && (
               <div className="absolute inset-0 flex justify-center items-center">
-              <Spinner />
-          </div>
-            ) : chartData.datasets.length > 0 ? (
-                <Line data={chartData} options={options} />
+                <Spinner />
+              </div>
+            )}
+            {hasData ? (
+              <Line data={chartData} options={options} />
             ) : (
-                <p className="text-center">No data available to display the chart.</p>
+              // Render an empty chart frame to reserve the exact space
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                {/* Empty state while loading or no data */}
+              </div>
             )}
         </div>
     );
