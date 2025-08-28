@@ -456,7 +456,7 @@ const ImpactAssessmentV2 = () => {
             
               {/* Combined Controls Row: LULC Toggle + Year + Opacity + Buttons */}
               <div className="flex flex-wrap items-center gap-2 w-full">
-                <div className="inline-flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg flex-none">
+                <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg min-w-0 max-w-full">
                   <button
                     onClick={() => setShowLulc(!showLulc)}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
