@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 // import LandCoverChangeChart from '../components/LandCoverChangeChart';
 import SelectDistrict2 from '../components/SelectDistrict2';
-import Navbar from '../components/Navbar';
 import SelectVillage2 from '../components/SelectVillage2';
 import DistrictMap from '../components/DistrictMap';
 import CompareMap from '../components/CompareMap';
@@ -67,7 +66,6 @@ const CompareVillagesPage = () => {
 
   return (
     <div className="font-sans bg-white h-screen w-screen overflow-x-hidden">
-      <Navbar />
       {/* Content Section */}
       <div className="flex flex-col lg:flex-row gap-6 p-8">
         {/* Left Column */}

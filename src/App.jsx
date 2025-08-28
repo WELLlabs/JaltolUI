@@ -23,6 +23,7 @@ import ProfileSetupPage from "./pages/ProfileSetupPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
 
 // Import components
+import ImpactAssessmentGate from './components/ImpactAssessmentGate';
 import ProtectedRoute from './components/ProtectedRoute';
 import PlanSelectionModal from './components/PlanSelectionModal';
 import { PostHogIdentifier } from './components/PostHogIdentifier';
@@ -65,14 +66,19 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           
-          {/* Main application routes */}
-          <Route path="/impact-assessment" element={<ImpactAssessmentPage />} />
-          <Route path="/compare-villages" element={<CompareVillagesPage />} />
-          <Route path="/methodology" element={<MethodologyPage />} />
-          <Route path="/maps-page" element={<IndiaSATPage />} />
-          <Route path="/api-documentation" element={<ApiDocumentationPage />} />
-          {/* Internal route for V2 review under shared layout only */}
+          {/* Authentication gate */}
+          <Route path="/impact-assessment" element={<ImpactAssessmentGate />} />
+
+          {/* Main application routes with layout */}
           <Route element={<AppLayout />}>
+            <Route path="/impact-assessment/app" element={<ImpactAssessmentV2 />} />
+            <Route path="/compare-villages" element={<CompareVillagesPage />} />
+            <Route path="/methodology" element={<MethodologyPage />} />
+            <Route path="/maps-page" element={<IndiaSATPage />} />
+            <Route path="/api-documentation" element={<ApiDocumentationPage />} />
+
+            {/* Internal routes for development/testing */}
+            <Route path="/internal/impact-assessment-v1" element={<ImpactAssessmentPage />} />
             <Route path="/internal/impact-assessment-v2" element={<ImpactAssessmentV2 />} />
           </Route>
         </Routes>

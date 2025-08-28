@@ -281,7 +281,7 @@ const MyProjectsPage = () => {
       projectId: project.project_id
     });
     
-    navigate(`/impact-assessment?${queryParams.toString()}`);
+    navigate(`/impact-assessment/app?${queryParams.toString()}`);
   };
 
   const handleDeleteProject = (projectId) => {
@@ -308,7 +308,7 @@ const MyProjectsPage = () => {
   };
 
   const handleExploreJaltol = () => {
-    navigate('/impact-assessment');
+    navigate('/impact-assessment/app');
   };
 
   return (

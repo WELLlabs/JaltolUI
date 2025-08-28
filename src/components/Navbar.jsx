@@ -59,31 +59,30 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden md:flex items-center space-x-6">
           {/* Navigation Links */}
-          <Link to="/" className="text-xl text-primary-foreground hover:text-warning">Home</Link>
-          <Link to="/impact-assessment" className="text-xl text-primary-foreground hover:text-warning">Assess Impact</Link>
-          <Link to="/maps-page" className="text-xl text-primary-foreground hover:text-warning">Maps</Link>
-          <Link to="/methodology" className="text-xl text-primary-foreground hover:text-warning">Methodology</Link>
+          <Link to="/impact-assessment" className="text-lg text-primary-foreground hover:text-warning">Assess Impact</Link>
+          <Link to="/maps-page" className="text-lg text-primary-foreground hover:text-warning">Maps</Link>
+          <Link to="/methodology" className="text-lg text-primary-foreground hover:text-warning">Methodology</Link>
           
           {/* My Projects link - only show when authenticated */}
           {isAuthenticated && (
-            <Link to="/my-projects" className="text-xl text-primary-foreground hover:text-warning">My Projects</Link>
+            <Link to="/my-projects" className="text-lg text-primary-foreground hover:text-warning">My Projects</Link>
           )}
           
           {/* Pricing link - show for everyone */}
-          <Link to="/pricing" className="text-xl text-primary-foreground hover:text-warning">Pricing</Link>
+          <Link to="/pricing" className="text-lg text-primary-foreground hover:text-warning">Pricing</Link>
           
           {/* Authentication Section */}
           {isAuthenticated && user ? (
             <div className="relative" ref={userMenuRef}>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-3 bg-surface text-gray-800 hover:bg-surface-variant focus:outline-none px-3 py-2 rounded-lg border border-outline shadow-sm transition-colors"
+                className="flex items-center space-x-3 bg-surface text-gray-800 hover:bg-surface-variant focus:outline-none px-3 py-1 rounded-lg border border-outline shadow-sm transition-colors"
               >
                 <div className="flex items-center space-x-2">
                   {/* User Avatar */}
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <div className="w-8 h-6 bg-primary rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold text-sm">
                       {user.first_name ? user.first_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
                     </span>
@@ -113,7 +112,7 @@ const Navbar = () => {
 
               {/* Dropdown Menu */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-md shadow-lg py-1 z-50 border border-outline">
+                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-md shadow-lg py-1 z-[500] border border-outline">
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b border-outline">
                     <div className="flex items-center space-x-3">

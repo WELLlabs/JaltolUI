@@ -6,6 +6,8 @@ import IconButtonSave from '../components/IconButtonSave';
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil';
+import Select from 'react-select';
+import { isBhuvanLulcState } from '../constants';
 import {
   selectedVillageAtom,
 } from '../recoil/selectAtoms';
@@ -28,6 +30,10 @@ const ImpactAssessmentV2 = () => {
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [currentLoadingVillage, setCurrentLoadingVillage] = useState(null);
   const selectedVillage = useRecoilValue(selectedVillageAtom);
+  const [showLulc, setShowLulc] = useState(true);
+  const [lulcOpacity, setLulcOpacity] = useState(1.0);
+  const [selectedLulcYear, setSelectedLulcYear] = useState('2023');
+  const [isYearLoading, setIsYearLoading] = useState(false);
   const districtMapRef = useRef(null);
   const scrollRef = useRef(null);
   const chartData = useRecoilValue(landCoverChartDataAtom);
@@ -57,6 +63,38 @@ const ImpactAssessmentV2 = () => {
     handleSubdistrictChange,
     handleVillageChange,
   } = useLocationSelectors(handleSelectionChange);
+
+
+
+  // LULC year options based on selected state
+  const getLulcYearOptions = () => {
+    const stateName = selectedState?.label || selectedState;
+    if (isBhuvanLulcState(stateName)) {
+      const years = [];
+      for (let year = 2024; year >= 2005; year--) {
+        if (year !== 2019 && year !== 2024) years.push({ value: String(year), label: String(year) });
+      }
+      return years;
+    }
+    return [
+      { value: '2023', label: '2023' },
+      { value: '2022', label: '2022' },
+      { value: '2021', label: '2021' },
+      { value: '2020', label: '2020' },
+      { value: '2019', label: '2019' },
+      { value: '2018', label: '2018' },
+      { value: '2017', label: '2017' },
+    ];
+  };
+  const [lulcYearOptions, setLulcYearOptions] = useState([]);
+  useEffect(() => {
+    if (!selectedState) return;
+    const opts = getLulcYearOptions();
+    setLulcYearOptions(opts);
+    if (opts.length > 0 && !opts.find(o => o.value === selectedLulcYear)) {
+      setSelectedLulcYear(opts[0].value);
+    }
+  }, [selectedState]);
 
   const generateProjectName = () => {
     const parts = [
@@ -368,7 +406,7 @@ const ImpactAssessmentV2 = () => {
                     ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
-                title={!isAuthenticated ? "Login required to access Control Village" : ""}
+                title={!isAuthenticated ? "Coming soon, sign up to be the first to hear about it" : ""}
               >
                 Control Village
               </button>
@@ -384,6 +422,10 @@ const ImpactAssessmentV2 = () => {
                 scrollRef={scrollRef}
                 villageMapRef={districtMapRef}
                 isAuthenticated={isAuthenticated}
+                showLulc={showLulc}
+                lulcOpacity={lulcOpacity}
+                selectedLulcYear={selectedLulcYear}
+                onYearLoadingChange={setIsYearLoading}
               />
             </div>
 
@@ -412,17 +454,61 @@ const ImpactAssessmentV2 = () => {
                 </div>
               </div>
             
-              {/* Combined Controls Row: Opacity + Buttons */}
+              {/* Combined Controls Row: LULC Toggle + Year + Opacity + Buttons */}
               <div className="flex flex-wrap items-center justify-between gap-2 shadow-sm">
-                <div className="flex items-center gap-3 bg-white p-2 h-9 rounded-lg">
-                  <label className="text-sm text-gray-700">Opacity</label>
+                <div className="flex items-center gap-2 bg-white p-2 h-9 rounded-lg">
+                  <button
+                    onClick={() => setShowLulc(!showLulc)}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                      showLulc ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                    }`}
+                  >
+                    LULC {showLulc ? 'ON' : 'OFF'}
+                  </button>
+                  <label className="text-xs text-gray-700 whitespace-nowrap">Year:</label>
+                  <div className="flex items-center gap-1">
+                    <div className="w-20">
+                      <Select
+                        options={lulcYearOptions}
+                        value={lulcYearOptions.find(o => o.value === selectedLulcYear) || null}
+                        onChange={(opt) => opt && setSelectedLulcYear(opt.value)}
+                        menuPlacement="top"
+                        isSearchable={false}
+                        placeholder="Year"
+                        menuPortalTarget={document.body}
+                        isDisabled={isYearLoading}
+                        styles={{
+                          control: (base) => ({ ...base, minHeight: '28px', fontSize: '12px', borderRadius: '4px' }),
+                          option: (base, { isFocused, isSelected }) => ({
+                            ...base,
+                          fontSize: '12px',
+                          backgroundColor: isSelected ? '#3b82f6' : isFocused ? '#eff6ff' : 'white',
+                          color: isSelected ? 'white' : 'black',
+                        }),
+                        singleValue: (base) => ({ ...base, fontSize: '12px', color: '#374151' }),
+                        dropdownIndicator: (base) => ({ ...base, padding: '2px' }),
+                        menu: (base) => ({ ...base, fontSize: '12px', zIndex: 9999 }),
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
+                    </div>
+                    {isYearLoading && (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
+                      </div>
+                    )}
+                  </div>
+                  <label className="text-xs text-gray-700 whitespace-nowrap">Opacity:</label>
                   <input
                     type="range"
                     min="0"
                     max="1"
                     step="0.1"
-                    className="w-20 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    value={lulcOpacity}
+                    onChange={(e) => setLulcOpacity(parseFloat(e.target.value))}
+                    className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
+                  <span className="text-xs text-gray-600 w-8">{Math.round(lulcOpacity * 100)}%</span>
                 </div>
 
                 <button
@@ -432,7 +518,7 @@ const ImpactAssessmentV2 = () => {
                       ? 'bg-blue-500 hover:bg-blue-600 text-white cursor-pointer'
                       : 'bg-gray-400 text-gray-600 cursor-not-allowed'
                   }`}
-                  title={!isAuthenticated ? "Login required to download" : ""}
+                  title={!isAuthenticated ? "Coming soon, sign up to be the first to hear about it" : ""}
                 >
                   Download Map
                 </button>

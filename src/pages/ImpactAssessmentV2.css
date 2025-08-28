@@ -1,0 +1,48 @@
+/* ImpactAssessmentV2 specific styles to fix z-index issues */
+
+/* Ensure intervention year dropdowns appear above the map */
+.intervention-year-select {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Ensure the intervention period container has proper stacking context */
+.intervention-period-container {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Override any map-related z-index issues */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
+.leaflet-control {
+  z-index: 1000 !important;
+}
+
+.leaflet-popup {
+  z-index: 1001 !important;
+}
+
+.leaflet-tooltip {
+  z-index: 1001 !important;
+}
+
+/* Ensure react-select dropdowns appear above everything */
+.react-select__menu {
+  z-index: 9999 !important;
+}
+
+.react-select__menu-portal {
+  z-index: 9999 !important;
+}
+
+/* Ensure the modal appears above everything */
+.modal-overlay {
+  z-index: 9999 !important;
+}
+
+.modal-content {
+  z-index: 10000 !important;
+}

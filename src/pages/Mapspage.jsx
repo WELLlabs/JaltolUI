@@ -1,7 +1,5 @@
 // src/pages/IndiaSATPage.jsx
 
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import mapsBg from '../assets/maps-1920.jpg';
 import mapsBg768 from '../assets/maps-768.jpg';
 import mapsBg1280 from '../assets/maps-1280.jpg';
@@ -23,9 +21,7 @@ const IndiaSATPage = () => {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <div className="bg-white text-gray-800 flex-col">
+    <div className="bg-white text-gray-800 flex-col">
 
         {/* Hero: Maps backdrop */}
         <section className="relative isolate overflow-hidden">
@@ -131,10 +127,8 @@ const IndiaSATPage = () => {
 
 
 
-      </div>
       {/* Replaced the large table with per-section Source cards above for better mobile readability */}
-      <Footer />
-    </>
+    </div>
   );
 };
 

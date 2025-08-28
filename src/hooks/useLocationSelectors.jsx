@@ -29,7 +29,7 @@ export const useLocationSelectors = (onSelectionChange) => {
       try {
         const states = await getStates();
         const options = states
-          .map(s => ({ value: s.id, label: s.display_name || s.name, name: s.name, state_id: s.state_id }))
+          .map(s => ({ value: String(s.id), label: s.display_name || s.name, name: s.name, state_id: s.state_id }))
           .sort((a, b) => a.label.localeCompare(b.label));
         setStateOptions(options);
       } catch (e) {
@@ -54,7 +54,7 @@ export const useLocationSelectors = (onSelectionChange) => {
         }
         const districts = await getDistricts(selectedState.value);
         const options = districts
-          .map(d => ({ value: d.id, label: d.display_name || d.name, name: d.name, district_id: d.district_id }))
+          .map(d => ({ value: String(d.id), label: d.display_name || d.name, name: d.name, district_id: d.district_id }))
           .sort((a, b) => a.label.localeCompare(b.label));
         setDistrictOptions(options);
         setSelectedDistrict(null);
@@ -82,12 +82,18 @@ export const useLocationSelectors = (onSelectionChange) => {
         }
         const subdistricts = await getSubdistricts(selectedDistrict.value);
         const options = subdistricts
-          .map(s => ({ value: s.id, label: s.display_name || s.name, name: s.name, subdistrict_id: s.subdistrict_id }))
+          .map(s => ({ value: String(s.id), label: s.display_name || s.name, name: s.name, subdistrict_id: s.subdistrict_id }))
           .sort((a, b) => a.label.localeCompare(b.label));
         setSubdistrictOptions(options);
-        setSelectedSubdistrict(null);
+
+        // Always clear village options when district changes, but preserve subdistrict if it still exists
         setVillageOptions([]);
         setSelectedVillage(null);
+
+        // Only clear subdistrict if it no longer exists in the new options
+        if (selectedSubdistrict && !options.some(opt => opt.value === selectedSubdistrict.value)) {
+          setSelectedSubdistrict(null);
+        }
       } catch (e) {
         console.error('Failed to load subdistricts', e);
       }
@@ -104,10 +110,11 @@ export const useLocationSelectors = (onSelectionChange) => {
           setSelectedVillage(null);
           return;
         }
+
         const villages = await getVillages(selectedSubdistrict.value);
         const options = villages
           .map(v => ({
-            value: v.id,
+            value: String(v.id),
             label: v.display_name || v.name,
             villageName: v.name,
             villageId: v.village_id,
@@ -116,7 +123,11 @@ export const useLocationSelectors = (onSelectionChange) => {
             st_population: v.st_population,
           }))
           .sort((a, b) => a.label.localeCompare(b.label));
+
         setVillageOptions(options);
+
+        // Clear village selection when subdistrict changes (allows "zooming out")
+        // but keep the village options available
         setSelectedVillage(null);
       } catch (e) {
         console.error('Failed to load villages', e);
@@ -146,10 +157,11 @@ export const useLocationSelectors = (onSelectionChange) => {
     if (onSelectionChange) onSelectionChange('district', option);
   };
   const handleSubdistrictChange = (option) => {
-    // Immediately reset dependent selections/options so UI shows placeholders
     setSelectedSubdistrict(option);
-    setSelectedVillage(null);
-    setVillageOptions([]);
+
+    // Don't clear village options here - let the village loading effect handle it
+    // This prevents the "No options" issue when re-selecting the same subdistrict
+
     if (onSelectionChange) onSelectionChange('subdistrict', option);
   };
   const handleVillageChange = (option) => {

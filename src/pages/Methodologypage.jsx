@@ -1,5 +1,3 @@
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import Difference from '../assets/difference.svg';
 import { useEffect } from 'react';
 import { usePostHogEvents } from '../utils/posthogEvents';
@@ -13,9 +11,7 @@ const MethodologyPage = () => {
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <div className="bg-white text-gray-800 w-screen">
+    <div className="bg-white text-gray-800 w-screen">
         <div className="mx-auto w-[90%] md:w-[80%] px-6 py-6 md:py-6">
           {/* About Section */}
           <div className="mx-auto w-[90%] md:w-[80%] my-8">
@@ -118,9 +114,7 @@ const MethodologyPage = () => {
           </div>
 
         </div>
-      </div>
-      <Footer />
-    </>
+    </div>
   );
 };
 

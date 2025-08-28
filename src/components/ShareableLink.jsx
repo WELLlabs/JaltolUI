@@ -10,12 +10,16 @@ const ShareableLink = ({ state, district, subdistrict, village, minimal = false 
   const [timeRemaining, setTimeRemaining] = useState(0);
   const navigate = useNavigate();
 
-  // Determine base path (V2 internal route vs. main route)
+  // Determine base path (internal route, app route, or main route)
   const getBasePath = () => {
     const p = window.location.pathname;
-    return p.includes('/internal/impact-assessment-v2')
-      ? '/internal/impact-assessment-v2'
-      : '/impact-assessment';
+    if (p.includes('/internal/impact-assessment-v2')) {
+      return '/internal/impact-assessment-v2';
+    } else if (p.includes('/impact-assessment/app')) {
+      return '/impact-assessment/app';
+    } else {
+      return '/impact-assessment';
+    }
   };
 
   // Optionally check if this is a shared link and start timer (disabled in minimal mode)
