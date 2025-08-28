@@ -28,7 +28,7 @@ const Homepage = () => {
   };
 
   const handleTryClick = () => {
-    navigate('/impact-assessment/app');
+    navigate('/impact-assessment');
   };
 
 

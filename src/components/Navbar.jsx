@@ -112,7 +112,7 @@ const Navbar = () => {
 
               {/* Dropdown Menu */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-md shadow-lg py-1 z-[500] border border-outline">
+                <div className="absolute right-0 mt-2 w-64 bg-surface rounded-md shadow-lg py-1 z-50 border border-outline">
                   {/* User Info Header */}
                   <div className="px-4 py-3 border-b border-outline">
                     <div className="flex items-center space-x-3">
