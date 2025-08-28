@@ -432,9 +432,9 @@ const ImpactAssessmentV2 = () => {
             {/* Map Controls - Below the map */}
           <div className="space-y-2">
               {/* Legend */}
-              <div className="bg-white px-2 py-2 mt-2 h-9 rounded-lg shadow-sm">
-                <div className="flex flex-wrap items-center justify-start gap-x-2 gap-y-2 max-w-fit">
-                  <span className="text-sm font-semibold">Legend:</span>
+              <div className="bg-white px-3 py-2 mt-2 rounded-lg shadow-sm w-full">
+                <div className="text-sm font-semibold mb-1">Legend:</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2">
                   <div className="inline-flex items-center gap-1 whitespace-nowrap">
                     <div className="w-3 h-3 bg-green-600 rounded"></div>
                     <span className="text-xs">Tree Cover</span>
@@ -455,8 +455,8 @@ const ImpactAssessmentV2 = () => {
               </div>
             
               {/* Combined Controls Row: LULC Toggle + Year + Opacity + Buttons */}
-              <div className="flex flex-wrap items-center justify-between gap-2 shadow-sm">
-                <div className="flex items-center gap-2 bg-white p-2 h-9 rounded-lg">
+              <div className="flex flex-wrap items-center gap-2 w-full">
+                <div className="inline-flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg flex-none">
                   <button
                     onClick={() => setShowLulc(!showLulc)}
                     className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
@@ -467,17 +467,17 @@ const ImpactAssessmentV2 = () => {
                   </button>
                   <label className="text-xs text-gray-700 whitespace-nowrap">Year:</label>
                   <div className="flex items-center gap-1">
-                    <div className="w-20">
-                      <Select
-                        options={lulcYearOptions}
+                  <div className="w-20">
+                    <Select
+                      options={lulcYearOptions}
                         value={lulcYearOptions.find(o => o.value === selectedLulcYear) || null}
                         onChange={(opt) => opt && setSelectedLulcYear(opt.value)}
-                        menuPlacement="top"
-                        isSearchable={false}
-                        placeholder="Year"
+                      menuPlacement="top"
+                      isSearchable={false}
+                      placeholder="Year"
                         menuPortalTarget={document.body}
                         isDisabled={isYearLoading}
-                        styles={{
+                      styles={{
                           control: (base) => ({ ...base, minHeight: '28px', fontSize: '12px', borderRadius: '4px' }),
                           option: (base, { isFocused, isSelected }) => ({
                             ...base,
@@ -491,13 +491,14 @@ const ImpactAssessmentV2 = () => {
                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                       }}
                     />
-                    </div>
+                  </div>
                     {isYearLoading && (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                       </div>
                     )}
                   </div>
+                  <div className="flex items-center gap-2">
                   <label className="text-xs text-gray-700 whitespace-nowrap">Opacity:</label>
                   <input
                     type="range"
@@ -506,9 +507,10 @@ const ImpactAssessmentV2 = () => {
                     step="0.1"
                     value={lulcOpacity}
                     onChange={(e) => setLulcOpacity(parseFloat(e.target.value))}
-                    className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      className="w-24 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
-                  <span className="text-xs text-gray-600 w-8">{Math.round(lulcOpacity * 100)}%</span>
+                    <span className="text-xs text-gray-600 w-10 text-right">{Math.round(lulcOpacity * 100)}%</span>
+                  </div>
                 </div>
 
                 <button
