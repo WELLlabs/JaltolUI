@@ -50,26 +50,24 @@ const ImpactAssessmentGate = () => {
       <div className="max-w-lg mx-auto text-center bg-white rounded-2xl shadow-2xl p-6 md:p-8 border border-gray-100">
         {/* Fun header with emojis */}
         <div className="mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600 mb-3">
-            🌱 Welcome to Jaltol! 🌱
+          <h2 className="text-2xl md:text-2xl font-bold text-blue-700 bg-clip-text mb-3">
+            Welcome to Jaltol! 
           </h2>
-          <div className="text-2xl md:text-3xl mb-4">
-            💧🌾🌿🌱
-          </div>
+          <hr className="border-gray-200 mb-3" />
         </div>
 
         {/* Main message */}
         <div className="mb-6 space-y-3">
-          <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-3">
-            Are you a registered Jaltol user? 🤔
+          <h2 className="text-lg md:text-base font-semibold text-gray-800 mb-3">
+            Are you a registered Jaltol user? 
           </h2>
 
-          <p className="text-base text-gray-600 leading-relaxed mb-4">
-            <strong>If yes:</strong> Sign in to access the complete set of features and save your work! 💾
+          <p className="text-sm md:text-sm text-gray-600 leading-relaxed mb-4">
+            <strong>If yes:</strong> Sign in to access the complete set of features and save your work!
           </p>
 
-          <p className="text-base text-gray-600 leading-relaxed mb-6">
-            <strong>If not:</strong> Register with us! We'll email you first about new features, datasets, and exciting updates. 📧✨
+          <p className="text-sm md:text-sm text-gray-600 leading-relaxed mb-6">
+            <strong>If not:</strong> Register with us! We'll email you first about new features, datasets, and exciting updates. 
           </p>
         </div>
 
@@ -80,13 +78,13 @@ const ImpactAssessmentGate = () => {
               onClick={handleSignIn}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm"
             >
-              🔑 Sign In
+              Sign In
             </button>
             <button
               onClick={handleRegister}
               className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl text-sm"
             >
-              🌟 Register
+              Register
             </button>
           </div>
         </div>
@@ -101,12 +99,6 @@ const ImpactAssessmentGate = () => {
           </button>
         </div>
 
-        {/* Fun footer */}
-        <div className="mt-6 text-gray-400">
-          <p className="text-xs">
-            🌟 Ready to explore India's environmental data? Let's get started! 🌟
-          </p>
-        </div>
       </div>
     </div>
   );
