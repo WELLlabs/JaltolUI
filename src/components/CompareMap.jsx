@@ -22,7 +22,7 @@ const Legend = () => {
       const div = L.DomUtil.create('div', 'info legend');
       const labels = [
         { color: "#397d49", label: "Tree/Forests" },
-        { color: "#8b9dc3", label: "Single cropping cropland" },
+        { color: "#0096FF", label: "Single cropping cropland" },
         { color: "#222f5b", label: "Double cropping cropland" },
         { color: "#946b2d", label: "Shrub/Scrub" }
       ];

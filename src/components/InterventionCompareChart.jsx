@@ -229,7 +229,7 @@ const InterventionCompareChart = ({ onDataChange, interventionStartYear, interve
                             label: `Single Cropland - ${villageValue}`,
                             type: 'line',  // Line chart for single cropland
                             data: labels.map(label => landCoverData[label]['Single cropping cropland']),
-                            borderColor: '#8b9dc3',
+                            borderColor: '#0096FF',
                             backgroundColor: 'rgba(139, 157, 195, 0.2)',  // Lighter and more transparent
                             yAxisID: 'y',
                         },
@@ -367,7 +367,7 @@ const InterventionCompareChart = ({ onDataChange, interventionStartYear, interve
                     label: `Single Cropland (Polygon) - ${villageValue}`,
                     type: 'line',
                     data: years.map(year => interventionStats[year]?.single_crop || 0),
-                    borderColor: '#8b9dc3',
+                    borderColor: '#0096FF',
                     backgroundColor: 'rgba(139, 157, 195, 0.2)',
                     yAxisID: 'y',
                 },
