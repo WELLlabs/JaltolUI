@@ -62,10 +62,10 @@ const ProjectPage = () => {
       <div className="flex-1">
         {/* Header */}
         <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto px-10 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl font-semibold text-gray-900">
                   {project?.name || 'Project Details'}
                 </h1>
                 {project && (
@@ -78,7 +78,7 @@ const ProjectPage = () => {
                 onClick={() => navigate('/dashboard')}
                 className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                ← Back to Dashboard
+                ← 
               </button>
             </div>
           </div>

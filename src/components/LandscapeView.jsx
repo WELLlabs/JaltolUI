@@ -22,14 +22,6 @@ const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, intervent
       )
     },
     {
-      key: 'lulcMap',
-      label: 'Land Use Land Cover',
-      // filled box for raster
-      icon: (
-        <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: '#8b9dc3' }} />
-      )
-    },
-    {
       key: 'interventions',
       label: 'Interventions',
       // simple geometric icon
@@ -51,6 +43,14 @@ const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, intervent
           <circle cx="8" cy="8" r="3" fill="#60A5FA" opacity="0.7"/>
         </svg>
       )
+    },
+    {
+      key: 'lulcMap',
+      label: 'Land Use Land Cover',
+      // filled box for raster
+      icon: (
+        <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: '#8b9dc3' }} />
+      )
     }
   ];
 
@@ -62,34 +62,11 @@ const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, intervent
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-semibold text-gray-800">Legend & Layers</h3>
-      </div>
-
-      {/* Primary layer toggles */}
-      <div className="flex flex-wrap gap-3">
-        {primaryItems.map(item => (
-          <button
-            key={item.key}
-            type="button"
-            aria-pressed={layerVisibility[item.key]}
-            onClick={() => toggle(item.key)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md border text-sm transition select-none focus:outline-none focus:ring-2 focus:ring-offset-1 ${
-              layerVisibility[item.key]
-                ? 'bg-white border-gray-300 text-gray-800'
-                : 'bg-gray-50 border-gray-200 text-gray-500 opacity-60'
-            }`}
-            title={`Toggle ${item.label}`}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </div>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-800 p-4">
+      <h3 className="text-xl font-semibold text-gray-800 mb-3">Layers</h3>
 
       {/* LULC legend (static swatches) */}
-      <div className="mt-4 border-t border-gray-200 pt-3">
+      <div className="mt-2 pt-3  border-t border-gray-500">
         <div className="text-sm font-medium text-gray-700 mb-2">LULC Classes</div>
         <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
           {lulcLegend.map(item => (
@@ -103,7 +80,7 @@ const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, intervent
 
       {/* Interventions sub-layer toggles */}
       {interventionTypes && interventionTypes.length > 0 && (
-        <div className="mt-4 border-t border-gray-200 pt-3">
+        <div className="mt-4 border-t border-gray-500 pt-3">
           <div className="text-sm font-medium text-gray-700 mb-2">Intervention Types</div>
           <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
             {interventionTypes.map((type) => (
@@ -142,6 +119,163 @@ const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, intervent
 
 
 
+// Map Sidebar Component
+const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpanded, isMobile }) => {
+  console.log('MapSidebar rendered - isMobile:', isMobile, 'isExpanded:', isExpanded);
+  const layerItems = [
+    {
+      key: 'villageBoundary',
+      label: 'Village Boundary',
+      icon: (
+        <span className="inline-block w-4 h-4 rounded-sm border-2 border-red-500" />
+      )
+    },
+    {
+      key: 'interventions',
+      label: 'Interventions',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 16 16" className="text-purple-600">
+          <rect x="2" y="2" width="5" height="5" fill="#8B5CF6" />
+          <circle cx="12" cy="5" r="3" fill="#06B6D4" />
+          <path d="M8 14 L12 10 L4 10 Z" fill="#F59E0B" />
+        </svg>
+      )
+    },
+    {
+      key: 'wells',
+      label: 'Wells',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 16 16" className="text-blue-600">
+          <circle cx="8" cy="8" r="6" fill="#3B82F6" stroke="#1E40AF" strokeWidth="1"/>
+          <circle cx="8" cy="8" r="3" fill="#60A5FA" opacity="0.7"/>
+        </svg>
+      )
+    },
+    {
+      key: 'lulcMap',
+      label: 'Land Use Land Cover',
+      icon: (
+        <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: '#8b9dc3' }} />
+      )
+    }
+  ];
+
+  const toggleLayer = (key) => {
+    setLayerVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  if (isMobile) {
+    // Mobile layout: horizontal bar above map (positioned outside MapContainer)
+    return (
+      <div className={`
+        w-full bg-white bg-opacity-95 transition-all duration-300 rounded-lg border border-gray-500 mb-2 pt-2
+        ${isExpanded ? 'h-auto' : 'h-12'}
+      `}>
+        {/* Expand/Collapse Arrow */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-11/12 flex items-center justify-center p-2 hover:bg-gray-100 transition-colors mx-auto"
+          title={isExpanded ? "Collapse layer controls" : "Expand layer controls"}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            className={`text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+          >
+            <path
+              d="M8 6 L12 10 L4 10 Z"
+              stroke="currentColor"
+              strokeWidth="0"
+              fill="white"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+
+        {/* Layer Icons - Horizontal layout that wraps */}
+        {isExpanded && (
+          <div className="flex flex-wrap gap-2 p-3">
+            {layerItems.map(item => (
+              <button
+                key={item.key}
+                onClick={() => toggleLayer(item.key)}
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 hover:bg-gray-50 border
+                  ${layerVisibility[item.key] ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}
+                `}
+                title={`${item.label} - ${layerVisibility[item.key] ? 'Visible' : 'Hidden'}`}
+              >
+                {item.icon}
+                <span className="text-sm text-gray-700">{item.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop layout: vertical sidebar (outside map container)
+  return (
+    <div className={`
+      bg-white bg-opacity-95 rounded-lg shadow-md border border-gray-200 transition-all duration-300 min-h-[400px]
+      ${isExpanded
+        ? 'w-48'
+        : 'w-12'
+      }
+    `}>
+      {/* Expand/Collapse Arrow */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-11/12 flex items-center justify-center p-2 hover:bg-gray-100 transition-colors mt-2 mx-auto"
+        title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          className={`text-gray-600 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+        >
+          <path
+            d="M6 12 L10 8 L6 4"
+            stroke="currentColor"
+            strokeWidth="1"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {/* Layer Icons */}
+      <div className={`
+        flex flex-col gap-2 p-2
+        ${isExpanded ? 'items-start' : 'items-center'}
+      `}>
+        {layerItems.map(item => (
+          <button
+            key={item.key}
+            onClick={() => toggleLayer(item.key)}
+            className={`
+              flex items-center gap-2 p-2 rounded-md transition-all duration-200 hover:bg-gray-50
+              ${layerVisibility[item.key] ? 'bg-blue-50 border border-blue-200' : 'border border-transparent'}
+              ${isExpanded ? 'w-full justify-start' : 'w-8 h-8 justify-center'}
+            `}
+            title={`${item.label} - ${layerVisibility[item.key] ? 'Visible' : 'Hidden'}`}
+          >
+            {item.icon}
+            {isExpanded && (
+              <span className="text-sm text-gray-700 truncate">{item.label}</span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const LandscapeView = ({ project }) => {
   // Validate imported data on component initialization
   console.log('LandscapeView: Imported interventions data:', interventionsJsonData?.length, 'items');
@@ -173,6 +307,30 @@ const LandscapeView = ({ project }) => {
   const [map, setMap] = useState(null);
   const [interventionTypes, setInterventionTypes] = useState([]);
   const [typeVisibility, setTypeVisibility] = useState({});
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isMobile, setIsMobile] = useState(false); // Default to desktop, will be updated on mount
+
+  // Handle responsive behavior
+  useEffect(() => {
+    // Set initial mobile state on mount
+    const initialIsMobile = window.innerWidth < 768;
+    setIsMobile(initialIsMobile);
+    console.log('Initial mobile state:', initialIsMobile, 'width:', window.innerWidth);
+
+    const handleResize = () => {
+      const newIsMobile = window.innerWidth < 768;
+      setIsMobile(newIsMobile);
+      console.log('Window resized, isMobile:', newIsMobile, 'width:', window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Debug logging for sidebar state
+  useEffect(() => {
+    console.log('Sidebar state - isMobile:', isMobile, 'isExpanded:', isSidebarExpanded);
+  }, [isMobile, isSidebarExpanded]);
 
   // Fixed location for demo: Gujarat, Valsad, Kaprada
   const stateName = 'Gujarat';
@@ -449,26 +607,34 @@ const createInterventionIcon = (type) => {
       {/* Desktop: map takes 2/3, controls 1/3; mobile: stacked */}
       <section className="mx-auto w-[95%] py-3 md:py-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Map */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-4 min-h-[420px] border border-gray-200 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-semibold text-gray-800">Landscape View</h1>
-            <p className="text-gray-600 text-sm">Interactive Map</p>
-          </div>
+        <div className="bg-white rounded-lg shadow-sm p-4 md:p-4 min-h-[420px] border border-gray-800 lg:col-span-2">
 
-          {/* Map Container */}
-          <div className="relative h-[350px] md:h-[400px] rounded-lg overflow-hidden border border-gray-200">
-            {isLoading ? (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              </div>
-            ) : (
-              <MapContainer
-                center={defaultCenter}
-                zoom={defaultZoom}
-                className="w-full h-full"
-                zoomControl={true}
-                ref={setMap}
-              >
+          {/* Mobile Sidebar - Above Map */}
+          {isMobile && !isLoading && (
+            <MapSidebar
+              layerVisibility={layerVisibility}
+              setLayerVisibility={setLayerVisibility}
+              isExpanded={isSidebarExpanded}
+              setIsExpanded={setIsSidebarExpanded}
+              isMobile={isMobile}
+            />
+          )}
+
+          {/* Map Container - Mobile */}
+          {isMobile && (
+            <div className="relative rounded-lg overflow-hidden border border-gray-200 h-[300px]">
+              {isLoading ? (
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <MapContainer
+                  center={defaultCenter}
+                  zoom={defaultZoom}
+                  className="w-full h-full"
+                  zoomControl={true}
+                  ref={setMap}
+                >
                 <TileLayer
                   attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
                   url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
@@ -566,27 +732,147 @@ const createInterventionIcon = (type) => {
                 })()}
               </MapContainer>
             )}
-          </div>
+            </div>
+          )}
+
+          {/* Desktop Layout with Sidebar */}
+          {!isMobile && (
+            <div className="flex gap-4">
+              {console.log('Desktop layout rendered')}
+              {/* Desktop Sidebar - Outside Map */}
+              <MapSidebar
+                layerVisibility={layerVisibility}
+                setLayerVisibility={setLayerVisibility}
+                isExpanded={isSidebarExpanded}
+                setIsExpanded={setIsSidebarExpanded}
+                isMobile={isMobile}
+              />
+
+              {/* Map Container */}
+              <div className="flex-1 relative rounded-lg overflow-hidden border border-gray-200 h-[350px] md:h-[400px]">
+                {isLoading ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : (
+                  <MapContainer
+                    center={defaultCenter}
+                    zoom={defaultZoom}
+                    className="w-full h-full"
+                    zoomControl={true}
+                    ref={setMap}
+                  >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                    subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+                  />
+
+                  {/* Village Boundary Layer */}
+                  {layerVisibility.villageBoundary && boundaryData && (
+                    <GeoJSON
+                      data={boundaryData}
+                      style={{
+                        color: '#FF4433',
+                        weight: 2,
+                        opacity: 0.8,
+                        fillColor: '#FF4433',
+                        fillOpacity: 0.1
+                      }}
+                    />
+                  )}
+
+                  {/* LULC Layer */}
+                  {layerVisibility.lulcMap && lulcTilesUrl && (
+                    <TileLayer
+                      url={lulcTilesUrl}
+                      opacity={0.7}
+                      attribution="LULC Data"
+                    />
+                  )}
+
+                  {/* Interventions Layer */}
+                  {layerVisibility.interventions && interventionsData && (() => {
+                    const validInterventions = interventionsData.filter(intervention =>
+                      intervention.latitude && intervention.longitude &&
+                      !isNaN(intervention.latitude) && !isNaN(intervention.longitude) &&
+                      (typeVisibility[intervention.intervention_type] ?? true)
+                    );
+                    console.log('Rendering', validInterventions.length, 'valid interventions out of', interventionsData.length, 'total');
+                    return validInterventions.map((intervention) => (
+                    <Marker
+                      key={intervention.intervention_id}
+                      position={[intervention.latitude, intervention.longitude]}
+                      icon={createInterventionIcon(intervention.intervention_type)}
+                    >
+                      <Popup>
+                        <div className="p-2">
+                          <h3 className="font-semibold text-sm">{intervention.intervention_id}</h3>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <p><strong>Type:</strong> {intervention.intervention_type.replace('_', ' ').toUpperCase()}</p>
+                            <p><strong>Village:</strong> {intervention.village}</p>
+                            <p><strong>Status:</strong> {intervention.status}</p>
+                            <p><strong>Completed:</strong> {intervention.month_completed}</p>
+                            {intervention.volume_m3 && <p><strong>Volume:</strong> {intervention.volume_m3} m³</p>}
+                            {intervention.length_m && <p><strong>Dimensions:</strong> {intervention.length_m}m × {intervention.breadth_m}m</p>}
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                    ));
+                  })()}
+
+                  {/* Wells Layer */}
+                  {layerVisibility.wells && wellsData && (() => {
+                    const validWells = wellsData.filter(well =>
+                      well.latitude && well.longitude &&
+                      !isNaN(well.latitude) && !isNaN(well.longitude)
+                    );
+                    console.log('Rendering', validWells.length, 'valid wells out of', wellsData.length, 'total');
+                    return validWells.map((well) => (
+                    <Marker
+                      key={well.well_id}
+                      position={[well.latitude, well.longitude]}
+                      icon={L.divIcon({
+                        className: 'custom-well-marker',
+                        html: `<div style="background-color: #3B82F6; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
+                        iconSize: [10, 10],
+                        iconAnchor: [5, 5]
+                      })}
+                    >
+                      <Popup>
+                        <div className="p-2">
+                          <h3 className="font-semibold text-sm">{well.well_id}</h3>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <p><strong>Village:</strong> {well.village}</p>
+                            <p><strong>CRP:</strong> {well.name_of_crp}</p>
+                            <p><strong>Depth:</strong> {well.total_well_depth_m}m</p>
+                            <p><strong>Water Level:</strong> {well.water_level_m}m</p>
+                            <p><strong>Water Use:</strong> {well.water_use}</p>
+                            <p><strong>Owner:</strong> {well.owner_operator}</p>
+                            {well.springs_visible && <p><strong>Springs:</strong> {well.springs_visible}</p>}
+                          </div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                    ));
+                  })()}
+                  </MapContainer>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column - Controls */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-4 min-h-[420px] border border-gray-200 lg:col-span-1">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">Map Controls</h2>
-            <p className="text-gray-600 text-sm">Layer Management</p>
-          </div>
-
-          {/* Combined Legend + Layer Controls */}
-          <div className="mb-6">
-            <CombinedLegendControls
+        {/* Combined Legend + Layer Controls */}
+        <CombinedLegendControls
               layerVisibility={layerVisibility}
               setLayerVisibility={setLayerVisibility}
               interventionTypes={interventionTypes}
               typeVisibility={typeVisibility}
               setTypeVisibility={setTypeVisibility}
             />
-          </div>
-        </div>
       </section>
 
     </div>
