@@ -14,7 +14,7 @@ const MiniLegend = () => {
       const div = L.DomUtil.create('div', 'info legend');
       const labels = [
         { color: "#397d49", label: "Tree/Forests" },
-        { color: "#8b9dc3", label: "Single cropping" },
+        { color: "#0096FF", label: "Single cropping" },
         { color: "#222f5b", label: "Double cropping" },
         { color: "#946b2d", label: "Shrub/Scrub" }
       ];

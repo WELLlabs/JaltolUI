@@ -312,7 +312,7 @@ const LandCoverChangeChart = ({ onDataChange, interventionStartYear, interventio
                         label: 'Single Cropland',
                         type: 'line',
                         data: labels.map(label => landCoverData[label]['Single cropping cropland']),
-                        borderColor: '#8b9dc3',
+                        borderColor: '#0096FF',
                         backgroundColor: 'rgba(139, 157, 195, 0.5)',
                         yAxisID: 'y',
                         hidden: false,
