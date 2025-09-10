@@ -15,9 +15,19 @@ import methodologyBg1920 from '../assets/methodology-1920.jpg';
 
 // Ensure correct path
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const Homepage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleMapsClick = () => {
     navigate('/maps-page'); // Adjust the path to your maps page

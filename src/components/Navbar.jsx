@@ -67,7 +67,7 @@ const Navbar = () => {
           
           {/* My Projects link - only show when authenticated */}
           {isAuthenticated && (
-            <Link to="/my-projects" className="text-lg text-primary-foreground hover:text-warning">My Projects</Link>
+            <Link to="/dashboard" className="text-lg text-primary-foreground hover:text-warning">Dashboard</Link>
           )}
           
           {/* Pricing link - show for everyone */}
@@ -137,11 +137,11 @@ const Navbar = () => {
 
                   {/* Menu Items */}
                   <Link
-                    to="/my-projects"
+                    to="/dashboard"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-surface-variant hover:text-warning transition-colors"
                     onClick={() => setShowUserMenu(false)}
                   >
-                    My Projects
+                    Dashboard
                   </Link>
                   <Link
                     to="/pricing"
@@ -205,9 +205,9 @@ const Navbar = () => {
           <Link to="/impact-assessment" className="block text-primary-foreground hover:text-warning py-2">Assess Impact</Link>
           <Link to="/maps-page" className="block text-primary-foreground hover:text-warning py-2">Maps</Link>
           <Link to="/methodology" className="block text-primary-foreground hover:text-warning py-2">Methodology</Link>
-          
+
           {isAuthenticated && (
-            <Link to="/my-projects" className="block text-primary-foreground hover:text-warning py-2">My Projects</Link>
+            <Link to="/dashboard" className="block text-primary-foreground hover:text-warning py-2">Dashboard</Link>
           )}
           
           <Link to="/pricing" className="block text-primary-foreground hover:text-warning py-2">Pricing</Link>

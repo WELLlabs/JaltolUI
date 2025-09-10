@@ -23,10 +23,10 @@
     "html2canvas": "^1.4.1",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
-    "lucide-react": "^0.463.0",
     "leaflet-easyprint": "^2.1.9",
     "leaflet-image": "^0.4.0",
     "leaflet-spin": "^1.1.2",
+    "lucide-react": "^0.463.0",
     "papaparse": "^5.4.1",
     "posthog-js": "^1.258.6",
     "react": "^18.3.1",
@@ -38,7 +38,8 @@
     "react-select": "^5.8.0",
     "recoil": "^0.7.7",
     "shadcn-ui": "^0.9.4",
-    "spin.js": "^4.1.1"
+    "spin.js": "^4.1.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",

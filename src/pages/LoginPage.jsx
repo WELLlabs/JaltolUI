@@ -85,8 +85,8 @@ const LoginPage = () => {
         if (userData && !userData.organization) {
           navigate('/profile-setup');
         } else {
-          // Redirect to the page they were trying to access, or home
-          const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
+          // Redirect to the page they were trying to access, or dashboard
+          const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
           navigate(redirectTo);
         }
       } else {
@@ -113,7 +113,7 @@ const LoginPage = () => {
         if (result.isNewUser) {
           navigate('/profile-setup');
         } else {
-          const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/';
+          const redirectTo = new URLSearchParams(window.location.search).get('redirect') || '/dashboard';
           navigate(redirectTo);
         }
       } else {

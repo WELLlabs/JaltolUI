@@ -21,6 +21,8 @@ import RegisterPage from "./pages/RegisterPage";
 import PricingPage from "./pages/PricingPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
+import Dashboard from "./pages/Dashboard";
+import ProjectPage from "./pages/ProjectPage";
 
 // Import components
 import ImpactAssessmentGate from './components/ImpactAssessmentGate';
@@ -60,9 +62,19 @@ const AppContent = () => {
               <ProfileSetupPage />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
           <Route path="/my-projects" element={
             <ProtectedRoute>
               <MyProjectsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/project" element={
+            <ProtectedRoute>
+              <ProjectPage />
             </ProtectedRoute>
           } />
           
