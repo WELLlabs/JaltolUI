@@ -62,25 +62,23 @@ const ProjectPage = () => {
       <div className="flex-1">
         {/* Header */}
         <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="container mx-auto px-10 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {project?.name || 'Project Details'}
-                </h1>
-                {project && (
-                  <p className="text-gray-600 mt-1">
-                    {project.village && project.district ? `${project.village}, ${project.district}` : 'Project Location'}
-                  </p>
-                )}
-              </div>
+          <div className="container ml-0 px-3 py-3">
+            <div className="flex items-center justify-start gap-4">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors ml-0"
               >
                 ← 
               </button>
-            </div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {project?.name || 'Project Details'}
+              </h1>
+              {project && (
+                <p className="text-gray-600 mt-1 no-wrap">
+                  {project.village && project.district ? `${project.village}, ${project.district}` : 'Project Location'}
+                </p>
+              )}
+            </div>              
           </div>
         </div>
 

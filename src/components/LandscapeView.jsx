@@ -8,7 +8,17 @@ import interventionsJsonData from '../assets/vapi-interventions-y1.json';
 import wellsJsonData from '../assets/vapi-wells-y1.json';
 
 // Combined Legend + Layer toggles (inspired by ImpactAssessment V2)
-const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, interventionTypes, typeVisibility, setTypeVisibility }) => {
+const CombinedLegendControls = ({
+  layerVisibility,
+  setLayerVisibility,
+  interventionTypes,
+  typeVisibility,
+  setTypeVisibility,
+  selectedIntervention,
+  setSelectedIntervention
+}) => {
+  const [isLayersCollapsed, setIsLayersCollapsed] = useState(false);
+  const [isDataCollapsed, setIsDataCollapsed] = useState(false);
   const toggle = (key) => setLayerVisibility(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleType = (type) => setTypeVisibility(prev => ({ ...prev, [type]: !prev[type] }));
 
@@ -62,61 +72,213 @@ const CombinedLegendControls = ({ layerVisibility, setLayerVisibility, intervent
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-800 p-4">
-      <h3 className="text-xl font-semibold text-gray-800 mb-3">Layers</h3>
+    <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
+      {/* Layers Panel */}
+      <div className={`bg-white rounded-t-lg transition-all duration-300 ${
+        isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isLayersCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
+      }`}>
+        {/* Collapsible Title */}
+        <button
+          onClick={() => setIsLayersCollapsed(!isLayersCollapsed)}
+          className="w-full flex items-center justify-between hover:bg-gray-50 transition-colors rounded px-2 py-1"
+          title={isLayersCollapsed ? "Expand layers panel" : "Collapse layers panel"}
+        >
+          <h3 className="text-xl font-semibold text-gray-800">Layers</h3>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            className={`text-gray-600 transition-transform duration-300 ${isLayersCollapsed ? '' : 'rotate-180'}`}
+          >
+            <path
+              d="M8 6 L12 10 L4 10 Z"
+              stroke="currentColor"
+              strokeWidth="0"
+              fill="white"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
 
-      {/* LULC legend (static swatches) */}
-      <div className="mt-2 pt-3  border-t border-gray-500">
-        <div className="text-sm font-medium text-gray-700 mb-2">LULC Classes</div>
-        <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
-          {lulcLegend.map(item => (
-            <li key={item.label} className="flex items-center gap-2">
-              <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: item.color }} />
-              <span className="text-gray-700">{item.label}</span>
-            </li>
-          ))}
-        </ul>
+        {/* Collapsible Content */}
+        <div className={`flex-1 transition-all duration-300 overflow-hidden ${
+          isLayersCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+        }`}>
+          <div className="p-4 pt-0">
+            {/* LULC legend (static swatches) */}
+            <div className="mt-2 pt-3">
+              <div className="text-sm font-medium text-gray-700 mb-2">LULC Classes</div>
+              <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
+                {lulcLegend.map(item => (
+                  <li key={item.label} className="flex items-center gap-2">
+                    <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: item.color }} />
+                    <span className="text-gray-700">{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Interventions sub-layer toggles */}
+            {interventionTypes && interventionTypes.length > 0 && (
+              <div className="mt-4 border-t border-gray-500 pt-3">
+                <div className="text-sm font-medium text-gray-700 mb-2">Intervention Types</div>
+                <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
+                  {interventionTypes.map((type) => (
+                    <li key={type}>
+                      <button
+                        type="button"
+                        aria-pressed={!!typeVisibility[type]}
+                        onClick={() => toggleType(type)}
+                        disabled={!layerVisibility.interventions}
+                        className={`w-full flex items-center gap-1 px-2 py-1 rounded border transition select-none ${
+                          typeVisibility[type] ? 'bg-white border-gray-300 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-500 opacity-60'
+                        } ${!layerVisibility.interventions ? 'pointer-events-none opacity-40' : ''}`}
+                        title={`Toggle ${type}`}
+                      >
+                        {/* Minimal inline icons per type */}
+                        {type === 'gabion' && <span className="inline-block w-3 h-3 bg-purple-500" />}
+                        {type === 'gully-plug' && <span className="inline-block w-3 h-3 rounded-full bg-emerald-500" />}
+                        {type === 'check-dam' && <span className="inline-block w-3 h-3 bg-blue-500" />}
+                        {type === 'earthen-dam' && <span className="inline-block w-3 h-3 bg-amber-500" />}
+                        {type === 'farm-pond' && <span className="inline-block w-3 h-3 rounded-sm bg-cyan-500" />}
+                        {type === 'bunding' && <span className="inline-block w-3 h-1 bg-red-500" />}
+                        {type === 'CCT' && <span className="inline-block w-3 h-1 bg-violet-500" />}
+                        {!['gabion','gully-plug','check-dam','earthen-dam','farm-pond','bunding','CCT'].includes(type) && (
+                          <span className="inline-block w-3 h-3 bg-gray-400" />
+                        )}
+                        <span className="truncate capitalize">{type.replace('-', ' ')}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Interventions sub-layer toggles */}
-      {interventionTypes && interventionTypes.length > 0 && (
-        <div className="mt-4 border-t border-gray-500 pt-3">
-          <div className="text-sm font-medium text-gray-700 mb-2">Intervention Types</div>
-          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
-            {interventionTypes.map((type) => (
-              <li key={type}>
-                <button
-                  type="button"
-                  aria-pressed={!!typeVisibility[type]}
-                  onClick={() => toggleType(type)}
-                  disabled={!layerVisibility.interventions}
-                  className={`w-full flex items-center gap-1 px-2 py-1 rounded border transition select-none ${
-                    typeVisibility[type] ? 'bg-white border-gray-300 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-500 opacity-60'
-                  } ${!layerVisibility.interventions ? 'pointer-events-none opacity-40' : ''}`}
-                  title={`Toggle ${type}`}
-                >
-                  {/* Minimal inline icons per type */}
-                  {type === 'gabion' && <span className="inline-block w-3 h-3 bg-purple-500" />}
-                  {type === 'gully-plug' && <span className="inline-block w-3 h-3 rounded-full bg-emerald-500" />}
-                  {type === 'check-dam' && <span className="inline-block w-3 h-3 bg-blue-500" />}
-                  {type === 'earthen-dam' && <span className="inline-block w-3 h-3 bg-amber-500" />}
-                  {type === 'farm-pond' && <span className="inline-block w-3 h-3 rounded-sm bg-cyan-500" />}
-                  {type === 'bunding' && <span className="inline-block w-3 h-1 bg-red-500" />}
-                  {type === 'CCT' && <span className="inline-block w-3 h-1 bg-violet-500" />}
-                  {!['gabion','gully-plug','check-dam','earthen-dam','farm-pond','bunding','CCT'].includes(type) && (
-                    <span className="inline-block w-3 h-3 bg-gray-400" />
+      {/* Divider */}
+      <div className="h-px bg-gray-300"></div>
+
+      {/* Intervention Data Panel */}
+      <div className={`bg-white rounded-b-lg transition-all duration-300 ${
+        isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isDataCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
+      }`}>
+        {/* Collapsible Title */}
+        <button
+          onClick={() => setIsDataCollapsed(!isDataCollapsed)}
+          className="w-full flex items-center justify-between hover:bg-gray-50 transition-colors rounded px-2 py-1"
+          title={isDataCollapsed ? "Expand intervention data panel" : "Collapse intervention data panel"}
+        >
+          <h3 className="text-xl font-semibold text-gray-800">Intervention Data</h3>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            className={`text-gray-600 transition-transform duration-300 ${isDataCollapsed ? '' : 'rotate-180'}`}
+          >
+            <path
+              d="M8 6 L12 10 L4 10 Z"
+              stroke="currentColor"
+              strokeWidth="0"
+              fill="white"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+
+        {/* Collapsible Content */}
+        <div className={`flex-1 transition-all duration-300 overflow-hidden ${
+          isDataCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+        }`}>
+          <div className="p-4 pt-0">
+            {selectedIntervention ? (
+              /* Selected Intervention Details */
+              <div className="rounded-lg p-4 bg-gray-50 border border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-semibold text-gray-900">Selected Intervention</h4>
+                  <button
+                    onClick={() => setSelectedIntervention(null)}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                    title="Clear selection"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
+                      <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="0" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">ID:</span>
+                    <span className="text-gray-900">{selectedIntervention.intervention_id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Type:</span>
+                    <span className="text-gray-900">{selectedIntervention.intervention_type?.replace('_', ' ').toUpperCase()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Village:</span>
+                    <span className="text-gray-900">{selectedIntervention.village}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Status:</span>
+                    <span className="text-gray-900">{selectedIntervention.status}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Completed:</span>
+                    <span className="text-gray-900">{selectedIntervention.month_completed}</span>
+                  </div>
+                  {selectedIntervention.volume_m3 && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Volume:</span>
+                      <span className="text-gray-900">{selectedIntervention.volume_m3} m³</span>
+                    </div>
                   )}
-                  <span className="truncate capitalize">{type.replace('-', ' ')}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+                  {selectedIntervention.length_m && selectedIntervention.breadth_m && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Dimensions:</span>
+                      <span className="text-gray-900">{selectedIntervention.length_m}m × {selectedIntervention.breadth_m}m</span>
+                    </div>
+                  )}
+                  {selectedIntervention.height_m && (
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-600">Height:</span>
+                      <span className="text-gray-900">{selectedIntervention.height_m}m</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Placeholder content */
+              <div className="rounded-lg p-4 bg-gray-50 border border-gray-200 min-h-[200px] flex items-center justify-center">
+                <div className="text-center text-gray-600">
+                  <svg width="48" height="48" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-30 text-gray-400">
+                    <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                    <path fill="currentColor" d="M7 10h2v5H7zm4-3h2v8h-2zm4-1h2v9h-2z"/>
+                  </svg>
+                  <p className="text-sm font-medium text-gray-700">Intervention Data Panel</p>
+                  <p className="text-xs text-gray-500 mt-1">Click on an intervention marker to view details</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
+CombinedLegendControls.propTypes = {
+  layerVisibility: PropTypes.object.isRequired,
+  setLayerVisibility: PropTypes.func.isRequired,
+  interventionTypes: PropTypes.array,
+  typeVisibility: PropTypes.object,
+  setTypeVisibility: PropTypes.func,
+  selectedIntervention: PropTypes.object,
+  setSelectedIntervention: PropTypes.func
+};
 
 
 // Map Sidebar Component
@@ -220,7 +382,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
   // Desktop layout: vertical sidebar (outside map container)
   return (
     <div className={`
-      bg-white bg-opacity-95 rounded-lg shadow-md border border-gray-200 transition-all duration-300 min-h-[400px]
+      bg-white bg-opacity-95 rounded-lg shadow-md border border-gray-500 transition-all duration-300 min-h-[400px]
       ${isExpanded
         ? 'w-48'
         : 'w-12'
@@ -229,7 +391,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
       {/* Expand/Collapse Arrow */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-11/12 flex items-center justify-center p-2 hover:bg-gray-100 transition-colors mt-2 mx-auto"
+        className="w-8 h-8 flex items-center justify-center px-2 hover:bg-gray-100 transition-colors mt-2 mx-2"
         title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
       >
         <svg
@@ -241,8 +403,8 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
           <path
             d="M6 12 L10 8 L6 4"
             stroke="currentColor"
-            strokeWidth="1"
-            fill="none"
+            strokeWidth="0"
+            fill="white"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -251,7 +413,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
 
       {/* Layer Icons */}
       <div className={`
-        flex flex-col gap-2 p-2
+        flex flex-col gap-2 mt-2 px-2
         ${isExpanded ? 'items-start' : 'items-center'}
       `}>
         {layerItems.map(item => (
@@ -260,7 +422,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
             onClick={() => toggleLayer(item.key)}
             className={`
               flex items-center gap-2 p-2 rounded-md transition-all duration-200 hover:bg-gray-50
-              ${layerVisibility[item.key] ? 'bg-blue-50 border border-blue-200' : 'border border-transparent'}
+              ${layerVisibility[item.key] ? 'bg-white border-gray-300 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-500 opacity-60'}
               ${isExpanded ? 'w-full justify-start' : 'w-8 h-8 justify-center'}
             `}
             title={`${item.label} - ${layerVisibility[item.key] ? 'Visible' : 'Hidden'}`}
@@ -275,6 +437,8 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
     </div>
   );
 };
+
+
 
 const LandscapeView = ({ project }) => {
   // Validate imported data on component initialization
@@ -309,6 +473,7 @@ const LandscapeView = ({ project }) => {
   const [typeVisibility, setTypeVisibility] = useState({});
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false); // Default to desktop, will be updated on mount
+  const [selectedIntervention, setSelectedIntervention] = useState(null);
 
   // Handle responsive behavior
   useEffect(() => {
@@ -360,84 +525,84 @@ const LandscapeView = ({ project }) => {
   };
 
   // Create intervention-specific icons
-const createInterventionIcon = (type) => {
-  let iconUrl;
-    let iconSize = [20, 20];
+  const createInterventionIcon = (type) => {
+    let iconUrl;
+      let iconSize = [20, 20];
 
-  switch (type) {
-      case 'gabion':
+    switch (type) {
+        case 'gabion':
+          iconUrl = 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="6" width="16" height="8" fill="#8B5CF6" stroke="#6D28D9" stroke-width="1"/>
+              <rect x="1" y="12" width="18" height="2" fill="#6D28D9"/>
+            </svg>
+          `);
+          break;
+        case 'gully-plug':
+          iconUrl = 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="8" fill="#10B981" stroke="#047857" stroke-width="1"/>
+              <circle cx="10" cy="10" r="4" fill="#34D399" opacity="0.7"/>
+            </svg>
+          `);
+          break;
+        case 'check-dam':
+          iconUrl = 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="6" width="18" height="8" fill="#3B82F6" stroke="#1E40AF" stroke-width="1"/>
+              <rect x="0" y="12" width="20" height="2" fill="#1E40AF"/>
+            </svg>
+          `);
+          break;
+        case 'earthen-dam':
+          iconUrl = 'data:image/svg+xml;base64,' + btoa(`
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="7" width="16" height="6" fill="#F59E0B" stroke="#D97706" stroke-width="1"/>
+              <rect x="1" y="11" width="18" height="2" fill="#D97706"/>
+            </svg>
+          `);
+          break;
+        case 'farm-pond':
         iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="6" width="16" height="8" fill="#8B5CF6" stroke="#6D28D9" stroke-width="1"/>
-            <rect x="1" y="12" width="18" height="2" fill="#6D28D9"/>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="3" y="8" width="14" height="6" fill="#06B6D4" stroke="#0891B2" stroke-width="1"/>
+              <rect x="1" y="12" width="18" height="2" fill="#0891B2"/>
           </svg>
         `);
         break;
-      case 'gully-plug':
+        case 'bunding':
         iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10" cy="10" r="8" fill="#10B981" stroke="#047857" stroke-width="1"/>
-            <circle cx="10" cy="10" r="4" fill="#34D399" opacity="0.7"/>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 12 Q10 8 18 12" stroke="#EF4444" stroke-width="2" fill="none"/>
+              <path d="M2 14 Q10 10 18 14" stroke="#DC2626" stroke-width="1" fill="none"/>
           </svg>
         `);
         break;
-      case 'check-dam':
+        case 'CCT':
         iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="6" width="18" height="8" fill="#3B82F6" stroke="#1E40AF" stroke-width="1"/>
-            <rect x="0" y="12" width="20" height="2" fill="#1E40AF"/>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 10 Q10 6 18 10" stroke="#8B5CF6" stroke-width="2" fill="none"/>
+              <path d="M2 12 Q10 8 18 12" stroke="#7C3AED" stroke-width="1" fill="none"/>
           </svg>
         `);
         break;
-      case 'earthen-dam':
+      default:
         iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="7" width="16" height="6" fill="#F59E0B" stroke="#D97706" stroke-width="1"/>
-            <rect x="1" y="11" width="18" height="2" fill="#D97706"/>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="10" cy="10" r="8" fill="#6B7280" stroke="#374151" stroke-width="1"/>
           </svg>
         `);
-        break;
-      case 'farm-pond':
-      iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="8" width="14" height="6" fill="#06B6D4" stroke="#0891B2" stroke-width="1"/>
-            <rect x="1" y="12" width="18" height="2" fill="#0891B2"/>
-        </svg>
-      `);
-      break;
-      case 'bunding':
-      iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 12 Q10 8 18 12" stroke="#EF4444" stroke-width="2" fill="none"/>
-            <path d="M2 14 Q10 10 18 14" stroke="#DC2626" stroke-width="1" fill="none"/>
-        </svg>
-      `);
-      break;
-      case 'CCT':
-      iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 10 Q10 6 18 10" stroke="#8B5CF6" stroke-width="2" fill="none"/>
-            <path d="M2 12 Q10 8 18 12" stroke="#7C3AED" stroke-width="1" fill="none"/>
-        </svg>
-      `);
-      break;
-    default:
-      iconUrl = 'data:image/svg+xml;base64,' + btoa(`
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="10" cy="10" r="8" fill="#6B7280" stroke="#374151" stroke-width="1"/>
-        </svg>
-      `);
-  }
+    }
 
-  return L.icon({
-    iconUrl,
-    iconSize,
-      iconAnchor: [10, 10],
-      popupAnchor: [0, -10]
-  });
-};
+    return L.icon({
+      iconUrl,
+      iconSize,
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10]
+    });
+  };
 
-  // Monitor interventions and wells data state changes
+  // Monitor interventions data state changes
   useEffect(() => {
     console.log('Interventions data state changed:', interventionsData?.length, 'items');
     if (interventionsData && interventionsData.length > 0) {
@@ -445,6 +610,7 @@ const createInterventionIcon = (type) => {
     }
   }, [interventionsData]);
 
+  // Monitor wells data state changes
   useEffect(() => {
     console.log('Wells data state changed:', wellsData?.length, 'items');
     if (wellsData && wellsData.length > 0) {
@@ -485,6 +651,7 @@ const createInterventionIcon = (type) => {
     }
   }, [map, interventionsData, wellsData]);
 
+  // Set interventions data immediately from imported JSON
   useEffect(() => {
     // Set interventions data immediately from imported JSON
     console.log('Setting interventions data:', interventionsJsonData?.length, 'items');
@@ -603,9 +770,9 @@ const createInterventionIcon = (type) => {
   }
 
   return (
-    <div className="bg-surface text-gray-800 min-h-screen">
+    <div className="bg-surface text-gray-800 min-h-screen ">
       {/* Desktop: map takes 2/3, controls 1/3; mobile: stacked */}
-      <section className="mx-auto w-[95%] py-3 md:py-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section className="mx-auto w-[98%] py-3 md:py-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Map */}
         <div className="bg-white rounded-lg shadow-sm p-4 md:p-4 min-h-[420px] border border-gray-800 lg:col-span-2">
 
@@ -677,21 +844,10 @@ const createInterventionIcon = (type) => {
                     key={intervention.intervention_id}
                     position={[intervention.latitude, intervention.longitude]}
                     icon={createInterventionIcon(intervention.intervention_type)}
-                  >
-                    <Popup>
-                      <div className="p-2">
-                        <h3 className="font-semibold text-sm">{intervention.intervention_id}</h3>
-                        <div className="text-xs text-gray-600 space-y-1">
-                          <p><strong>Type:</strong> {intervention.intervention_type.replace('_', ' ').toUpperCase()}</p>
-                          <p><strong>Village:</strong> {intervention.village}</p>
-                          <p><strong>Status:</strong> {intervention.status}</p>
-                          <p><strong>Completed:</strong> {intervention.month_completed}</p>
-                          {intervention.volume_m3 && <p><strong>Volume:</strong> {intervention.volume_m3} m³</p>}
-                          {intervention.length_m && <p><strong>Dimensions:</strong> {intervention.length_m}m × {intervention.breadth_m}m</p>}
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
+                    eventHandlers={{
+                      click: () => setSelectedIntervention(intervention)
+                    }}
+                  />
                   ));
                 })()}
 
@@ -804,21 +960,10 @@ const createInterventionIcon = (type) => {
                       key={intervention.intervention_id}
                       position={[intervention.latitude, intervention.longitude]}
                       icon={createInterventionIcon(intervention.intervention_type)}
-                    >
-                      <Popup>
-                        <div className="p-2">
-                          <h3 className="font-semibold text-sm">{intervention.intervention_id}</h3>
-                          <div className="text-xs text-gray-600 space-y-1">
-                            <p><strong>Type:</strong> {intervention.intervention_type.replace('_', ' ').toUpperCase()}</p>
-                            <p><strong>Village:</strong> {intervention.village}</p>
-                            <p><strong>Status:</strong> {intervention.status}</p>
-                            <p><strong>Completed:</strong> {intervention.month_completed}</p>
-                            {intervention.volume_m3 && <p><strong>Volume:</strong> {intervention.volume_m3} m³</p>}
-                            {intervention.length_m && <p><strong>Dimensions:</strong> {intervention.length_m}m × {intervention.breadth_m}m</p>}
-                          </div>
-                        </div>
-                      </Popup>
-                    </Marker>
+                      eventHandlers={{
+                        click: () => setSelectedIntervention(intervention)
+                      }}
+                    />
                     ));
                   })()}
 
@@ -872,6 +1017,8 @@ const createInterventionIcon = (type) => {
               interventionTypes={interventionTypes}
               typeVisibility={typeVisibility}
               setTypeVisibility={setTypeVisibility}
+              selectedIntervention={selectedIntervention}
+              setSelectedIntervention={setSelectedIntervention}
             />
       </section>
 
@@ -887,14 +1034,6 @@ LandscapeView.propTypes = {
     district: PropTypes.string,
     state: PropTypes.string
   })
-};
-
-CombinedLegendControls.propTypes = {
-  layerVisibility: PropTypes.object.isRequired,
-  setLayerVisibility: PropTypes.func.isRequired,
-  interventionTypes: PropTypes.array,
-  typeVisibility: PropTypes.object,
-  setTypeVisibility: PropTypes.func
 };
 
 
