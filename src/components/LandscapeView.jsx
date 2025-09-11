@@ -80,10 +80,10 @@ const CombinedLegendControls = ({
         {/* Collapsible Title */}
         <button
           onClick={() => setIsLayersCollapsed(!isLayersCollapsed)}
-          className="w-full flex items-center justify-between hover:bg-gray-50 transition-colors rounded px-2 py-1"
+          className="w-full flex items-center justify-between border border-gray-500 bg-white hover:bg-gray-50 transition-colors rounded px-2 py-1"
           title={isLayersCollapsed ? "Expand layers panel" : "Collapse layers panel"}
         >
-          <h3 className="text-xl font-semibold text-gray-800">Layers</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Layers</h3>
           <svg
             width="16"
             height="16"
@@ -94,7 +94,7 @@ const CombinedLegendControls = ({
               d="M8 6 L12 10 L4 10 Z"
               stroke="currentColor"
               strokeWidth="0"
-              fill="white"
+              fill="black"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -158,8 +158,6 @@ const CombinedLegendControls = ({
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-gray-300"></div>
 
       {/* Intervention Data Panel */}
       <div className={`bg-white rounded-b-lg transition-all duration-300 ${
@@ -168,10 +166,10 @@ const CombinedLegendControls = ({
         {/* Collapsible Title */}
         <button
           onClick={() => setIsDataCollapsed(!isDataCollapsed)}
-          className="w-full flex items-center justify-between hover:bg-gray-50 transition-colors rounded px-2 py-1"
+          className="w-full flex items-center justify-between border border-gray-500 bg-white hover:bg-gray-50 transition-colors rounded px-2 py-1"
           title={isDataCollapsed ? "Expand intervention data panel" : "Collapse intervention data panel"}
         >
-          <h3 className="text-xl font-semibold text-gray-800">Intervention Data</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Intervention Data</h3>
           <svg
             width="16"
             height="16"
@@ -182,7 +180,7 @@ const CombinedLegendControls = ({
               d="M8 6 L12 10 L4 10 Z"
               stroke="currentColor"
               strokeWidth="0"
-              fill="white"
+              fill="black"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -193,19 +191,19 @@ const CombinedLegendControls = ({
         <div className={`flex-1 transition-all duration-300 overflow-hidden ${
           isDataCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
         }`}>
-          <div className="p-4 pt-0">
+          <div className="p-0 pt-0">
             {selectedIntervention ? (
               /* Selected Intervention Details */
-              <div className="rounded-lg p-4 bg-gray-50 border border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-lg font-semibold text-gray-900">Selected Intervention</h4>
+              <div className="px-4 py-2 bg-gray-50">
+                <div className="flex items-end justify-end mb-3">
                   <button
                     onClick={() => setSelectedIntervention(null)}
-                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                    className="bg-white p-0.5 w-6 h-6 flex items-center justify-center transition-all duration-150 focus:outline-none"
                     title="Clear selection"
+                    style={{ lineHeight: 0, minWidth: 0, minHeight: 0 }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
-                      <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="0" strokeLinecap="round"/>
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                      <path d="M12 4L4 12M4 4l8 8" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
                     </svg>
                   </button>
                 </div>
@@ -252,14 +250,14 @@ const CombinedLegendControls = ({
               </div>
             ) : (
               /* Placeholder content */
-              <div className="rounded-lg p-4 bg-gray-50 border border-gray-200 min-h-[200px] flex items-center justify-center">
+              <div className="p-4 bg-gray-50 min-h-[200px] flex items-center justify-center">
                 <div className="text-center text-gray-600">
-                  <svg width="48" height="48" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-30 text-gray-400">
+                  {/* <svg width="48" height="48" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-30 text-gray-400">
                     <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
                     <path fill="currentColor" d="M7 10h2v5H7zm4-3h2v8h-2zm4-1h2v9h-2z"/>
                   </svg>
-                  <p className="text-sm font-medium text-gray-700">Intervention Data Panel</p>
-                  <p className="text-xs text-gray-500 mt-1">Click on an intervention marker to view details</p>
+                  <p className="text-sm font-medium text-gray-700">Intervention Data Panel</p> */}
+                  <p className="text-sm text-gray-500 mt-1">Click on an intervention marker to view details</p>
                 </div>
               </div>
             )}
@@ -336,7 +334,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
         {/* Expand/Collapse Arrow */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-11/12 flex items-center justify-center p-2 hover:bg-gray-100 transition-colors mx-auto"
+          className="w-11/12 flex items-center justify-center border border-gray-500 p-2 bg-white hover:bg-gray-100 transition-colors mx-auto"
           title={isExpanded ? "Collapse layer controls" : "Expand layer controls"}
         >
           <svg
@@ -349,7 +347,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
               d="M8 6 L12 10 L4 10 Z"
               stroke="currentColor"
               strokeWidth="0"
-              fill="white"
+              fill="black"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -365,7 +363,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
                 onClick={() => toggleLayer(item.key)}
                 className={`
                   flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 hover:bg-gray-50 border
-                  ${layerVisibility[item.key] ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}
+                  ${layerVisibility[item.key] ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'}
                 `}
                 title={`${item.label} - ${layerVisibility[item.key] ? 'Visible' : 'Hidden'}`}
               >
@@ -391,7 +389,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
       {/* Expand/Collapse Arrow */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-8 h-8 flex items-center justify-center px-2 hover:bg-gray-100 transition-colors mt-2 mx-2"
+        className="w-8 h-8 bg-white flex items-center justify-center  border border-gray-500 px-2 hover:bg-gray-100 transition-colors mt-2 mx-2"
         title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
       >
         <svg
@@ -404,7 +402,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
             d="M6 12 L10 8 L6 4"
             stroke="currentColor"
             strokeWidth="0"
-            fill="white"
+            fill="black"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -774,7 +772,7 @@ const LandscapeView = ({ project }) => {
       {/* Desktop: map takes 2/3, controls 1/3; mobile: stacked */}
       <section className="mx-auto w-[98%] py-3 md:py-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Map */}
-        <div className="bg-white rounded-lg shadow-sm p-4 md:p-4 min-h-[420px] border border-gray-800 lg:col-span-2">
+        <div className="bg-white rounded-lg shadow-sm px-4 md:p-0 min-h-[420px] lg:col-span-2">
 
           {/* Mobile Sidebar - Above Map */}
           {isMobile && !isLoading && (
@@ -798,7 +796,7 @@ const LandscapeView = ({ project }) => {
                 <MapContainer
                   center={defaultCenter}
                   zoom={defaultZoom}
-                  className="w-full h-full"
+                  className="w-full h-full border border-gray-500"
                   zoomControl={true}
                   ref={setMap}
                 >
@@ -914,7 +912,7 @@ const LandscapeView = ({ project }) => {
                   <MapContainer
                     center={defaultCenter}
                     zoom={defaultZoom}
-                    className="w-full h-full"
+                    className="w-full h-full border border-gray-500"
                     zoomControl={true}
                     ref={setMap}
                   >
