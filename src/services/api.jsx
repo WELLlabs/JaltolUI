@@ -66,6 +66,17 @@ export const get_lulc_raster = (stateName, districtName, subdistrictName, villag
   }).then(response => response.data);
 };
 
+export const get_srtm_raster = (stateName, districtName, subdistrictName = '', villageName = '') => {
+  return axios.get(`${API_URL}/get_srtm_raster/`, {
+    params: {
+      state_name: stateName,
+      district_name: districtName,
+      subdistrict_name: subdistrictName,
+      village_name: villageName,
+    }
+  }).then(response => response.data);
+};
+
 export const get_area_change = (stateName, districtName, subdistrictName, villageName) => {
   return axios.get(`${API_URL}/get_area_change/`, {
     params: {

@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON, LayersControl, Marker, Popup } from 'react-leaflet';
+import { Mountain, Earth } from 'lucide-react';
+
 import L from 'leaflet';
 import PropTypes from 'prop-types';
 import 'leaflet/dist/leaflet.css';
-import { get_boundary_data, get_lulc_raster } from '../services/api';
+import { get_boundary_data, get_lulc_raster, get_srtm_raster } from '../services/api';
 import interventionsJsonData from '../assets/vapi-interventions-y1.json';
 import wellsJsonData from '../assets/vapi-wells-y1.json';
+import WaterWellIcon from '../assets/water-well.png';  // attribute Icongeek26 - Flaticon
 
 // Combined Legend + Layer toggles (inspired by ImpactAssessment V2)
 const CombinedLegendControls = ({
@@ -72,7 +75,7 @@ const CombinedLegendControls = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow-sm h-full lg:h-[400px] flex flex-col">
       {/* Layers Panel */}
       <div className={`bg-white rounded-t-lg transition-all duration-300 ${
         isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isLayersCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
@@ -105,7 +108,16 @@ const CombinedLegendControls = ({
         <div className={`flex-1 transition-all duration-300 overflow-hidden ${
           isLayersCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
         }`}>
-          <div className="p-4 pt-0">
+          <div
+            className="p-4 pt-0 max-h-[175px] overflow-y-auto"
+            style={{
+              scrollbarWidth: 'none', /* Firefox */
+              msOverflowStyle: 'none', /* IE and Edge */
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.setProperty('-webkit-scrollbar', 'display: none');
+            }}
+          >
             {/* LULC legend (static swatches) */}
             <div className="mt-2 pt-3">
               <div className="text-sm font-medium text-gray-700 mb-2">LULC Classes</div>
@@ -191,7 +203,16 @@ const CombinedLegendControls = ({
         <div className={`flex-1 transition-all duration-300 overflow-hidden ${
           isDataCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
         }`}>
-          <div className="p-0 pt-0">
+          <div
+            className="p-0 pt-0 max-h-[175px] overflow-y-auto"
+            style={{
+              scrollbarWidth: 'none', /* Firefox */
+              msOverflowStyle: 'none', /* IE and Edge */
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.setProperty('-webkit-scrollbar', 'display: none');
+            }}
+          >
             {selectedIntervention ? (
               /* Selected Intervention Details */
               <div className="px-4 py-2 bg-gray-50">
@@ -305,17 +326,21 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
       key: 'wells',
       label: 'Wells',
       icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" className="text-blue-600">
-          <circle cx="8" cy="8" r="6" fill="#3B82F6" stroke="#1E40AF" strokeWidth="1"/>
-          <circle cx="8" cy="8" r="3" fill="#60A5FA" opacity="0.7"/>
-        </svg>
+        <img src={WaterWellIcon} alt="Wells" className="w-4 h-4" />
       )
     },
     {
       key: 'lulcMap',
       label: 'Land Use Land Cover',
       icon: (
-        <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: '#8b9dc3' }} />
+        <Earth size={16} className="text-green-600" />
+      )
+    },
+    {
+      key: 'elevationMap',
+      label: 'Slope Map',
+      icon: (
+        <Mountain size={16} className="text-green-600" />
       )
     }
   ];
@@ -458,14 +483,17 @@ const LandscapeView = ({ project }) => {
     villageBoundary: true,
     lulcMap: true,
     interventions: true,
-    wells: true
+    wells: true,
+    elevationMap: false // Actually controls slope map visibility
   });
 
   const [boundaryData, setBoundaryData] = useState(null);
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
+  const [elevationTilesUrl, setElevationTilesUrl] = useState(null); // Actually stores slope tiles URL
   const [interventionsData, setInterventionsData] = useState(null);
   const [wellsData, setWellsData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isElevationLoading, setIsElevationLoading] = useState(false); // Actually tracks slope loading state
   const [map, setMap] = useState(null);
   const [interventionTypes, setInterventionTypes] = useState([]);
   const [typeVisibility, setTypeVisibility] = useState({});
@@ -748,6 +776,42 @@ const LandscapeView = ({ project }) => {
     fetchData();
   }, []);
 
+  // Fetch slope data when slope map is toggled on
+  useEffect(() => {
+    if (layerVisibility.elevationMap) {
+      console.log('Fetching slope data');
+      console.log('Setting slope loading state to true');
+      setIsElevationLoading(true);
+      const fetchElevationData = async () => {
+        try {
+          const elevationResponse = await get_srtm_raster(stateName, districtName, subdistrictName);
+          console.log('Slope response:', elevationResponse);
+
+          if (elevationResponse && elevationResponse.tiles_url) {
+            console.log('Setting slope tiles URL:', elevationResponse.tiles_url);
+            setElevationTilesUrl(elevationResponse.tiles_url);
+          } else {
+            console.warn('No slope data received');
+            setElevationTilesUrl(null);
+          }
+        } catch (error) {
+          console.error('Error fetching slope data:', error);
+          setElevationTilesUrl(null);
+        } finally {
+          console.log('Setting slope loading state to false');
+          setIsElevationLoading(false);
+        }
+      };
+
+      fetchElevationData();
+    } else {
+      // Clear slope tiles when toggled off
+      console.log('Slope map toggled off, clearing tiles and loading state');
+      setElevationTilesUrl(null);
+      setIsElevationLoading(false);
+    }
+  }, [layerVisibility.elevationMap, stateName, districtName, subdistrictName]);
+
 
   // Only render for demo project
   if (project?.project_id !== 'demo-project') {
@@ -793,13 +857,54 @@ const LandscapeView = ({ project }) => {
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
               ) : (
-                <MapContainer
-                  center={defaultCenter}
-                  zoom={defaultZoom}
-                  className="w-full h-full border border-gray-500"
-                  zoomControl={true}
-                  ref={setMap}
-                >
+                <>
+                  {/* Slope Loading Indicator - Mobile */}
+                  {layerVisibility.elevationMap && isElevationLoading && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 1000,
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        padding: '8px 12px',
+                        borderRadius: '4px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          border: '2px solid #3B82F6',
+                          borderTop: '2px solid transparent',
+                          borderRadius: '50%',
+                          animation: 'spin 1s linear infinite'
+                        }}
+                      />
+                      <span style={{ fontSize: '12px', color: '#374151' }}>
+                        Loading slope...
+                      </span>
+                      <style>{`
+                        @keyframes spin {
+                          0% { transform: rotate(0deg); }
+                          100% { transform: rotate(360deg); }
+                        }
+                      `}</style>
+                    </div>
+                  )}
+
+                  <MapContainer
+                    center={defaultCenter}
+                    zoom={defaultZoom}
+                    className="w-full h-full border border-gray-500"
+                    zoomControl={true}
+                    ref={setMap}
+                  >
                 <TileLayer
                   attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
                   url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
@@ -826,6 +931,15 @@ const LandscapeView = ({ project }) => {
                     url={lulcTilesUrl}
                     opacity={0.7}
                     attribution="LULC Data"
+                  />
+                )}
+
+                {/* Slope Layer */}
+                {layerVisibility.elevationMap && elevationTilesUrl && (
+                  <TileLayer
+                    url={elevationTilesUrl}
+                    opacity={0.6}
+                    attribution="Elevation Data (SRTM)"
                   />
                 )}
 
@@ -885,6 +999,7 @@ const LandscapeView = ({ project }) => {
                   ));
                 })()}
               </MapContainer>
+              </>
             )}
             </div>
           )}
@@ -909,41 +1024,91 @@ const LandscapeView = ({ project }) => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                   </div>
                 ) : (
-                  <MapContainer
-                    center={defaultCenter}
-                    zoom={defaultZoom}
-                    className="w-full h-full border border-gray-500"
-                    zoomControl={true}
-                    ref={setMap}
-                  >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
-                    subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
-                  />
+                  <>
+                    {/* Slope Loading Indicator */}
+                    {layerVisibility.elevationMap && isElevationLoading && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          zIndex: 1000,
+                          background: 'rgba(255, 255, 255, 0.9)',
+                          padding: '8px 12px',
+                          borderRadius: '4px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '16px',
+                            height: '16px',
+                            border: '2px solid #3B82F6',
+                            borderTop: '2px solid transparent',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                          }}
+                        />
+                        <span style={{ fontSize: '12px', color: '#374151' }}>
+                          Loading slope...
+                        </span>
+                        <style>{`
+                          @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                          }
+                        `}</style>
+                      </div>
+                    )}
 
-                  {/* Village Boundary Layer */}
-                  {layerVisibility.villageBoundary && boundaryData && (
-                    <GeoJSON
-                      data={boundaryData}
-                      style={{
-                        color: '#FF4433',
-                        weight: 2,
-                        opacity: 0.8,
-                        fillColor: '#FF4433',
-                        fillOpacity: 0.1
-                      }}
-                    />
-                  )}
-
-                  {/* LULC Layer */}
-                  {layerVisibility.lulcMap && lulcTilesUrl && (
+                    <MapContainer
+                      center={defaultCenter}
+                      zoom={defaultZoom}
+                      className="w-full h-full border border-gray-500"
+                      zoomControl={true}
+                      ref={setMap}
+                    >
                     <TileLayer
-                      url={lulcTilesUrl}
-                      opacity={0.7}
-                      attribution="LULC Data"
+                      attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
+                      url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                      subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
                     />
-                  )}
+
+                    {/* Village Boundary Layer */}
+                    {layerVisibility.villageBoundary && boundaryData && (
+                      <GeoJSON
+                        data={boundaryData}
+                        style={{
+                          color: '#FF4433',
+                          weight: 2,
+                          opacity: 0.8,
+                          fillColor: '#FF4433',
+                          fillOpacity: 0.1
+                        }}
+                      />
+                    )}
+
+                    {/* LULC Layer */}
+                    {layerVisibility.lulcMap && lulcTilesUrl && (
+                      <TileLayer
+                        url={lulcTilesUrl}
+                        opacity={0.7}
+                        attribution="LULC Data"
+                      />
+                    )}
+
+                    {/* Slope Layer */}
+                    {layerVisibility.elevationMap && elevationTilesUrl && (
+                      <TileLayer
+                        url={elevationTilesUrl}
+                        opacity={0.6}
+                        attribution="Slope Data (SRTM)"
+                      />
+                    )}
 
                   {/* Interventions Layer */}
                   {layerVisibility.interventions && interventionsData && (() => {
@@ -1001,6 +1166,7 @@ const LandscapeView = ({ project }) => {
                     ));
                   })()}
                   </MapContainer>
+                  </>
                 )}
               </div>
             </div>
