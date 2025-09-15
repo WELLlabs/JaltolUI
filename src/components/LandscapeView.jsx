@@ -8,6 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import { get_boundary_data, get_lulc_raster, get_srtm_raster } from '../services/api';
 import interventionsJsonData from '../assets/vapi-interventions-y1.json';
 import wellsJsonData from '../assets/vapi-wells-y1.json';
+import drainageJsonData from '../assets/vapi-drainage.json';
 import WaterWellIcon from '../assets/water-well.png';  // attribute Icongeek26 - Flaticon
 
 // Combined Legend + Layer toggles (inspired by ImpactAssessment V2)
@@ -75,7 +76,7 @@ const CombinedLegendControls = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-sm h-full lg:h-[400px] flex flex-col">
+    <div className="bg-white rounded-lg shadow-lg h-full lg:h-[400px] flex flex-col">
       {/* Layers Panel */}
       <div className={`bg-white rounded-t-lg transition-all duration-300 ${
         isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isLayersCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
@@ -301,14 +302,43 @@ CombinedLegendControls.propTypes = {
 
 
 // Map Sidebar Component
-const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpanded, isMobile }) => {
+const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpanded, isMobile, basemapType, setBasemapType }) => {
   console.log('MapSidebar rendered - isMobile:', isMobile, 'isExpanded:', isExpanded);
   const layerItems = [
+    {
+      key: 'basemapToggle',
+      label: basemapType === 'satellite' ? 'Satellite' : 'Terrain',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 16 16" className="text-green-600">
+          <rect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1"/>
+          <rect x="3" y="3" width="4" height="4" fill="currentColor" opacity="0.8"/>
+          <rect x="9" y="3" width="4" height="4" fill="currentColor" opacity="0.6"/>
+          <rect x="3" y="9" width="4" height="4" fill="currentColor" opacity="0.4"/>
+          <rect x="9" y="9" width="4" height="4" fill="currentColor" opacity="0.2"/>
+        </svg>
+      )
+    },
     {
       key: 'villageBoundary',
       label: 'Village Boundary',
       icon: (
         <span className="inline-block w-4 h-4 rounded-sm border-2 border-red-500" />
+      )
+    },
+    {
+      key: 'watershedBoundary',
+      label: 'Watershed Boundary',
+      icon: (
+        <span className="inline-block w-4 h-4 rounded-sm border-2 border-black border-dashed" />
+      )
+    },
+    {
+      key: 'drainageLines',
+      label: 'Drainage Lines',
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 16 16" className="text-blue-600">
+          <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4,2" />
+        </svg>
       )
     },
     {
@@ -346,7 +376,11 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
   ];
 
   const toggleLayer = (key) => {
-    setLayerVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+    if (key === 'basemapToggle') {
+      setBasemapType(prev => prev === 'satellite' ? 'terrain' : 'satellite');
+    } else {
+      setLayerVisibility(prev => ({ ...prev, [key]: !prev[key] }));
+    }
   };
 
   if (isMobile) {
@@ -481,6 +515,8 @@ const LandscapeView = ({ project }) => {
 
   const [layerVisibility, setLayerVisibility] = useState({
     villageBoundary: true,
+    watershedBoundary: false,
+    drainageLines: false,
     lulcMap: true,
     interventions: true,
     wells: true,
@@ -488,6 +524,7 @@ const LandscapeView = ({ project }) => {
   });
 
   const [boundaryData, setBoundaryData] = useState(null);
+  const [drainageData, setDrainageData] = useState(null);
   const [lulcTilesUrl, setLulcTilesUrl] = useState(null);
   const [elevationTilesUrl, setElevationTilesUrl] = useState(null); // Actually stores slope tiles URL
   const [interventionsData, setInterventionsData] = useState(null);
@@ -500,6 +537,9 @@ const LandscapeView = ({ project }) => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(false); // Default to desktop, will be updated on mount
   const [selectedIntervention, setSelectedIntervention] = useState(null);
+  const [drainageLabels, setDrainageLabels] = useState([]); // Store drainage label markers
+  const [currentZoom, setCurrentZoom] = useState(13); // Track current zoom level
+  const [basemapType, setBasemapType] = useState('satellite'); // 'satellite' or 'terrain'
 
   // Handle responsive behavior
   useEffect(() => {
@@ -644,6 +684,60 @@ const LandscapeView = ({ project }) => {
     }
   }, [wellsData]);
 
+  // Generate drainage labels when data is available
+  useEffect(() => {
+    if (drainageData && drainageData.features) {
+      const labels = [];
+      drainageData.features.forEach((feature, index) => {
+        if (feature.geometry && feature.geometry.coordinates) {
+          const coords = feature.geometry.coordinates;
+          let centerLat, centerLng;
+
+          if (feature.geometry.type === 'LineString') {
+            // For LineString, find the middle point
+            const midIndex = Math.floor(coords.length / 2);
+            [centerLng, centerLat] = coords[midIndex];
+          } else if (feature.geometry.type === 'MultiLineString') {
+            // For MultiLineString, use the first line's middle point
+            const firstLine = coords[0];
+            const midIndex = Math.floor(firstLine.length / 2);
+            [centerLng, centerLat] = firstLine[midIndex];
+          }
+
+          if (centerLat && centerLng) {
+            labels.push({
+              id: `drainage-label-${index}`,
+              position: [centerLat, centerLng],
+              order: feature.properties.ORDER || 1
+            });
+          }
+        }
+      });
+      setDrainageLabels(labels);
+      console.log('Generated', labels.length, 'drainage labels');
+    }
+  }, [drainageData]);
+
+  // Track map zoom level changes
+  useEffect(() => {
+    if (map) {
+      // Set initial zoom level
+      setCurrentZoom(map.getZoom());
+
+      // Add zoom event listener
+      const handleZoom = () => {
+        setCurrentZoom(map.getZoom());
+      };
+
+      map.on('zoomend', handleZoom);
+
+      // Cleanup
+      return () => {
+        map.off('zoomend', handleZoom);
+      };
+    }
+  }, [map]);
+
   // Zoom to interventions and wells when data is loaded
   useEffect(() => {
     if (map && (interventionsData || wellsData)) {
@@ -727,6 +821,16 @@ const LandscapeView = ({ project }) => {
     } else {
       console.error('No wells data available');
       setWellsData([]);
+    }
+
+    // Set drainage data
+    console.log('Setting drainage data:', drainageJsonData?.features?.length, 'features');
+    if (drainageJsonData && drainageJsonData.features && drainageJsonData.features.length > 0) {
+      console.log('First drainage feature sample:', drainageJsonData.features[0]);
+      setDrainageData(drainageJsonData);
+    } else {
+      console.error('No drainage data available');
+      setDrainageData(null);
     }
 
     // Confirm data was set
@@ -836,7 +940,7 @@ const LandscapeView = ({ project }) => {
       {/* Desktop: map takes 2/3, controls 1/3; mobile: stacked */}
       <section className="mx-auto w-[98%] py-3 md:py-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Map */}
-        <div className="bg-white rounded-lg shadow-sm px-4 md:p-0 min-h-[420px] lg:col-span-2">
+        <div className="bg-white rounded-lg shadow-lg px-4 md:p-0 min-h-[420px] lg:col-span-2">
 
           {/* Mobile Sidebar - Above Map */}
           {isMobile && !isLoading && (
@@ -846,6 +950,8 @@ const LandscapeView = ({ project }) => {
               isExpanded={isSidebarExpanded}
               setIsExpanded={setIsSidebarExpanded}
               isMobile={isMobile}
+              basemapType={basemapType}
+              setBasemapType={setBasemapType}
             />
           )}
 
@@ -907,7 +1013,7 @@ const LandscapeView = ({ project }) => {
                   >
                 <TileLayer
                   attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                  url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                  url={`https://mt1.google.com/vt/lyrs=${basemapType === 'satellite' ? 'y' : 'p'}&x={x}&y={y}&z={z}`}
                   subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
                 />
 
@@ -924,6 +1030,40 @@ const LandscapeView = ({ project }) => {
                     }}
                   />
                 )}
+
+                {/* Drainage Lines Layer */}
+                {layerVisibility.drainageLines && drainageData && (
+                  <GeoJSON
+                    data={drainageData}
+                    style={(feature) => ({
+                      color: '#3B82F6', // Blue color
+                      weight: feature.properties.ORDER || 1, // Use ORDER property for thickness (1-7)
+                      opacity: 0.8,
+                      dashArray: '5, 5', // Dashed line pattern
+                      fill: false // No fill for lines
+                    })}
+                  />
+                )}
+
+                {/* Drainage Labels - only show at zoom level 16+ */}
+                {layerVisibility.drainageLines && currentZoom >= 16 && drainageLabels.map((label) => (
+                  <Marker
+                    key={label.id}
+                    position={label.position}
+                    icon={L.divIcon({
+                      className: 'drainage-label',
+                      html: `<div style="
+                        color: black;
+                        font-weight: bold;
+                        font-size: 12px;
+                        text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+                        pointer-events: none;
+                      ">${label.order}</div>`,
+                      iconSize: [20, 20],
+                      iconAnchor: [10, 10]
+                    })}
+                  />
+                ))}
 
                 {/* LULC Layer */}
                 {layerVisibility.lulcMap && lulcTilesUrl && (
@@ -1015,6 +1155,8 @@ const LandscapeView = ({ project }) => {
                 isExpanded={isSidebarExpanded}
                 setIsExpanded={setIsSidebarExpanded}
                 isMobile={isMobile}
+                basemapType={basemapType}
+                setBasemapType={setBasemapType}
               />
 
               {/* Map Container */}
@@ -1074,7 +1216,7 @@ const LandscapeView = ({ project }) => {
                     >
                     <TileLayer
                       attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
-                      url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                      url={`https://mt1.google.com/vt/lyrs=${basemapType === 'satellite' ? 'y' : 'p'}&x={x}&y={y}&z={z}`}
                       subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
                     />
 
@@ -1091,6 +1233,40 @@ const LandscapeView = ({ project }) => {
                         }}
                       />
                     )}
+
+                    {/* Drainage Lines Layer */}
+                    {layerVisibility.drainageLines && drainageData && (
+                      <GeoJSON
+                        data={drainageData}
+                        style={(feature) => ({
+                          color: '#3B82F6', // Blue color
+                          weight: feature.properties.ORDER || 1, // Use ORDER property for thickness (1-7)
+                          opacity: 0.8,
+                          dashArray: '5, 5', // Dashed line pattern
+                          fill: false // No fill for lines
+                        })}
+                      />
+                    )}
+
+                    {/* Drainage Labels - only show at zoom level 16+ */}
+                    {layerVisibility.drainageLines && currentZoom >= 16 && drainageLabels.map((label) => (
+                      <Marker
+                        key={label.id}
+                        position={label.position}
+                        icon={L.divIcon({
+                          className: 'drainage-label',
+                          html: `<div style="
+                            color: black;
+                            font-weight: bold;
+                            font-size: 12px;
+                            text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white;
+                            pointer-events: none;
+                          ">${label.order}</div>`,
+                          iconSize: [20, 20],
+                          iconAnchor: [10, 10]
+                        })}
+                      />
+                    ))}
 
                     {/* LULC Layer */}
                     {layerVisibility.lulcMap && lulcTilesUrl && (
