@@ -1,6 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, GeoJSON, LayersControl, Marker, Popup } from 'react-leaflet';
+import { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, GeoJSON, Marker } from 'react-leaflet';
 import { Mountain, Earth } from 'lucide-react';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
 
 import L from 'leaflet';
 import PropTypes from 'prop-types';
@@ -9,64 +21,114 @@ import { get_boundary_data, get_lulc_raster, get_srtm_raster } from '../services
 import interventionsJsonData from '../assets/vapi-interventions-y1.json';
 import wellsJsonData from '../assets/vapi-wells-y1.json';
 import drainageJsonData from '../assets/vapi-drainage.json';
+import wellsTimeSeriesCsv from '../assets/vapi-wells-time-series-year-1.csv?raw';
 import WaterWellIcon from '../assets/water-well.png';  // attribute Icongeek26 - Flaticon
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Combined Legend + Layer toggles (inspired by ImpactAssessment V2)
 const CombinedLegendControls = ({
   layerVisibility,
-  setLayerVisibility,
   interventionTypes,
   typeVisibility,
   setTypeVisibility,
   selectedIntervention,
-  setSelectedIntervention
+  setSelectedIntervention,
+  timeSeriesData,
+  setTimeSeriesData
 }) => {
   const [isLayersCollapsed, setIsLayersCollapsed] = useState(false);
   const [isDataCollapsed, setIsDataCollapsed] = useState(false);
-  const toggle = (key) => setLayerVisibility(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleType = (type) => setTypeVisibility(prev => ({ ...prev, [type]: !prev[type] }));
 
-  const primaryItems = [
-    {
-      key: 'villageBoundary',
-      label: 'Village Boundary',
-      // outlined box (no fill) for vector boundary
-      icon: (
-        <span className="inline-block w-4 h-4 rounded-sm border-2 border-red-500" />
-      )
+  // Prepare chart data for the selected well
+  const prepareChartData = (data, well) => {
+    if (!data || data.length === 0) return null;
+
+    const labels = data.map(item =>
+      item.date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      })
+    );
+
+    const waterLevels = data.map(item => item.waterLevel);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: `Water Level - ${well?.well_id || 'Well'}`,
+          data: waterLevels,
+          borderColor: '#3B82F6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.1,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+        }
+      ]
+    };
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Water Level Time Series',
+        font: {
+          size: 16,
+          weight: 'bold'
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `Water Level: ${context.parsed.y} m`;
+          }
+        }
+      }
     },
-    {
-      key: 'interventions',
-      label: 'Interventions',
-      // simple geometric icon
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" className="text-purple-600">
-          <rect x="2" y="2" width="5" height="5" fill="#8B5CF6" />
-          <circle cx="12" cy="5" r="3" fill="#06B6D4" />
-          <path d="M8 14 L12 10 L4 10 Z" fill="#F59E0B" />
-        </svg>
-      )
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Date'
+        },
+        ticks: {
+          maxTicksLimit: 10
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Water Level (m)'
+        },
+        beginAtZero: false
+      }
     },
-    {
-      key: 'wells',
-      label: 'Wells',
-      // well icon
-      icon: (
-        <svg width="16" height="16" viewBox="0 0 16 16" className="text-blue-600">
-          <circle cx="8" cy="8" r="6" fill="#3B82F6" stroke="#1E40AF" strokeWidth="1"/>
-          <circle cx="8" cy="8" r="3" fill="#60A5FA" opacity="0.7"/>
-        </svg>
-      )
-    },
-    {
-      key: 'lulcMap',
-      label: 'Land Use Land Cover',
-      // filled box for raster
-      icon: (
-        <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: '#8b9dc3' }} />
-      )
+    interaction: {
+      intersect: false,
+      mode: 'index'
     }
-  ];
+  };
+
 
   const lulcLegend = [
     { color: '#397d49', label: 'Tree Cover' },
@@ -76,215 +138,299 @@ const CombinedLegendControls = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg h-full lg:h-[400px] flex flex-col">
-      {/* Layers Panel */}
-      <div className={`bg-white rounded-t-lg transition-all duration-300 ${
-        isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isLayersCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
-      }`}>
-        {/* Collapsible Title */}
-        <button
-          onClick={() => setIsLayersCollapsed(!isLayersCollapsed)}
-          className="w-full flex items-center justify-between border border-gray-500 bg-white hover:bg-gray-50 transition-colors rounded px-2 py-1"
-          title={isLayersCollapsed ? "Expand layers panel" : "Collapse layers panel"}
-        >
-          <h3 className="text-lg font-semibold text-gray-800">Layers</h3>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            className={`text-gray-600 transition-transform duration-300 ${isLayersCollapsed ? '' : 'rotate-180'}`}
-          >
-            <path
-              d="M8 6 L12 10 L4 10 Z"
-              stroke="currentColor"
-              strokeWidth="0"
-              fill="black"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-
-        {/* Collapsible Content */}
-        <div className={`flex-1 transition-all duration-300 overflow-hidden ${
-          isLayersCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+    <div>
+      <div className="flex items-start gap-2">
+        {/* Placeholder disabled button to Add your own intervention data */}
+        <button className="btn btn-primary disabled:opacity-70 mb-4" disabled>Add your own data</button>
+        {/* Placeholder disabled square button with lucide icon to share this project */}
+        <button className="btn btn-primary disabled:opacity-70 mb-4" disabled>Share this project</button>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-lg h-full lg:h-[400px] flex flex-col">
+        {/* Layers Panel */}
+        <div className={`bg-white rounded-t-lg transition-all duration-300 ${
+          isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isLayersCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
         }`}>
-          <div
-            className="p-4 pt-0 max-h-[175px] overflow-y-auto"
-            style={{
-              scrollbarWidth: 'none', /* Firefox */
-              msOverflowStyle: 'none', /* IE and Edge */
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.setProperty('-webkit-scrollbar', 'display: none');
-            }}
+          {/* Collapsible Title */}
+          <button
+            onClick={() => setIsLayersCollapsed(!isLayersCollapsed)}
+            className="w-full flex items-center justify-between border border-gray-500 bg-white hover:bg-gray-50 transition-colors rounded px-2 py-1"
+            title={isLayersCollapsed ? "Expand layers panel" : "Collapse layers panel"}
           >
-            {/* LULC legend (static swatches) */}
-            <div className="mt-2 pt-3">
-              <div className="text-sm font-medium text-gray-700 mb-2">LULC Classes</div>
-              <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
-                {lulcLegend.map(item => (
-                  <li key={item.label} className="flex items-center gap-2">
-                    <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: item.color }} />
-                    <span className="text-gray-700">{item.label}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <h3 className="text-lg font-semibold text-gray-800">Layers</h3>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              className={`text-gray-600 transition-transform duration-300 ${isLayersCollapsed ? '' : 'rotate-180'}`}
+            >
+              <path
+                d="M8 6 L12 10 L4 10 Z"
+                stroke="currentColor"
+                strokeWidth="0"
+                fill="black"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
 
-            {/* Interventions sub-layer toggles */}
-            {interventionTypes && interventionTypes.length > 0 && (
-              <div className="mt-4 border-t border-gray-500 pt-3">
-                <div className="text-sm font-medium text-gray-700 mb-2">Intervention Types</div>
-                <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
-                  {interventionTypes.map((type) => (
-                    <li key={type}>
-                      <button
-                        type="button"
-                        aria-pressed={!!typeVisibility[type]}
-                        onClick={() => toggleType(type)}
-                        disabled={!layerVisibility.interventions}
-                        className={`w-full flex items-center gap-1 px-2 py-1 rounded border transition select-none ${
-                          typeVisibility[type] ? 'bg-white border-gray-300 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-500 opacity-60'
-                        } ${!layerVisibility.interventions ? 'pointer-events-none opacity-40' : ''}`}
-                        title={`Toggle ${type}`}
-                      >
-                        {/* Minimal inline icons per type */}
-                        {type === 'gabion' && <span className="inline-block w-3 h-3 bg-purple-500" />}
-                        {type === 'gully-plug' && <span className="inline-block w-3 h-3 rounded-full bg-emerald-500" />}
-                        {type === 'check-dam' && <span className="inline-block w-3 h-3 bg-blue-500" />}
-                        {type === 'earthen-dam' && <span className="inline-block w-3 h-3 bg-amber-500" />}
-                        {type === 'farm-pond' && <span className="inline-block w-3 h-3 rounded-sm bg-cyan-500" />}
-                        {type === 'bunding' && <span className="inline-block w-3 h-1 bg-red-500" />}
-                        {type === 'CCT' && <span className="inline-block w-3 h-1 bg-violet-500" />}
-                        {!['gabion','gully-plug','check-dam','earthen-dam','farm-pond','bunding','CCT'].includes(type) && (
-                          <span className="inline-block w-3 h-3 bg-gray-400" />
-                        )}
-                        <span className="truncate capitalize">{type.replace('-', ' ')}</span>
-                      </button>
+          {/* Collapsible Content */}
+          <div className={`flex-1 transition-all duration-300 overflow-hidden ${
+            isLayersCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+          }`}>
+            <div
+              className="p-4 pt-0 max-h-[175px] overflow-y-auto"
+              style={{
+                scrollbarWidth: 'none', /* Firefox */
+                msOverflowStyle: 'none', /* IE and Edge */
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty('-webkit-scrollbar', 'display: none');
+              }}
+            >
+              {/* LULC legend (static swatches) */}
+              <div className="mt-2 pt-3">
+                <div className="text-sm font-medium text-gray-700 mb-2">LULC Classes</div>
+                <ul className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
+                  {lulcLegend.map(item => (
+                    <li key={item.label} className="flex items-center gap-2">
+                      <span className="inline-block w-4 h-4 rounded-sm" style={{ backgroundColor: item.color }} />
+                      <span className="text-gray-700">{item.label}</span>
                     </li>
                   ))}
                 </ul>
               </div>
-            )}
+
+              {/* Interventions sub-layer toggles */}
+              {interventionTypes && interventionTypes.length > 0 && (
+                <div className="mt-4 border-t border-gray-500 pt-3">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Intervention Types</div>
+                  <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-[11px]">
+                    {interventionTypes.map((type) => (
+                      <li key={type}>
+                        <button
+                          type="button"
+                          aria-pressed={!!typeVisibility[type]}
+                          onClick={() => toggleType(type)}
+                          disabled={!layerVisibility.interventions}
+                          className={`w-full flex items-center gap-1 px-2 py-1 rounded border transition select-none ${
+                            typeVisibility[type] ? 'bg-white border-gray-300 text-gray-800' : 'bg-gray-50 border-gray-200 text-gray-500 opacity-60'
+                          } ${!layerVisibility.interventions ? 'pointer-events-none opacity-40' : ''}`}
+                          title={`Toggle ${type}`}
+                        >
+                          {/* Minimal inline icons per type */}
+                          {type === 'gabion' && <span className="inline-block w-3 h-3 bg-purple-500" />}
+                          {type === 'gully-plug' && <span className="inline-block w-3 h-3 rounded-full bg-emerald-500" />}
+                          {type === 'check-dam' && <span className="inline-block w-3 h-3 bg-blue-500" />}
+                          {type === 'earthen-dam' && <span className="inline-block w-3 h-3 bg-amber-500" />}
+                          {type === 'farm-pond' && <span className="inline-block w-3 h-3 rounded-sm bg-cyan-500" />}
+                          {type === 'bunding' && <span className="inline-block w-3 h-1 bg-red-500" />}
+                          {type === 'CCT' && <span className="inline-block w-3 h-1 bg-violet-500" />}
+                          {!['gabion','gully-plug','check-dam','earthen-dam','farm-pond','bunding','CCT'].includes(type) && (
+                            <span className="inline-block w-3 h-3 bg-gray-400" />
+                          )}
+                          <span className="truncate capitalize">{type.replace('-', ' ')}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
 
-      {/* Intervention Data Panel */}
-      <div className={`bg-white rounded-b-lg transition-all duration-300 ${
-        isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isDataCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
-      }`}>
-        {/* Collapsible Title */}
-        <button
-          onClick={() => setIsDataCollapsed(!isDataCollapsed)}
-          className="w-full flex items-center justify-between border border-gray-500 bg-white hover:bg-gray-50 transition-colors rounded px-2 py-1"
-          title={isDataCollapsed ? "Expand intervention data panel" : "Collapse intervention data panel"}
-        >
-          <h3 className="text-lg font-semibold text-gray-800">Intervention Data</h3>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            className={`text-gray-600 transition-transform duration-300 ${isDataCollapsed ? '' : 'rotate-180'}`}
-          >
-            <path
-              d="M8 6 L12 10 L4 10 Z"
-              stroke="currentColor"
-              strokeWidth="0"
-              fill="black"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-
-        {/* Collapsible Content */}
-        <div className={`flex-1 transition-all duration-300 overflow-hidden ${
-          isDataCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+        {/* Intervention Data Panel */}
+        <div className={`bg-white rounded-b-lg transition-all duration-300 ${
+          isLayersCollapsed && isDataCollapsed ? 'flex-shrink-0' : isDataCollapsed ? 'flex-shrink-0' : 'flex-1 flex flex-col'
         }`}>
-          <div
-            className="p-0 pt-0 max-h-[175px] overflow-y-auto"
-            style={{
-              scrollbarWidth: 'none', /* Firefox */
-              msOverflowStyle: 'none', /* IE and Edge */
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.setProperty('-webkit-scrollbar', 'display: none');
-            }}
+          {/* Collapsible Title */}
+          <button
+            onClick={() => setIsDataCollapsed(!isDataCollapsed)}
+            className="w-full flex items-center justify-between border border-gray-500 bg-white hover:bg-gray-50 transition-colors rounded px-2 py-1"
+            title={isDataCollapsed ? "Expand intervention data panel" : "Collapse intervention data panel"}
           >
-            {selectedIntervention ? (
-              /* Selected Intervention Details */
-              <div className="px-4 py-2 bg-gray-50">
-                <div className="flex items-end justify-end mb-3">
-                  <button
-                    onClick={() => setSelectedIntervention(null)}
-                    className="bg-white p-0.5 w-6 h-6 flex items-center justify-center transition-all duration-150 focus:outline-none"
-                    title="Clear selection"
-                    style={{ lineHeight: 0, minWidth: 0, minHeight: 0 }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <path d="M12 4L4 12M4 4l8 8" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
+            <h3 className="text-lg font-semibold text-gray-800">Intervention Details</h3>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              className={`text-gray-600 transition-transform duration-300 ${isDataCollapsed ? '' : 'rotate-180'}`}
+            >
+              <path
+                d="M8 6 L12 10 L4 10 Z"
+                stroke="currentColor"
+                strokeWidth="0"
+                fill="black"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {/* Collapsible Content */}
+          <div className={`flex-1 transition-all duration-300 overflow-hidden ${
+            isDataCollapsed ? 'max-h-0 opacity-0' : 'max-h-full opacity-100'
+          }`}>
+            <div
+              className="p-0 pt-0 max-h-[175px] overflow-y-auto"
+              style={{
+                scrollbarWidth: 'none', /* Firefox */
+                msOverflowStyle: 'none', /* IE and Edge */
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty('-webkit-scrollbar', 'display: none');
+              }}
+            >
+              {selectedIntervention ? (
+                /* Selected Intervention/Well Details */
+                <div className="px-4 py-2 bg-gray-50">
+                  <div className="flex items-end justify-end mb-3">
+                    <button
+                      onClick={() => {
+                        setSelectedIntervention(null);
+                        setTimeSeriesData([]);
+                      }}
+                      className="bg-white p-0.5 w-6 h-6 flex items-center justify-center transition-all duration-150 focus:outline-none"
+                      title="Clear selection"
+                      style={{ lineHeight: 0, minWidth: 0, minHeight: 0 }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4l8 8" stroke="black" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Show well data if it's a well, otherwise show intervention data */}
+                  {selectedIntervention.isWell ? (
+                    /* Well Details */
+                    <div className="space-y-3">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Well ID:</span>
+                          <span className="text-gray-900">{selectedIntervention.well_id}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Type:</span>
+                          <span className="text-gray-900">Well Monitoring</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Village:</span>
+                          <span className="text-gray-900">{selectedIntervention.village}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">CRP:</span>
+                          <span className="text-gray-900">{selectedIntervention.name_of_crp}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Depth:</span>
+                          <span className="text-gray-900">{selectedIntervention.total_well_depth_m}m</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Water Level:</span>
+                          <span className="text-gray-900">{selectedIntervention.water_level_m}m</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Water Use:</span>
+                          <span className="text-gray-900">{selectedIntervention.water_use}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Owner:</span>
+                          <span className="text-gray-900">{selectedIntervention.owner_operator}</span>
+                        </div>
+                        {selectedIntervention.springs_visible && (
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-600">Springs:</span>
+                            <span className="text-gray-900">{selectedIntervention.springs_visible}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Water Level Time Series Chart */}
+                      {timeSeriesData && timeSeriesData.length > 0 ? (
+                        <div className="mt-4">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Water Level Time Series</h4>
+                          <div className="h-[200px] w-full">
+                            <Line data={prepareChartData(timeSeriesData, selectedIntervention)} options={chartOptions} />
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            Data points: {timeSeriesData.length} | Latest: {timeSeriesData[timeSeriesData.length - 1]?.formattedDate}
+                          </div>
+                        </div>
+                      ) : timeSeriesData && timeSeriesData.length === 0 ? (
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                          <p className="text-xs text-yellow-700">No time series data available for this well.</p>
+                        </div>
+                      ) : (
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                          <p className="text-xs text-blue-700">Loading time series data...</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Intervention Details */
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">ID:</span>
+                        <span className="text-gray-900">{selectedIntervention.intervention_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Type:</span>
+                        <span className="text-gray-900">{selectedIntervention.intervention_type?.replace('_', ' ').toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Village:</span>
+                        <span className="text-gray-900">{selectedIntervention.village}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Status:</span>
+                        <span className="text-gray-900">{selectedIntervention.status}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Completed:</span>
+                        <span className="text-gray-900">{selectedIntervention.month_completed}</span>
+                      </div>
+                      {selectedIntervention.volume_m3 && (
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Volume:</span>
+                          <span className="text-gray-900">{selectedIntervention.volume_m3} m³</span>
+                        </div>
+                      )}
+                      {selectedIntervention.length_m && selectedIntervention.breadth_m && (
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Dimensions:</span>
+                          <span className="text-gray-900">{selectedIntervention.length_m}m × {selectedIntervention.breadth_m}m</span>
+                        </div>
+                      )}
+                      {selectedIntervention.height_m && (
+                        <div className="flex justify-between">
+                          <span className="font-medium text-gray-600">Height:</span>
+                          <span className="text-gray-900">{selectedIntervention.height_m}m</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Placeholder content */
+                <div className="p-4 bg-gray-50 min-h-[200px] flex items-center justify-center">
+                  <div className="text-center text-gray-600">
+                    {/* <svg width="48" height="48" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-30 text-gray-400">
+                      <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                      <path fill="currentColor" d="M7 10h2v5H7zm4-3h2v8h-2zm4-1h2v9h-2z"/>
                     </svg>
-                  </button>
+                    <p className="text-sm font-medium text-gray-700">Intervention Data Panel</p> */}
+                    <p className="text-sm text-gray-500 mt-1">Click on an intervention marker or well to view details and monitoring data</p>
+                  </div>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">ID:</span>
-                    <span className="text-gray-900">{selectedIntervention.intervention_id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Type:</span>
-                    <span className="text-gray-900">{selectedIntervention.intervention_type?.replace('_', ' ').toUpperCase()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Village:</span>
-                    <span className="text-gray-900">{selectedIntervention.village}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Status:</span>
-                    <span className="text-gray-900">{selectedIntervention.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium text-gray-600">Completed:</span>
-                    <span className="text-gray-900">{selectedIntervention.month_completed}</span>
-                  </div>
-                  {selectedIntervention.volume_m3 && (
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Volume:</span>
-                      <span className="text-gray-900">{selectedIntervention.volume_m3} m³</span>
-                    </div>
-                  )}
-                  {selectedIntervention.length_m && selectedIntervention.breadth_m && (
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Dimensions:</span>
-                      <span className="text-gray-900">{selectedIntervention.length_m}m × {selectedIntervention.breadth_m}m</span>
-                    </div>
-                  )}
-                  {selectedIntervention.height_m && (
-                    <div className="flex justify-between">
-                      <span className="font-medium text-gray-600">Height:</span>
-                      <span className="text-gray-900">{selectedIntervention.height_m}m</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* Placeholder content */
-              <div className="p-4 bg-gray-50 min-h-[200px] flex items-center justify-center">
-                <div className="text-center text-gray-600">
-                  {/* <svg width="48" height="48" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-30 text-gray-400">
-                    <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                    <path fill="currentColor" d="M7 10h2v5H7zm4-3h2v8h-2zm4-1h2v9h-2z"/>
-                  </svg>
-                  <p className="text-sm font-medium text-gray-700">Intervention Data Panel</p> */}
-                  <p className="text-sm text-gray-500 mt-1">Click on an intervention marker to view details</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
+        
       </div>
     </div>
   );
@@ -292,12 +438,13 @@ const CombinedLegendControls = ({
 
 CombinedLegendControls.propTypes = {
   layerVisibility: PropTypes.object.isRequired,
-  setLayerVisibility: PropTypes.func.isRequired,
   interventionTypes: PropTypes.array,
   typeVisibility: PropTypes.object,
   setTypeVisibility: PropTypes.func,
   selectedIntervention: PropTypes.object,
-  setSelectedIntervention: PropTypes.func
+  setSelectedIntervention: PropTypes.func,
+  timeSeriesData: PropTypes.array,
+  setTimeSeriesData: PropTypes.func
 };
 
 
@@ -307,7 +454,7 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
   const layerItems = [
     {
       key: 'basemapToggle',
-      label: basemapType === 'satellite' ? 'Satellite' : 'Terrain',
+      label: basemapType === 'satellite' ? 'Terrain' : 'Satellite',
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" className="text-green-600">
           <rect x="1" y="1" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1"/>
@@ -495,7 +642,15 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
   );
 };
 
-
+MapSidebar.propTypes = {
+  layerVisibility: PropTypes.object.isRequired,
+  setLayerVisibility: PropTypes.func.isRequired,
+  isExpanded: PropTypes.bool.isRequired,
+  setIsExpanded: PropTypes.func.isRequired,
+  isMobile: PropTypes.bool.isRequired,
+  basemapType: PropTypes.string.isRequired,
+  setBasemapType: PropTypes.func.isRequired
+};
 
 const LandscapeView = ({ project }) => {
   // Validate imported data on component initialization
@@ -517,7 +672,7 @@ const LandscapeView = ({ project }) => {
     villageBoundary: true,
     watershedBoundary: false,
     drainageLines: false,
-    lulcMap: true,
+    lulcMap: false,
     interventions: true,
     wells: true,
     elevationMap: false // Actually controls slope map visibility
@@ -539,7 +694,83 @@ const LandscapeView = ({ project }) => {
   const [selectedIntervention, setSelectedIntervention] = useState(null);
   const [drainageLabels, setDrainageLabels] = useState([]); // Store drainage label markers
   const [currentZoom, setCurrentZoom] = useState(13); // Track current zoom level
-  const [basemapType, setBasemapType] = useState('satellite'); // 'satellite' or 'terrain'
+  const [basemapType, setBasemapType] = useState('terrain'); // 'satellite' or 'terrain'
+  const [timeSeriesData, setTimeSeriesData] = useState([]); // Store filtered time series data for selected well
+
+  // Parse CSV and filter time series data for selected well
+  const parseWellTimeSeriesData = (wellId, csvData) => {
+    if (!wellId || !csvData) return [];
+
+    const lines = csvData.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    const interventionIdIndex = headers.indexOf('intervention_id');
+    const dateIndex = headers.indexOf('date');
+    const waterLevelIndex = headers.indexOf('water_level');
+
+    if (interventionIdIndex === -1 || dateIndex === -1 || waterLevelIndex === -1) {
+      console.error('Required columns not found in CSV');
+      return [];
+    }
+
+    const filteredData = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const values = line.split(',');
+
+      // Handle quoted values that might contain commas
+      const parsedValues = [];
+      let currentValue = '';
+      let inQuotes = false;
+
+      for (let j = 0; j < values.length; j++) {
+        const value = values[j];
+
+        if (value.startsWith('"') && !inQuotes) {
+          inQuotes = true;
+          currentValue = value.substring(1);
+        } else if (value.endsWith('"') && inQuotes) {
+          currentValue += ',' + value.substring(0, value.length - 1);
+          parsedValues.push(currentValue);
+          currentValue = '';
+          inQuotes = false;
+        } else if (inQuotes) {
+          currentValue += ',' + value;
+        } else {
+          parsedValues.push(value);
+        }
+      }
+
+      if (parsedValues.length >= headers.length) {
+        const interventionId = parsedValues[interventionIdIndex]?.trim();
+        const dateStr = parsedValues[dateIndex]?.trim();
+        const waterLevelStr = parsedValues[waterLevelIndex]?.trim();
+
+        if (interventionId === wellId && dateStr && waterLevelStr && waterLevelStr !== '') {
+          const waterLevel = parseFloat(waterLevelStr);
+          if (!isNaN(waterLevel)) {
+            // Parse date - format is DD-MM-YYYY HH:MM
+            const dateParts = dateStr.split(' ')[0].split('-');
+            if (dateParts.length === 3) {
+              const date = new Date(`${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`);
+              if (!isNaN(date.getTime())) {
+                filteredData.push({
+                  date: date,
+                  waterLevel: waterLevel,
+                  formattedDate: dateStr
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Sort by date
+    return filteredData.sort((a, b) => a.date - b.date);
+  };
 
   // Handle responsive behavior
   useEffect(() => {
@@ -572,23 +803,6 @@ const LandscapeView = ({ project }) => {
   const defaultCenter = [20.3287, 73.1119];
   const defaultZoom = 13;
 
-  // Function to calculate bounds for all interventions
-  const getInterventionsBounds = (interventions) => {
-    if (!interventions || interventions.length === 0) return null;
-
-    const validInterventions = interventions.filter(int =>
-      int.latitude && int.longitude &&
-      !isNaN(int.latitude) && !isNaN(int.longitude)
-    );
-
-    if (validInterventions.length === 0) return null;
-
-    const bounds = L.latLngBounds(
-      validInterventions.map(int => [int.latitude, int.longitude])
-    );
-
-    return bounds;
-  };
 
   // Create intervention-specific icons
   const createInterventionIcon = (type) => {
@@ -1116,26 +1330,29 @@ const LandscapeView = ({ project }) => {
                     position={[well.latitude, well.longitude]}
                     icon={L.divIcon({
                       className: 'custom-well-marker',
-                      html: `<div style="background-color: #3B82F6; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
+                      html: `<div style="background-color: ${selectedIntervention && selectedIntervention.well_id === well.well_id ? '#EF4444' : '#3B82F6'}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3); cursor: pointer;"></div>`,
                       iconSize: [10, 10],
                       iconAnchor: [5, 5]
                     })}
-                  >
-                    <Popup>
-                      <div className="p-2">
-                        <h3 className="font-semibold text-sm">{well.well_id}</h3>
-                        <div className="text-xs text-gray-600 space-y-1">
-                          <p><strong>Village:</strong> {well.village}</p>
-                          <p><strong>CRP:</strong> {well.name_of_crp}</p>
-                          <p><strong>Depth:</strong> {well.total_well_depth_m}m</p>
-                          <p><strong>Water Level:</strong> {well.water_level_m}m</p>
-                          <p><strong>Water Use:</strong> {well.water_use}</p>
-                          <p><strong>Owner:</strong> {well.owner_operator}</p>
-                          {well.springs_visible && <p><strong>Springs:</strong> {well.springs_visible}</p>}
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
+                    eventHandlers={{
+                      click: () => {
+                        console.log('Well clicked:', well.well_id);
+                        // Create a well object that mimics intervention structure for display
+                        const wellIntervention = {
+                          ...well,
+                          intervention_id: well.well_id,
+                          intervention_type: 'well_monitoring',
+                          status: 'Active',
+                          isWell: true // Flag to identify this as a well
+                        };
+                        setSelectedIntervention(wellIntervention);
+                        // Parse and set time series data
+                        const parsedData = parseWellTimeSeriesData(well.well_id, wellsTimeSeriesCsv);
+                        setTimeSeriesData(parsedData);
+                        console.log('Parsed time series data:', parsedData.length, 'points');
+                      }
+                    }}
+                  />
                   ));
                 })()}
               </MapContainer>
@@ -1319,26 +1536,29 @@ const LandscapeView = ({ project }) => {
                       position={[well.latitude, well.longitude]}
                       icon={L.divIcon({
                         className: 'custom-well-marker',
-                        html: `<div style="background-color: #3B82F6; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
+                        html: `<div style="background-color: ${selectedIntervention && selectedIntervention.well_id === well.well_id ? '#EF4444' : '#3B82F6'}; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3); cursor: pointer;"></div>`,
                         iconSize: [10, 10],
                         iconAnchor: [5, 5]
                       })}
-                    >
-                      <Popup>
-                        <div className="p-2">
-                          <h3 className="font-semibold text-sm">{well.well_id}</h3>
-                          <div className="text-xs text-gray-600 space-y-1">
-                            <p><strong>Village:</strong> {well.village}</p>
-                            <p><strong>CRP:</strong> {well.name_of_crp}</p>
-                            <p><strong>Depth:</strong> {well.total_well_depth_m}m</p>
-                            <p><strong>Water Level:</strong> {well.water_level_m}m</p>
-                            <p><strong>Water Use:</strong> {well.water_use}</p>
-                            <p><strong>Owner:</strong> {well.owner_operator}</p>
-                            {well.springs_visible && <p><strong>Springs:</strong> {well.springs_visible}</p>}
-                          </div>
-                        </div>
-                      </Popup>
-                    </Marker>
+                      eventHandlers={{
+                        click: () => {
+                          console.log('Well clicked:', well.well_id);
+                          // Create a well object that mimics intervention structure for display
+                          const wellIntervention = {
+                            ...well,
+                            intervention_id: well.well_id,
+                            intervention_type: 'well_monitoring',
+                            status: 'Active',
+                            isWell: true // Flag to identify this as a well
+                          };
+                          setSelectedIntervention(wellIntervention);
+                          // Parse and set time series data
+                          const parsedData = parseWellTimeSeriesData(well.well_id, wellsTimeSeriesCsv);
+                          setTimeSeriesData(parsedData);
+                          console.log('Parsed time series data:', parsedData.length, 'points');
+                        }
+                      }}
+                    />
                     ));
                   })()}
                   </MapContainer>
@@ -1359,12 +1579,15 @@ const LandscapeView = ({ project }) => {
               setTypeVisibility={setTypeVisibility}
               selectedIntervention={selectedIntervention}
               setSelectedIntervention={setSelectedIntervention}
+              timeSeriesData={timeSeriesData}
+              setTimeSeriesData={setTimeSeriesData}
             />
       </section>
 
     </div>
   );
 };
+
 
 LandscapeView.propTypes = {
   project: PropTypes.shape({
