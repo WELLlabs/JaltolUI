@@ -23,6 +23,9 @@ import ProfileSetupPage from "./pages/ProfileSetupPage";
 import MyProjectsPage from "./pages/MyProjectsPage";
 import Dashboard from "./pages/Dashboard";
 import ProjectPage from "./pages/ProjectPage";
+import NewCMProject from "./pages/ContinuousMonitoring/NewCMProject";
+import CMProjectPage from "./pages/ContinuousMonitoring/CMProjectPage";
+import CMPublicPage from "./pages/ContinuousMonitoring/CMPublicPage";
 
 // Import components
 import ImpactAssessmentGate from './components/ImpactAssessmentGate';
@@ -78,6 +81,19 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           
+          {/* Continuous Monitoring routes */}
+          <Route path="/cm/new" element={
+            <ProtectedRoute>
+              <NewCMProject />
+            </ProtectedRoute>
+          } />
+          <Route path="/cm/:projectId" element={
+            <ProtectedRoute>
+              <CMProjectPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/cm/p/:slug" element={<CMPublicPage />} />
+          
           {/* Authentication gate */}
           <Route path="/impact-assessment" element={<ImpactAssessmentGate />} />
 
@@ -113,10 +129,8 @@ function App() {
   useEffect(() => {
     const fetchGoogleConfig = async () => {
       try {
-        // Use the production API URL directly
-        const API_URL = 'https://app.jaltol.app/api';
-        // const API_URL = 'http://127.0.0.1:8000/api'; // For local development
-        
+        // Use environment-configured API URL
+        const API_URL = import.meta.env.VITE_API_URL;
         const response = await axios.get(`${API_URL}/auth/google/config/`);
         
         if (response.data && response.data.client_id) {

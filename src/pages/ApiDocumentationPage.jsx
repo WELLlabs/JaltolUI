@@ -1,7 +1,7 @@
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 
-const API_URL = 'https://app.jaltol.app/api'; // Your Django app URL
+const API_URL = import.meta.env.VITE_API_URL; // Backend API URL from environment
 
 const apiEndpoints = [
   {
@@ -38,6 +38,13 @@ const apiEndpoints = [
     params: 'state_name, district_name, subdistrict_name, village_name',
     example: `${API_URL}/get_rainfall_data/?state_name=Rajasthan&district_name=karauli&subdistrict_name=nadoti&village_name=rajpur`,
     returns: 'JSON object containing rainfall data for the specified location'
+  },
+  {
+    name: 'Get SRTM Elevation Raster',
+    endpoint: `${API_URL}/get_srtm_raster/`,
+    params: 'state_name, district_name, subdistrict_name, village_name',
+    example: `${API_URL}/get_srtm_raster/?state_name=Gujarat&district_name=Valsad&subdistrict_name=Kaprada&village_name=Vapi`,
+    returns: 'Object containing URL to the SRTM slope raster tiles for the specified location'
   }
 ];
 
