@@ -134,8 +134,24 @@ const ProfileSetupPage = () => {
     }
   };
 
-  const handleSkip = () => {
-    navigate('/my-projects');
+  const handleSkip = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { skipProfileSetup } = await import('../services/api');
+      const result = await skipProfileSetup();
+      
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setErrors({ submit: result.message || 'Failed to skip profile setup' });
+      }
+    } catch (error) {
+      console.error('Skip profile setup error:', error);
+      setErrors({ submit: 'An error occurred. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isAuthenticated) {

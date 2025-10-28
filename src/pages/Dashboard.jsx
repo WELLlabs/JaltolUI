@@ -140,7 +140,7 @@ const ProjectCard = ({ project, onClick }) => {
         {/* Project Type Badge */}
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            Impact Assessment
+            {isDemo ? 'Continuous Monitoring' : 'Impact Assessment'}
           </span>
           <svg className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -436,6 +436,9 @@ const Dashboard = () => {
 
   const handleQuickAction = (action) => {
     switch (action) {
+      case 'new-cm-project':
+        navigate('/cm/new');
+        break;
       case 'new-project':
         navigate('/impact-assessment');
         break;
@@ -509,14 +512,48 @@ const Dashboard = () => {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8">
+          {/* Profile Setup Banner */}
+          {user && (!user.organization || user.profile_skipped) && (
+            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Complete your profile</p>
+                    <p className="text-sm text-blue-700">Add your organization and interests to get the most out of Jaltol</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/profile-setup')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Complete Profile
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Quick Actions */}
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <QuickActionCard
-                title="Start New Assessment"
-                description="Create a new impact assessment project"
+                title="Continuous Monitoring"
+                description="Create a new continuous monitoring project"
                 color="blue"
+                onClick={() => handleQuickAction('new-cm-project')}
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                }
+              />
+              <QuickActionCard
+                title="Impact Assessment"
+                description="Create a new impact assessment project"
+                color="green"
                 onClick={() => handleQuickAction('new-project')}
                 icon={
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -527,22 +564,11 @@ const Dashboard = () => {
               <QuickActionCard
                 title="Explore Maps"
                 description="View satellite imagery and data layers"
-                color="green"
+                color="purple"
                 onClick={() => handleQuickAction('view-maps')}
                 icon={
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                  </svg>
-                }
-              />
-              <QuickActionCard
-                title="Learn Methodology"
-                description="Understand our impact assessment approach"
-                color="purple"
-                onClick={() => handleQuickAction('methodology')}
-                icon={
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 }
               />

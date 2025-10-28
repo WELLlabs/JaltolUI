@@ -332,3 +332,12 @@ export const checkPlanRequirements = () => {
       throw error;
     });
 };
+
+export const skipProfileSetup = () => {
+  return axios.post(`${API_URL}/auth/profile/skip/`, {}, createAuthenticatedRequest())
+    .then(response => response.data)
+    .catch(error => {
+      console.error("Error skipping profile setup:", error);
+      throw error;
+    });
+};
