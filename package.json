@@ -27,6 +27,7 @@
     "leaflet-image": "^0.4.0",
     "leaflet-spin": "^1.1.2",
     "lucide-react": "^0.463.0",
+    "mapbox-gl": "^3.16.0",
     "papaparse": "^5.4.1",
     "posthog-js": "^1.258.6",
     "react": "^18.3.1",

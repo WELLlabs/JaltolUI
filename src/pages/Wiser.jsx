@@ -67,7 +67,7 @@ const Wiser = () => {
   };
 
   const handleTryClick = () => {
-    navigate('/impact-assessment');
+    navigate('/wiser/dashboard');
   };
 
   return (

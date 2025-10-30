@@ -8,6 +8,7 @@ import axios from 'axios';
 // Import pages
 import Homepage from "./pages/Homepage";
 import Wiser from "./pages/Wiser";
+import WiserDashboard from "./pages/WiserDashboard";
 import ImpactAssessmentPage from "./pages/Impactpage";
 import CompareVillagesPage from "./pages/CompareVillagespage";
 // import AboutUsPage from "./pages/AboutUspage";
@@ -57,6 +58,7 @@ const AppContent = () => {
           {/* Public routes */}
           <Route path="/" element={<Homepage />} />
           <Route path="/wiser" element={<Wiser />} />
+          <Route path="/wiser/dashboard" element={<WiserDashboard />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/pricing" element={<PricingPage />} />
