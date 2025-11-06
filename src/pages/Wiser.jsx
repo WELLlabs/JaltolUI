@@ -67,7 +67,11 @@ const Wiser = () => {
   };
 
   const handleTryClick = () => {
-    navigate('/wiser/dashboard');
+    navigate('/wiser/dashboard-a');
+  };
+
+  const handleTryClickB = () => {
+    navigate('/wiser/dashboard-b');
   };
 
   return (
@@ -88,12 +92,20 @@ const Wiser = () => {
               )}
               <br />
               <br />
-              <button
-                className="mt-6 btn btn-primary hover:bg-warning"
-                onClick={handleTryClick}
-              >
-                View Indicators!
-              </button>
+              <div className="flex gap-4">
+                <button
+                  className="mt-6 btn btn-primary hover:bg-warning"
+                  onClick={handleTryClick}
+                >
+                  View Indicators (Version A - Mapbox MVT)
+                </button>
+                <button
+                  className="mt-6 btn btn-primary hover:bg-warning"
+                  onClick={handleTryClickB}
+                >
+                  View Indicators (Version B - PMTiles)
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -153,9 +165,12 @@ const Wiser = () => {
               <h3 className="text-3xl md:text-4xl font-bold">Ready to explore?</h3>
               <p className="text-lg md:text-xl mt-2 opacity-90">Click to explore the WISER dashboard.</p>
             </div>
-            <div>
+            <div className="flex gap-4">
               <button className="btn bg-white text-success hover:bg-warning" onClick={handleTryClick}>
-                View Indicators!
+                View Indicators (Version A)
+              </button>
+              <button className="btn bg-white text-success hover:bg-warning" onClick={handleTryClickB}>
+                View Indicators (Version B)
               </button>
             </div>
           </div>
