@@ -142,11 +142,11 @@ function InfoPanel() {
 
               <div className="space-y-1.5 px-1">
                 {[
-                  { label: 'Very Low', color: 'bg-[rgb(220,5,12)]' },
-                  { label: 'Low', color: 'bg-[rgb(255,152,0)]' },
-                  { label: 'Moderate', color: 'bg-[rgb(255,255,84)] text-gray-800' },
-                  { label: 'High', color: 'bg-[rgb(144,238,144)] text-gray-800' },
-                  { label: 'Very High', color: 'bg-[rgb(26,152,80)]' },
+                  { label: 'Very Low', color: 'bg-[rgb(215,25,28)]' },
+                  { label: 'Low', color: 'bg-[rgb(253,174,97)]' },
+                  { label: 'Moderate', color: 'bg-[rgb(255,255,191)] text-gray-800' },
+                  { label: 'High', color: 'bg-[rgb(171,217,233)] text-gray-800' },
+                  { label: 'Very High', color: 'bg-[rgb(44,123,182)]' },
                 ].map(({ label, color }) => (
                   <div
                     key={label}

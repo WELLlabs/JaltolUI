@@ -20,22 +20,22 @@ const getBinPropertyForYear = (year) => {
 const createFillColorExpression = (property) => [
   'match',
   ['get', property],
-  1, 'rgb(220, 5, 12)',
-  2, 'rgb(255, 152, 0)',
-  3, 'rgb(255, 255, 84)',
-  4, 'rgb(144, 238, 144)',
-  5, 'rgb(26, 152, 80)',
+  1, 'rgb(215, 25, 28)',
+  2, 'rgb(253, 174, 97)',
+  3, 'rgb(255, 255, 191)',
+  4, 'rgb(171, 217, 233)',
+  5, 'rgb(44, 123, 182)', 
   'rgb(200, 200, 200)',
 ];
 
 const createOutlineColorExpression = (property) => [
   'match',
   ['get', property],
-  1, 'rgb(180, 0, 0)',
-  2, 'rgb(200, 100, 0)',
-  3, 'rgb(200, 200, 0)',
-  4, 'rgb(100, 180, 100)',
-  5, 'rgb(0, 120, 60)',
+  1, 'rgb(215, 25, 28)',
+  2, 'rgb(253, 174, 97)',
+  3, 'rgb(255, 255, 191)',
+  4, 'rgb(171, 217, 233)',
+  5, 'rgb(44, 123, 182)',
   'rgb(150, 150, 150)',
 ];
 
