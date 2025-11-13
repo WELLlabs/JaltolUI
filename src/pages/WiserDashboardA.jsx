@@ -1,10 +1,60 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { isMapboxTokenConfigured, getMapboxToken } from '../config/mapbox';
+import InfoPanel from '../components/Wiser/InfoPanel';
+import YearSlider from '../components/Wiser/YearSlider';
+
+const START_YEAR = 2005;
+const END_YEAR = 2023;
+
+const YEARS = Array.from({ length: END_YEAR - START_YEAR + 1 }, (_, index) => START_YEAR + index);
+
+const getBinPropertyForYear = (year) => {
+  const start = year % 100;
+  const end = (year + 1) % 100;
+  const startPart = start < 10 ? `${start}` : `${start}`;
+  const endPart = end < 10 ? `0${end}` : `${end}`;
+  return `BIN_${startPart}${endPart}`;
+};
+
+const createFillColorExpression = (property) => [
+  'match',
+  ['get', property],
+  1, 'rgb(220, 5, 12)',
+  2, 'rgb(255, 152, 0)',
+  3, 'rgb(255, 255, 84)',
+  4, 'rgb(144, 238, 144)',
+  5, 'rgb(26, 152, 80)',
+  'rgb(200, 200, 200)',
+];
+
+const createOutlineColorExpression = (property) => [
+  'match',
+  ['get', property],
+  1, 'rgb(180, 0, 0)',
+  2, 'rgb(200, 100, 0)',
+  3, 'rgb(200, 200, 0)',
+  4, 'rgb(100, 180, 100)',
+  5, 'rgb(0, 120, 60)',
+  'rgb(150, 150, 150)',
+];
+
+const FILL_OPACITY_EXPRESSION = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  0, 0.7,
+  8.9, 0.7,
+  9, 0,
+  22, 0,
+];
 
 function WiserDashboardA() {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
+  const [selectedYear, setSelectedYear] = useState(END_YEAR);
+  const [mapReady, setMapReady] = useState(false);
+  const years = useMemo(() => YEARS, []);
 
   useEffect(() => {
     document.title = 'WISER Dashboard (Version A - Mapbox MVT)';
@@ -20,43 +70,7 @@ function WiserDashboardA() {
     // Note: Mapbox GL JS can use custom styles with external tile sources
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: {
-        version: 8,
-        sources: {
-          'esri-satellite': {
-            type: 'raster',
-            tiles: [
-              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-            ],
-            tileSize: 256,
-            attribution: '© Esri'
-          },
-          'esri-labels': {
-            type: 'raster',
-            tiles: [
-              'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
-            ],
-            tileSize: 256,
-            attribution: '© Esri'
-          }
-        },
-        layers: [
-          {
-            id: 'esri-satellite-layer',
-            type: 'raster',
-            source: 'esri-satellite',
-            minzoom: 0,
-            maxzoom: 19
-          },
-          {
-            id: 'esri-labels-layer',
-            type: 'raster',
-            source: 'esri-labels',
-            minzoom: 0,
-            maxzoom: 19
-          }
-        ]
-      },
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
       projection: 'globe',
       center: [78.9629, 20.5937], // India centroid
       zoom: 4,
@@ -114,29 +128,20 @@ function WiserDashboardA() {
       try {
         map.addSource('raichur-vector', {
           type: 'vector',
-          url: 'mapbox://jaltol.8rvoxg2a'
+          url: 'mapbox://jaltol.d59xt63p'
         });
         console.log('[WISER A] Mapbox tileset source added');
 
-        // Add fill layer with data-driven styling based on "2324" property
+        const initialProperty = getBinPropertyForYear(selectedYear);
+
         map.addLayer({
           id: 'raichur-fill',
           type: 'fill',
           source: 'raichur-vector',
-          'source-layer': 'Raichur_CI-d0nxka', // Source-layer name from Mapbox tileset
+          'source-layer': 'Raichur_CI_bin-62et6r', // Source-layer name from Mapbox tileset
           paint: {
-            'fill-color': [
-              'interpolate',
-              ['linear'],
-              ['get', '2324'], // Property name for year 2023-2024
-              0, // Minimum value -> Red
-              'rgb(220, 5, 12)', // Red color
-              0.5, // Mid value -> Yellow
-              'rgb(255, 255, 84)', // Yellow color
-              1, // Maximum value -> Green
-              'rgb(26, 152, 80)' // Green color
-            ],
-            'fill-opacity': 0.7,
+            'fill-color': createFillColorExpression(initialProperty),
+            'fill-opacity': FILL_OPACITY_EXPRESSION,
           },
         });
 
@@ -145,25 +150,52 @@ function WiserDashboardA() {
           id: 'raichur-outline',
           type: 'line',
           source: 'raichur-vector',
-          'source-layer': 'Raichur_CI-d0nxka',
+          'source-layer': 'Raichur_CI_bin-62et6r', // Use same source-layer as fill
           paint: {
-            'line-color': [
-              'interpolate',
-              ['linear'],
-              ['get', '2324'], // Match fill color based on same property
-              0,
-              'rgb(180, 0, 0)', // Darker red for outline
-              0.5,
-              'rgb(200, 200, 0)', // Darker yellow for outline
-              1,
-              'rgb(0, 120, 60)' // Darker green for outline
-            ],
+            'line-color': createOutlineColorExpression(initialProperty),
             'line-width': 1.5,
             'line-opacity': 0.9,
           },
         });
 
-        console.log('[WISER A] Vector layers added with RdYlGn color scale');
+        map.addLayer({
+          id: 'raichur-labels',
+          type: 'symbol',
+          source: 'raichur-vector',
+          'source-layer': 'Raichur_CI_bin-62et6r',
+          minzoom: 10,
+          layout: {
+            'text-field': [
+              'coalesce',
+              ['get', 'village_na'],
+            ],
+            'text-size': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              10, 11,
+              14, 16,
+            ],
+            'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+            'text-allow-overlap': false,
+            'text-transform': 'capitalize',
+          },
+          paint: {
+            'text-color': '#111111',
+            'text-halo-color': 'rgba(255,255,255,0.85)',
+            'text-halo-width': 1.4,
+            'text-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              10, 0,
+              10.4, 1,
+            ],
+          },
+        });
+
+        console.log('[WISER A] Vector layers added with discrete BIN color scale (1-5)');
+        setMapReady(true);
       } catch (error) {
         console.error('[WISER A] Error adding Mapbox tileset source:', error);
         // If source-layer name is wrong, try common alternatives
@@ -199,6 +231,21 @@ function WiserDashboardA() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!mapReady || !mapRef.current) return;
+    const map = mapRef.current;
+    const property = getBinPropertyForYear(selectedYear);
+    const fillExpression = createFillColorExpression(property);
+    const outlineExpression = createOutlineColorExpression(property);
+
+    if (map.getLayer('raichur-fill')) {
+      map.setPaintProperty('raichur-fill', 'fill-color', fillExpression);
+    }
+    if (map.getLayer('raichur-outline')) {
+      map.setPaintProperty('raichur-outline', 'line-color', outlineExpression);
+    }
+  }, [selectedYear, mapReady]);
+
   return (
     <div className="fixed inset-0 bg-black">
       {!isMapboxTokenConfigured() ? (
@@ -209,8 +256,10 @@ function WiserDashboardA() {
           </div>
         </div>
       ) : (
-        <div className="h-full w-full">
+        <div className="h-full w-full relative">
           <div ref={mapContainerRef} className="h-full w-full" aria-label="WISER Globe Map Container (Version A)" />
+          <InfoPanel />
+          <YearSlider years={years} selectedYear={selectedYear} onYearChange={setSelectedYear} />
         </div>
       )}
     </div>

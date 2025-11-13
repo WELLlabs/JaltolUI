@@ -13,7 +13,9 @@
 
 ## Overview
 
-Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wiser/dashboard`. No overlays or UI controls yet. Globe feel when zoomed out, increasingly 2D when zoomed in. Support for large pan-India vector datasets via PMTiles.
+Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wiser/dashboard-a` (Version A) and `/wiser/dashboard-b` (Version B). Globe feel when zoomed out, increasingly 2D when zoomed in. Support for large pan-India vector datasets via MVT (Version A) and PMTiles (Version B).
+
+**Note:** The original `/wiser/dashboard` route has been removed. Only Versions A and B are active.
 
 ## Scope (this milestone)
 
@@ -103,6 +105,20 @@ Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wi
 
 **Reason for dual approach:** Mapbox GL JS integration with PMTiles required complex fetch/XHR overrides and encountered "Unimplemented type: 4" errors. MapLibre GL JS has built-in protocol support (`maplibregl.addProtocol('pmtiles', protocol.tile)`) making PMTiles integration straightforward. Both versions will be tested to determine the best path forward.
 
+## Vector data structure
+
+The vector tiles contain multiple years of data with the following property naming convention:
+
+- **Continuous values**: Properties named `CI_506`, `CI_1011`, `CI_1112`, ..., `CI_2324` (format: `CI_YYZZ` where YY-ZZ represents the year range, e.g., `CI_2324` = 2023-2024).
+- **Discrete bin values**: Properties named `BIN_506`, `BIN_1011`, `BIN_1112`, ..., `BIN_2324` with integer values 1-5 representing:
+  - 1 = Very Low
+  - 2 = Low
+  - 3 = Moderate
+  - 4 = High
+  - 5 = Very High
+
+**Current implementation:** Both dashboard versions use discrete BIN values for styling (e.g., `BIN_2324` for the latest year) with a `match` expression mapping each bin value (1-5) to a color in the RdYlGn (Red-Yellow-Green) scale.
+
 ## Implementation steps (with tests)
 
 **Note:** Two dashboard versions created:
@@ -112,9 +128,9 @@ Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wi
 
 1) Created route and page
 
-- Added page `JaltolUI/src/pages/WiserDashboard.jsx` with a full-screen container.
-- Registered route `/wiser/dashboard` in `JaltolUI/src/App.jsx`.
-- Test (manual): Navigated to `/wiser/dashboard`; page rendered full-viewport with no scrollbars; resizing kept it full-screen; no console errors. Status: Passed.
+- Added page `JaltolUI/src/pages/WiserDashboard.jsx` with a full-screen container (now deprecated).
+- Registered route `/wiser/dashboard` in `JaltolUI/src/App.jsx` (now removed).
+- Test (manual): Navigated to `/wiser/dashboard`; page rendered full-viewport with no scrollbars; resizing kept it full-screen; no console errors. Status: Passed (route now inactive).
 
 2) Installed dependencies and styles
 
@@ -157,47 +173,85 @@ Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wi
 
 7) Created dual dashboard versions
 
-- **Version A** (`WiserDashboardA.jsx`): Simplified Mapbox GL JS implementation, ready for Mapbox-hosted MVT tiles. No PMTiles integration.
-- **Version B** (`WiserDashboardB.jsx`): MapLibre GL JS with PMTiles integration using native `maplibregl.addProtocol('pmtiles', protocol.tile)` support.
+- **Version A** (`WiserDashboardA.jsx`): Mapbox GL JS with Mapbox-hosted MVT tiles. Uses Mapbox Satellite Streets (`mapbox://styles/mapbox/satellite-streets-v12`) with globe projection for denser labels.
+- **Version B** (`WiserDashboardB.jsx`): MapLibre GL JS with PMTiles integration using native `maplibregl.addProtocol('pmtiles', protocol.tile)` support. Uses ESRI hybrid satellite imagery with globe projection.
 - Added routes `/wiser/dashboard-a` and `/wiser/dashboard-b` in `App.jsx`.
+- Removed old `/wiser/dashboard` route (no longer active).
 - Updated `/wiser` page with two "View Indicators" buttons linking to both versions.
-- **Dependencies**: Version B requires `maplibre-gl` package (to be installed: `npm install maplibre-gl`).
+- **Dependencies**: Version B requires `maplibre-gl` package (installed: `npm install maplibre-gl`).
 - Test (manual): Both routes accessible; buttons navigate correctly. Status: Passed.
 
-7a) Integrated PMTiles library with MapLibre GL JS (Version B)
+8) Integrated Mapbox-hosted MVT tiles (Version A)
+
+- Added Mapbox tileset source (`mapbox://jaltol.d59xt63p`) to `WiserDashboardA.jsx`.
+- Source-layer name: `Raichur_CI_bin-62et6r`.
+- Configured globe projection with pitch 15, zoom 4, center India.
+- Test (manual): Map loads with Mapbox satellite imagery; globe projection visible; no console errors. Status: Passed.
+
+9) Implemented discrete BIN value styling (Version A)
+
+- Switched from continuous interpolation to discrete `match` expressions for styling.
+- Updated fill and outline layers to use `BIN_2324` property (discrete values 1-5).
+- Color mapping:
+  - 1 (Very Low) → Red `rgb(220, 5, 12)`
+  - 2 (Low) → Orange `rgb(255, 152, 0)`
+  - 3 (Moderate) → Yellow `rgb(255, 255, 84)`
+  - 4 (High) → Light Green `rgb(144, 238, 144)`
+  - 5 (Very High) → Green `rgb(26, 152, 80)`
+- Both fill and outline layers use the same source-layer (`Raichur_CI_bin-62et6r`) for consistency.
+- Test (manual): Vector layers render with discrete color categories; colors match BIN values correctly; no console errors. Status: Passed.
+
+10) Added WISER Info Panel (Version A)
+
+- Implemented an absolutely positioned InfoPanel component with back navigation and expandable space for future content.
+- Test (manual): Panel displays correctly on mobile/desktop; expand/collapse animations work. Status: Passed.
+
+11) Added Year Slider control (Version A)
+
+- Created a bottom-centered YearSlider component with prev/next buttons, range input, and active-year indicator.
+- Test (manual): Changing the slider updates the BIN property used for styling; map colors refresh instantly. Status: Passed.
+
+12) Added zoom-aware styling and labels (Version A)
+
+- Fill opacity now fades out above zoom 9 so only outlines remain at high zoom; village labels (via `village_na`) appear at zoom ≥10.
+- Test (manual): Fill disappears when zoomed in; labels show after zoom threshold; no console errors. Status: Passed.
+
+10) Integrate PMTiles library with MapLibre GL JS (Version B)
 
 - Imported `PMTiles` and `Protocol` from `pmtiles` library in `WiserDashboardB.jsx`.
 - Registered PMTiles protocol handler with MapLibre GL JS using `maplibregl.addProtocol('pmtiles', protocol.tile)`.
 - MapLibre natively supports custom protocols, eliminating the need for fetch/XHR overrides.
-- Test (manual): No console errors on import; PMTiles protocol handler registered successfully. Status: Pending (requires maplibre-gl installation).
+- Test (manual): No console errors on import; PMTiles protocol handler registered successfully. Status: Pending.
 
-8) Add PMTiles vector source to map
+11) Add PMTiles vector source to map (Version B)
 
-- Add PMTiles source to map using `map.addSource()` with `type: 'vector'` and PMTiles URL.
-- Configure source with appropriate min/max zoom and bounds if needed.
+- Add PMTiles source to map using `map.addSource()` with `type: 'vector'` and PMTiles URL (`pmtiles:///vectors/Raichur_CI.pmtiles`).
+- Configure source with appropriate min/max zoom from PMTiles header metadata.
 - Test (manual): Source added without errors; map `load` event fires; source appears in `map.getStyle().sources`. Status: Pending.
 
-9) Create and style vector layer
+12) Create and style vector layer with discrete BIN values (Version B)
 
 - Add vector layer using `map.addLayer()` referencing the PMTiles source.
-- Configure layer style (fill, stroke, opacity, color) appropriate for dataset.
+- Use discrete `match` expressions with `BIN_2324` property (same as Version A).
+- Apply same color mapping as Version A (1-5 → Red-Yellow-Green scale).
 - Set zoom-based visibility thresholds if needed (e.g., show only at zoom >= 5).
-- Test (manual): Layer renders on map; features visible at appropriate zoom levels; styling applied correctly; no console errors. Status: Pending.
+- Test (manual): Layer renders on map; features visible at appropriate zoom levels; discrete BIN styling applied correctly; no console errors. Status: Pending.
 
-10) Test with sample dataset
+13) Test with sample dataset
 
-- Load map with 2MB sample dataset.
+- Load both versions with 2MB sample dataset.
 - Verify smooth pan/zoom performance.
 - Check initial load time (< 10s target).
 - Verify features render correctly at different zoom levels.
-- Test (manual): Map loads in < 10s; pan/zoom is smooth (60fps); features visible and styled correctly; no memory leaks or performance degradation over time. Status: Pending.
+- Compare performance between Version A (MVT) and Version B (PMTiles).
+- Test (manual): Both maps load in < 10s; pan/zoom is smooth (60fps); features visible and styled correctly; discrete BIN colors render properly; no memory leaks or performance degradation over time. Status: Pending.
 
-11) Optimize for production
+14) Optimize for production
 
 - Review and adjust tile generation parameters if needed (simplification, min/max zoom).
 - Implement zoom-based feature visibility to reduce rendering load.
-- Add error handling for PMTiles loading failures.
-- Test (manual): Performance remains smooth with full dataset; error messages appear if PMTiles fails to load; no unnecessary features rendered at low zoom. Status: Pending.
+- Add error handling for vector tile loading failures (both versions).
+- Test (manual): Performance remains smooth with full dataset; error messages appear if tiles fail to load; no unnecessary features rendered at low zoom. Status: Pending.
 
 ## Risks and mitigations
 
@@ -219,7 +273,7 @@ Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wi
 
 ### To-dos
 
-- [x] Create `WiserDashboard.jsx` and register `/wiser/dashboard` route
+- [x] Create `WiserDashboard.jsx` and register `/wiser/dashboard` route (deprecated, route removed)
 - [x] Install `mapbox-gl` and import Mapbox CSS globally
 - [x] Add Mapbox token to `.env` and read in app config
 - [x] Initialize Mapbox map (projection globe, satellite style, India center)
@@ -233,16 +287,20 @@ Build a full-screen globe-inspired map page accessible at `https://jaltol.app/wi
 - [x] Host PMTiles file (Vercel public/ or external CDN)
 - [x] Create dual dashboard versions (A: Mapbox MVT, B: MapLibre PMTiles)
 - [x] Add routes and navigation buttons for both versions
-- [ ] Install `maplibre-gl` package for Version B
+- [x] Remove old `/wiser/dashboard` route
+- [x] Install `maplibre-gl` package for Version B
+- [x] Integrate Mapbox-hosted MVT tiles (Version A)
+- [x] Implement discrete BIN value styling (Version A) - using `BIN_2324` with match expressions
+- [ ] Integrate PMTiles library with MapLibre GL JS (Version B)
 - [ ] Add PMTiles vector source to map (Version B)
-- [ ] Create and style vector layer from PMTiles source (Version B)
+- [ ] Create and style vector layer with discrete BIN values (Version B)
 - [ ] Test Version B with 2MB sample dataset (load time, performance, rendering)
 - [ ] Compare Version A vs Version B performance and integration ease
 - [ ] Optimize tile generation and rendering for production
 - [ ] Manual test: PMTiles file accessible and valid
 - [ ] Manual test: PMTiles protocol handler registered (Version B)
 - [ ] Manual test: Vector source added successfully (Version B)
-- [ ] Manual test: Layer renders with correct styling (Version B)
+- [ ] Manual test: Layer renders with discrete BIN styling (Version B)
 - [ ] Manual test: Map loads in < 10s with sample dataset
 - [ ] Manual test: Smooth pan/zoom performance (60fps)
 - [ ] Manual test: Features visible at appropriate zoom levels
