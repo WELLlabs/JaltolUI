@@ -29,6 +29,7 @@ import ProjectPage from "./pages/ProjectPage";
 import NewCMProject from "./pages/ContinuousMonitoring/NewCMProject";
 import CMProjectPage from "./pages/ContinuousMonitoring/CMProjectPage";
 import CMPublicPage from "./pages/ContinuousMonitoring/CMPublicPage";
+import ContinuousMonitoringPage from "./pages/ContinuousMonitoringPage";
 
 // Import components
 import ImpactAssessmentGate from './components/ImpactAssessmentGate';
@@ -88,6 +89,11 @@ const AppContent = () => {
           } />
           
           {/* Continuous Monitoring routes */}
+          <Route path="/cm" element={
+            <ProtectedRoute>
+              <ContinuousMonitoringPage />
+            </ProtectedRoute>
+          } />
           <Route path="/cm/new" element={
             <ProtectedRoute>
               <NewCMProject />
