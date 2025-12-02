@@ -85,3 +85,12 @@ export const deleteDataset = (datasetId) => {
   })
   .then(response => response.data);
 };
+
+// Download a dataset CSV file (proxied through backend to avoid CORS)
+export const downloadDataset = (datasetId) => {
+  return axios.get(`${API_URL}/cm/datasets/${datasetId}/download/`, {
+    headers: getAuthHeaders(),
+    responseType: 'text'
+  })
+  .then(response => response.data);
+};

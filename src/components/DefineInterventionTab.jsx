@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X } from 'lucide-react';
-import axios from 'axios';
-import { createCMProject, uploadDataset, analyzeDataset, getDatasets, getDataset, deleteDataset } from '../services/continuousMonitoringApi';
-import { getAuthHeaders } from '../services/api';
+import { createCMProject, uploadDataset, analyzeDataset, getDatasets, getDataset, deleteDataset, downloadDataset } from '../services/continuousMonitoringApi';
 
 // Chart type flow configuration - defines which objectives are included and any special conditions
 const CHART_TYPE_CONFIG = {
@@ -157,17 +155,8 @@ const DefineInterventionTab = () => {
       setProjectId(currentProjectId);
       setDatasetId(datasetId);
 
-      // Fetch the CSV file
-      const API_URL = import.meta.env.VITE_API_URL;
-      const fileUrl = datasetInfo.file;
-      const fullUrl = fileUrl.startsWith('http') ? fileUrl : `${API_URL}${fileUrl}`;
-      
-      const response = await axios.get(fullUrl, {
-        headers: getAuthHeaders(),
-        responseType: 'text'
-      });
-      
-      const csvText = response.data;
+      // Fetch the CSV file through the backend API (avoids CORS issues with GCS)
+      const csvText = await downloadDataset(datasetId);
       
       // Parse CSV
       const parsed = parseCSV(csvText);
