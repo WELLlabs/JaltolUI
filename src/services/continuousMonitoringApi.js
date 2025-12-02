@@ -61,3 +61,27 @@ export const getCMProject = (projectId) => {
   })
   .then(response => response.data);
 };
+
+// Get all datasets for the authenticated user
+export const getDatasets = () => {
+  return axios.get(`${API_URL}/cm/datasets/`, {
+    headers: getAuthHeaders()
+  })
+  .then(response => response.data);
+};
+
+// Get a specific dataset
+export const getDataset = (datasetId) => {
+  return axios.get(`${API_URL}/cm/datasets/${datasetId}/`, {
+    headers: getAuthHeaders()
+  })
+  .then(response => response.data);
+};
+
+// Delete a dataset
+export const deleteDataset = (datasetId) => {
+  return axios.delete(`${API_URL}/cm/datasets/${datasetId}/`, {
+    headers: getAuthHeaders()
+  })
+  .then(response => response.data);
+};
