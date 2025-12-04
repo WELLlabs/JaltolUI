@@ -138,7 +138,7 @@ function WiserDashboardA() {
           id: 'karnataka-fill',
           type: 'fill',
           source: 'karnataka-vector',
-          'source-layer': '4a5b6c7d', // Source-layer name from Mapbox tileset
+          'source-layer': 'layer', // Source-layer name from Mapbox tileset
           paint: {
             'fill-color': createFillColorExpression(initialProperty),
             'fill-opacity': FILL_OPACITY_EXPRESSION,
@@ -150,7 +150,7 @@ function WiserDashboardA() {
           id: 'karnataka-outline',
           type: 'line',
           source: 'karnataka-vector',
-          'source-layer': '4a5b6c7d', // Use same source-layer as fill
+          'source-layer': 'layer', // Use same source-layer as fill
           paint: {
             'line-color': createOutlineColorExpression(initialProperty),
             'line-width': 1.5,
@@ -162,7 +162,7 @@ function WiserDashboardA() {
           id: 'karnataka-labels',
           type: 'symbol',
           source: 'karnataka-vector',
-          'source-layer': '4a5b6c7d',
+          'source-layer': 'layer',
           minzoom: 10,
           layout: {
             'text-field': [
