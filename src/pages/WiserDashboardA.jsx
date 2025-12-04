@@ -54,6 +54,7 @@ function WiserDashboardA() {
   const mapRef = useRef(null);
   const [selectedYear, setSelectedYear] = useState(END_YEAR);
   const [mapReady, setMapReady] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(4);
   const years = useMemo(() => YEARS, []);
 
   useEffect(() => {
@@ -178,7 +179,7 @@ function WiserDashboardA() {
             ],
             'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
             'text-allow-overlap': false,
-            'text-transform': 'capitalize',
+            'text-transform': 'uppercase',
           },
           paint: {
             'text-color': '#111111',
@@ -206,6 +207,11 @@ function WiserDashboardA() {
 
     map.on('idle', () => console.log('[WISER A] map idle'));
     map.on('error', (e) => console.error('[WISER A] map error', e?.error || e));
+
+    // Update zoom level state on zoom change
+    map.on('zoom', () => {
+      setZoomLevel(map.getZoom());
+    });
 
     const onResize = () => { if (map) map.resize(); };
     window.addEventListener('resize', onResize);
@@ -238,11 +244,11 @@ function WiserDashboardA() {
     const fillExpression = createFillColorExpression(property);
     const outlineExpression = createOutlineColorExpression(property);
 
-    if (map.getLayer('raichur-fill')) {
-      map.setPaintProperty('raichur-fill', 'fill-color', fillExpression);
+    if (map.getLayer('karnataka-fill')) {
+      map.setPaintProperty('karnataka-fill', 'fill-color', fillExpression);
     }
-    if (map.getLayer('raichur-outline')) {
-      map.setPaintProperty('raichur-outline', 'line-color', outlineExpression);
+    if (map.getLayer('karnataka-outline')) {
+      map.setPaintProperty('karnataka-outline', 'line-color', outlineExpression);
     }
   }, [selectedYear, mapReady]);
 
@@ -260,6 +266,24 @@ function WiserDashboardA() {
           <div ref={mapContainerRef} className="h-full w-full" aria-label="WISER Globe Map Container (Version A)" />
           <InfoPanel />
           <YearSlider years={years} selectedYear={selectedYear} onYearChange={setSelectedYear} />
+          {/* Zoom Level Indicator */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '100px',
+              right: '16px',
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              color: 'white',
+              padding: '8px 12px',
+              borderRadius: '4px',
+              fontFamily: 'monospace',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              zIndex: 10,
+            }}
+          >
+            Zoom: {zoomLevel.toFixed(2)}
+          </div>
         </div>
       )}
     </div>
