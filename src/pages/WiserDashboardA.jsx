@@ -126,19 +126,19 @@ function WiserDashboardA() {
 
       // Add Mapbox-hosted MVT vector source
       try {
-        map.addSource('raichur-vector', {
+        map.addSource('karnataka-vector', {
           type: 'vector',
-          url: 'mapbox://jaltol.d59xt63p'
+          url: 'mapbox://jaltol.4a5b6c7d'
         });
         console.log('[WISER A] Mapbox tileset source added');
 
         const initialProperty = getBinPropertyForYear(selectedYear);
 
         map.addLayer({
-          id: 'raichur-fill',
+          id: 'karnataka-fill',
           type: 'fill',
-          source: 'raichur-vector',
-          'source-layer': 'Raichur_CI_bin-62et6r', // Source-layer name from Mapbox tileset
+          source: 'karnataka-vector',
+          'source-layer': '4a5b6c7d', // Source-layer name from Mapbox tileset
           paint: {
             'fill-color': createFillColorExpression(initialProperty),
             'fill-opacity': FILL_OPACITY_EXPRESSION,
@@ -147,10 +147,10 @@ function WiserDashboardA() {
 
         // Add outline layer for better visibility
         map.addLayer({
-          id: 'raichur-outline',
+          id: 'karnataka-outline',
           type: 'line',
-          source: 'raichur-vector',
-          'source-layer': 'Raichur_CI_bin-62et6r', // Use same source-layer as fill
+          source: 'karnataka-vector',
+          'source-layer': '4a5b6c7d', // Use same source-layer as fill
           paint: {
             'line-color': createOutlineColorExpression(initialProperty),
             'line-width': 1.5,
@@ -159,10 +159,10 @@ function WiserDashboardA() {
         });
 
         map.addLayer({
-          id: 'raichur-labels',
+          id: 'karnataka-labels',
           type: 'symbol',
-          source: 'raichur-vector',
-          'source-layer': 'Raichur_CI_bin-62et6r',
+          source: 'karnataka-vector',
+          'source-layer': '4a5b6c7d',
           minzoom: 10,
           layout: {
             'text-field': [
