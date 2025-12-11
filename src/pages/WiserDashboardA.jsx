@@ -129,7 +129,7 @@ function WiserDashboardA() {
       try {
         map.addSource('karnataka-vector', {
           type: 'vector',
-          url: 'mapbox://jaltol.4a5b6c7d'
+          url: 'mapbox://jaltol.KA_CI_Zoom_4a5b6c7d-7'
         });
         console.log('[WISER A] Mapbox tileset source added');
 
@@ -139,7 +139,7 @@ function WiserDashboardA() {
           id: 'karnataka-fill',
           type: 'fill',
           source: 'karnataka-vector',
-          'source-layer': 'layer', // Source-layer name from Mapbox tileset
+          'source-layer': 'KA_CI_Zoom', // Source-layer name from Mapbox tileset
           paint: {
             'fill-color': createFillColorExpression(initialProperty),
             'fill-opacity': FILL_OPACITY_EXPRESSION,
@@ -151,7 +151,7 @@ function WiserDashboardA() {
           id: 'karnataka-outline',
           type: 'line',
           source: 'karnataka-vector',
-          'source-layer': 'layer', // Use same source-layer as fill
+          'source-layer': 'KA_CI_Zoom', // Use same source-layer as fill
           paint: {
             'line-color': createOutlineColorExpression(initialProperty),
             'line-width': 1.5,
@@ -163,7 +163,7 @@ function WiserDashboardA() {
           id: 'karnataka-labels',
           type: 'symbol',
           source: 'karnataka-vector',
-          'source-layer': 'layer',
+          'source-layer': 'KA_CI_Zoom',
           minzoom: 10,
           layout: {
             'text-field': [
