@@ -20,23 +20,23 @@ const getBinPropertyForYear = (year) => {
 const createFillColorExpression = (property) => [
   'step',
   ['get', property],
-  'rgb(200, 200, 200)',   // default for values < 1.5
-  1.5, 'rgb(215, 25, 28)',   // 1 to < 1.5 → red
-  2.5, 'rgb(253, 174, 97)',  // 1.5 to < 2.5 → orange
-  3.5, 'rgb(255, 255, 191)', // 2.5 to < 3.5 → yellow
-  4.5, 'rgb(171, 217, 233)', // 3.5 to < 4.5 → light blue
-  5.5, 'rgb(44, 123, 182)',  // 4.5 to < 5.5 → blue
+  'rgb(200, 200, 200)',   // default for values < 0.5
+  0.5, 'rgb(215, 25, 28)',   // 0.5 to < 1.5 → red
+  1.5, 'rgb(253, 174, 97)',  // 1.5 to < 2.5 → orange
+  2.5, 'rgb(255, 255, 191)', // 2.5 to < 3.5 → yellow
+  3.5, 'rgb(171, 217, 233)', // 3.5 to < 4.5 → light blue
+  4.5, 'rgb(44, 123, 182)',  // 4.5 to < 5.5 → blue
 ];
 
 const createOutlineColorExpression = (property) => [
   'step',
   ['get', property],
-  'rgb(150, 150, 150)',   // default for values < 1.5
-  1.5, 'rgb(215, 25, 28)',   // red
-  2.5, 'rgb(253, 174, 97)',  // orange
-  3.5, 'rgb(255, 255, 191)', // yellow
-  4.5, 'rgb(171, 217, 233)', // light blue
-  5.5, 'rgb(44, 123, 182)',  // blue
+  'rgb(150, 150, 150)',   // default for values < 0.5
+  0.5, 'rgb(215, 25, 28)',   // red for 0.5 to 1.5
+  1.5, 'rgb(253, 174, 97)',  // orange for 1.5 to 2.5
+  2.5, 'rgb(255, 255, 191)', // yellow for 2.5 to 3.5
+  3.5, 'rgb(171, 217, 233)', // light blue for 3.5 to 4.5
+  4.5, 'rgb(44, 123, 182)',  // blue for 4.5 to 5.5
 ];
 
 const FILL_OPACITY_EXPRESSION = [
