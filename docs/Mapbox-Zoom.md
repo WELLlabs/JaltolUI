@@ -28,18 +28,6 @@ if jq is not installed use `sudo apt install jq`
 https://api.mapbox.com/tilesets/v1/sources/{username}/{id}
 ```
 3. create a recipe JSON mentioning the min and max zoom extents
-```JSON
-{
-  "version": 1,
-  "layers": {
-    "layer": {
-      "source": "mapbox://tileset-source/{username}/{tileset-source-id}",
-      "minzoom": 4,
-      "maxzoom": 15
-    }
-  }
-}
-```
 4. next step is to create the tileset, POST request to the following API endpoint with recipe JSON attached to the request body
 ```
 https://api.mapbox.com/tilesets/v1/{tileset_id}
@@ -51,6 +39,8 @@ https://api.mapbox.com/tilesets/v1/{tileset_id}/publish
 6. You can see the tileset processing in the studio, once processing is completed the tileset becomes available for use in data manager
 
 Bash script to make this process simple, `upload_mapbox.sh`
+
+Note: The script is updated with fixes
 ```bash
 #!/usr/bin/env bash
 set -e
@@ -62,6 +52,7 @@ set -e
 USERNAME=""
 TILESET_SOURCE_ID="karnataka_ci_zoom"           # Example: tamilnadu_roads_src
 TILESET_ID=""                  			# Final ID becomes USERNAME.TILESET_ID
+LAYER_NAME="KA_CI_Zoom"
 GEOJSON_FILE=""     				# Absolute or relative path
 MAPBOX_TOKEN=""  				# Must include tilesets:write scope
 ############################################
@@ -94,10 +85,183 @@ cat <<EOF > recipe.json
 {
   "version": 1,
   "layers": {
-    "layer": {
+    "${LAYER_NAME}": {
       "source": "${SOURCE_URI}",
       "minzoom": 4,
-      "maxzoom": 15
+      "maxzoom": 15,
+      "features": {
+        "attributes": {
+          "allowed_output": ["pc11_s_id",
+              "pc11_d_id",
+              "pc11_sd_id",
+              "pc11_tv_id",
+              "state_name",
+              "district_n",
+              "subdistric",
+              "village_na",
+              "place_name",
+              "tot_p",
+              "p_sc",
+              "p_st",
+              "CI_506",
+              "CI_607",
+              "CI_708",
+              "CI_809",
+              "CI_910",
+              "CI_1011",
+              "CI_1112",
+              "CI_1213",
+              "CI_1314",
+              "CI_1415",
+              "CI_1516",
+              "CI_1617",
+              "CI_1718",
+              "CI_1819",
+              "CI_2021",
+              "CI_2122",
+              "CI_2223",
+              "CI_2324",
+              "BIN_506",
+              "BIN_607",
+              "BIN_708",
+              "BIN_809",
+              "BIN_910",
+              "BIN_1011",
+              "BIN_1112",
+              "BIN_1213",
+              "BIN_1314",
+              "BIN_1415",
+              "BIN_1516",
+              "BIN_1617",
+              "BIN_1718",
+              "BIN_1819",
+              "BIN_2021",
+              "BIN_2122",
+              "BIN_2223",
+              "BIN_2324",
+              "avg",
+              "avg_bin"
+          ]
+        }
+      },
+      "tiles": {
+        "union": [
+          {
+            "where": [ "<=", ["zoom"], 9 ],
+            "group_by": ["pc11_sd_id"],
+            "aggregate": {
+              "pc11_s_id":"mean",
+              "pc11_d_id":"mean",
+              "pc11_sd_id":"mean",
+              "pc11_tv_id":"mean",
+              "state_name":"mean",
+              "district_n":"mean",
+              "subdistric":"mean",
+              "village_na":"mean",
+              "place_name":"mean",
+              "tot_p":"mean",
+              "p_sc":"mean",
+              "p_st":"mean",
+              "CI_506":"mean",
+              "CI_607":"mean",
+              "CI_708":"mean",
+              "CI_809":"mean",
+              "CI_910":"mean",
+              "CI_1011":"mean",
+              "CI_1112":"mean",
+              "CI_1213":"mean",
+              "CI_1314":"mean",
+              "CI_1415":"mean",
+              "CI_1516":"mean",
+              "CI_1617":"mean",
+              "CI_1718":"mean",
+              "CI_1819":"mean",
+              "CI_2021":"mean",
+              "CI_2122":"mean",
+              "CI_2223":"mean",
+              "CI_2324":"mean",
+              "BIN_506":"mean",
+              "BIN_607":"mean",
+              "BIN_708":"mean",
+              "BIN_809":"mean",
+              "BIN_910":"mean",
+              "BIN_1011":"mean",
+              "BIN_1112":"mean",
+              "BIN_1213":"mean",
+              "BIN_1314":"mean",
+              "BIN_1415":"mean",
+              "BIN_1516":"mean",
+              "BIN_1617":"mean",
+              "BIN_1718":"mean",
+              "BIN_1819":"mean",
+              "BIN_2021":"mean",
+              "BIN_2122":"mean",
+              "BIN_2223":"mean",
+              "BIN_2324":"mean",
+              "avg":"mean",
+              "avg_bin":"mean"
+            },
+            "simplification": 1
+          },
+          {
+            "where": [ "<=", ["zoom"], 5 ],
+            "group_by": ["pc11_d_id"],
+            "aggregate": {
+              "pc11_s_id":"mean",
+              "pc11_d_id":"mean",
+              "pc11_sd_id":"mean",
+              "pc11_tv_id":"mean",
+              "state_name":"mean",
+              "district_n":"mean",
+              "subdistric":"mean",
+              "village_na":"mean",
+              "place_name":"mean",
+              "tot_p":"mean",
+              "p_sc":"mean",
+              "p_st":"mean",
+              "CI_506":"mean",
+              "CI_607":"mean",
+              "CI_708":"mean",
+              "CI_809":"mean",
+              "CI_910":"mean",
+              "CI_1011":"mean",
+              "CI_1112":"mean",
+              "CI_1213":"mean",
+              "CI_1314":"mean",
+              "CI_1415":"mean",
+              "CI_1516":"mean",
+              "CI_1617":"mean",
+              "CI_1718":"mean",
+              "CI_1819":"mean",
+              "CI_2021":"mean",
+              "CI_2122":"mean",
+              "CI_2223":"mean",
+              "CI_2324":"mean",
+              "BIN_506":"mean",
+              "BIN_607":"mean",
+              "BIN_708":"mean",
+              "BIN_809":"mean",
+              "BIN_910":"mean",
+              "BIN_1011":"mean",
+              "BIN_1112":"mean",
+              "BIN_1213":"mean",
+              "BIN_1314":"mean",
+              "BIN_1415":"mean",
+              "BIN_1516":"mean",
+              "BIN_1617":"mean",
+              "BIN_1718":"mean",
+              "BIN_1819":"mean",
+              "BIN_2021":"mean",
+              "BIN_2122":"mean",
+              "BIN_2223":"mean",
+              "BIN_2324":"mean",
+              "avg":"mean",
+              "avg_bin":"mean"
+            },
+            "simplification": 0.5
+          }
+        ]
+      }
     }
   }
 }
@@ -154,3 +318,203 @@ When Zoomed out, where zoom is <9 the smaller polygons disappear
 When Zoomed in, where zoom is >9 the smaller polygons appear (when the fill disappears and village lines are only shown)
 <img width="1918" height="888" alt="image" src="https://github.com/user-attachments/assets/f2355f07-ddd2-496e-9db3-fbb80d90e62d" />
 
+## Solution
+Tried the following methods in recipe and failed
+- simplification
+- filtering by expression
+- union
+- aggregation
+
+The following recipe solved the issue,
+
+Explanation: For zoom lesser than or equal to 5 the polygons will be grouped by district id, 
+and the rest of the attributes will be aggregated by "mean" calculation. 
+For zoom lesser than or equal to 9 the polygons will be grouped by subdistrict id, 
+and the rest of the attributes will be aggregated by "mean" calculation. 
+For zoom greater than 9 there is no special steps taken, original data is tiled.
+
+```JSON
+{
+  "version": 1,
+  "layers": {
+    "KA_CI_Zoom": {
+      "source": "",
+      "minzoom": 4,
+      "maxzoom": 15,
+      "features": {
+        "attributes": {
+          "allowed_output": ["pc11_s_id",
+              "pc11_d_id",
+              "pc11_sd_id",
+              "pc11_tv_id",
+              "state_name",
+              "district_n",
+              "subdistric",
+              "village_na",
+              "place_name",
+              "tot_p",
+              "p_sc",
+              "p_st",
+              "CI_506",
+              "CI_607",
+              "CI_708",
+              "CI_809",
+              "CI_910",
+              "CI_1011",
+              "CI_1112",
+              "CI_1213",
+              "CI_1314",
+              "CI_1415",
+              "CI_1516",
+              "CI_1617",
+              "CI_1718",
+              "CI_1819",
+              "CI_2021",
+              "CI_2122",
+              "CI_2223",
+              "CI_2324",
+              "BIN_506",
+              "BIN_607",
+              "BIN_708",
+              "BIN_809",
+              "BIN_910",
+              "BIN_1011",
+              "BIN_1112",
+              "BIN_1213",
+              "BIN_1314",
+              "BIN_1415",
+              "BIN_1516",
+              "BIN_1617",
+              "BIN_1718",
+              "BIN_1819",
+              "BIN_2021",
+              "BIN_2122",
+              "BIN_2223",
+              "BIN_2324",
+              "avg",
+              "avg_bin"
+          ]
+        }
+      },
+      "tiles": {
+        "union": [
+          {
+            "where": [ "<=", ["zoom"], 9 ],
+            "group_by": ["pc11_sd_id"],
+            "aggregate": {
+              "pc11_s_id":"mean",
+              "pc11_d_id":"mean",
+              "pc11_sd_id":"mean",
+              "pc11_tv_id":"mean",
+              "state_name":"mean",
+              "district_n":"mean",
+              "subdistric":"mean",
+              "village_na":"mean",
+              "place_name":"mean",
+              "tot_p":"mean",
+              "p_sc":"mean",
+              "p_st":"mean",
+              "CI_506":"mean",
+              "CI_607":"mean",
+              "CI_708":"mean",
+              "CI_809":"mean",
+              "CI_910":"mean",
+              "CI_1011":"mean",
+              "CI_1112":"mean",
+              "CI_1213":"mean",
+              "CI_1314":"mean",
+              "CI_1415":"mean",
+              "CI_1516":"mean",
+              "CI_1617":"mean",
+              "CI_1718":"mean",
+              "CI_1819":"mean",
+              "CI_2021":"mean",
+              "CI_2122":"mean",
+              "CI_2223":"mean",
+              "CI_2324":"mean",
+              "BIN_506":"mean",
+              "BIN_607":"mean",
+              "BIN_708":"mean",
+              "BIN_809":"mean",
+              "BIN_910":"mean",
+              "BIN_1011":"mean",
+              "BIN_1112":"mean",
+              "BIN_1213":"mean",
+              "BIN_1314":"mean",
+              "BIN_1415":"mean",
+              "BIN_1516":"mean",
+              "BIN_1617":"mean",
+              "BIN_1718":"mean",
+              "BIN_1819":"mean",
+              "BIN_2021":"mean",
+              "BIN_2122":"mean",
+              "BIN_2223":"mean",
+              "BIN_2324":"mean",
+              "avg":"mean",
+              "avg_bin":"mean"
+            },
+            "simplification": 1
+          },
+          {
+            "where": [ "<=", ["zoom"], 5 ],
+            "group_by": ["pc11_d_id"],
+            "aggregate": {
+              "pc11_s_id":"mean",
+              "pc11_d_id":"mean",
+              "pc11_sd_id":"mean",
+              "pc11_tv_id":"mean",
+              "state_name":"mean",
+              "district_n":"mean",
+              "subdistric":"mean",
+              "village_na":"mean",
+              "place_name":"mean",
+              "tot_p":"mean",
+              "p_sc":"mean",
+              "p_st":"mean",
+              "CI_506":"mean",
+              "CI_607":"mean",
+              "CI_708":"mean",
+              "CI_809":"mean",
+              "CI_910":"mean",
+              "CI_1011":"mean",
+              "CI_1112":"mean",
+              "CI_1213":"mean",
+              "CI_1314":"mean",
+              "CI_1415":"mean",
+              "CI_1516":"mean",
+              "CI_1617":"mean",
+              "CI_1718":"mean",
+              "CI_1819":"mean",
+              "CI_2021":"mean",
+              "CI_2122":"mean",
+              "CI_2223":"mean",
+              "CI_2324":"mean",
+              "BIN_506":"mean",
+              "BIN_607":"mean",
+              "BIN_708":"mean",
+              "BIN_809":"mean",
+              "BIN_910":"mean",
+              "BIN_1011":"mean",
+              "BIN_1112":"mean",
+              "BIN_1213":"mean",
+              "BIN_1314":"mean",
+              "BIN_1415":"mean",
+              "BIN_1516":"mean",
+              "BIN_1617":"mean",
+              "BIN_1718":"mean",
+              "BIN_1819":"mean",
+              "BIN_2021":"mean",
+              "BIN_2122":"mean",
+              "BIN_2223":"mean",
+              "BIN_2324":"mean",
+              "avg":"mean",
+              "avg_bin":"mean"
+            },
+            "simplification": 0.5
+          }
+        ]
+      }
+    }
+  }
+}
+```
