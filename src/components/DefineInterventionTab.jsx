@@ -27,7 +27,7 @@ const shouldShowObjective = (objectiveNumber, chartType) => {
   return config.objectives.includes(objectiveNumber);
 };
 
-const DefineInterventionTab = () => {
+const DefineInterventionTab = ({ onComplete }) => {
   const [projectId, setProjectId] = useState(null);
   const [datasetId, setDatasetId] = useState(null);
   const [columns, setColumns] = useState(null);
@@ -84,6 +84,30 @@ const DefineInterventionTab = () => {
   useEffect(() => {
     fetchDatasets();
   }, []);
+
+  // Call onComplete when all objectives are complete
+  useEffect(() => {
+    if (confirmedObjective >= 6 && onComplete) {
+      const config = getChartConfig(selectedChartType);
+      const isSnapshot = selectedChartType === 'snapshot';
+      
+      const configData = {
+        chartType: selectedChartType,
+        datasetId: datasetId,
+        selectedInterventionField: selectedInterventionField,
+        selectedValue: selectedValue,
+        idField: selectedIdFields[0] || null,
+        dateField: selectedDateField,
+        latitudeField: isSnapshot ? selectedLatitudeField : null,
+        longitudeField: isSnapshot ? selectedLongitudeField : null,
+        filteredRows: filteredRows,
+        csvData: csvData,
+        columnTypes: csvData?.types || columnTypes,
+      };
+      
+      onComplete(configData);
+    }
+  }, [confirmedObjective, onComplete, selectedChartType, datasetId, selectedInterventionField, selectedValue, selectedIdFields, selectedDateField, selectedLatitudeField, selectedLongitudeField, filteredRows, csvData, columnTypes]);
 
   // Handler to delete a dataset
   const handleDeleteDataset = async (datasetId, event) => {

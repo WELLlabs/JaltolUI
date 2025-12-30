@@ -3,9 +3,31 @@ import AnalystChat from '../../components/AnalystChat';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import DefineInterventionTab from '../../components/DefineInterventionTab';
+import SnapshotView from '../../components/cm/SnapshotView';
+import TimeSeriesView from '../../components/cm/TimeSeriesView';
 
 const NewCMProject = () => {
   const [selectedTemplate, setSelectedTemplate] = useState('define-intervention');
+  const [completedConfig, setCompletedConfig] = useState(null);
+
+  // Handle completion callback from DefineInterventionTab
+  const handleDefineInterventionComplete = (configData) => {
+    console.log('Define Intervention completed with config:', configData);
+    setCompletedConfig(configData);
+    
+    // Automatically switch to the result tab
+    if (configData.chartType === 'snapshot') {
+      setSelectedTemplate('snapshot');
+    } else if (configData.chartType === 'time-series') {
+      setSelectedTemplate('time-series');
+    }
+  };
+
+  // Get the tab label for the result view
+  const getResultTabLabel = () => {
+    if (!completedConfig) return null;
+    return completedConfig.chartType === 'snapshot' ? 'Snapshot' : 'Time-series';
+  };
 
   return (
     <>
@@ -19,7 +41,7 @@ const NewCMProject = () => {
         <div className="bg-white border-b border-gray-200 px-6 py-3">
           <div className="max-w-7xl mx-auto">
             <div className="flex gap-3 flex-wrap">
-              {/* Define your Intervention - visible */}
+              {/* Define your Intervention - always visible */}
               <button
                 onClick={() => setSelectedTemplate('define-intervention')}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -31,72 +53,51 @@ const NewCMProject = () => {
                 Define your Intervention
               </button>
               
-              {/* Site Snapshot - visible */}
-              <button
-                onClick={() => setSelectedTemplate('site-snapshot')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedTemplate === 'site-snapshot'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Site Snapshot
-              </button>
-              
-              {/* Hidden pills - commented out for now */}
-              {/* 
-              <button
-                onClick={() => setSelectedTemplate('time-traveler')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedTemplate === 'time-traveler'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Time Traveler
-              </button>
-              <button
-                onClick={() => setSelectedTemplate('impact-analyzer')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedTemplate === 'impact-analyzer'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Impact Analyzer
-              </button>
-              <button
-                onClick={() => setSelectedTemplate('correlation')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedTemplate === 'correlation'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Correlation Explorer
-              </button>
-              <button
-                onClick={() => setSelectedTemplate('simple-report')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                  selectedTemplate === 'simple-report'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                Simple Report
-              </button>
-              */}
+              {/* Dynamic result tab - only visible after completion */}
+              {completedConfig && (
+                <button
+                  onClick={() => setSelectedTemplate(completedConfig.chartType)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedTemplate === completedConfig.chartType
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {getResultTabLabel()}
+                </button>
+              )}
             </div>
           </div>
         </div>
 
         {/* Tab Content */}
-        <div className="max-w-7xl mx-auto p-4">
-          {selectedTemplate === 'define-intervention' && <DefineInterventionTab />}
-          {selectedTemplate === 'site-snapshot' && (
-            <div className="text-center py-12 text-gray-500">
-              Site Snapshot template preview (coming soon)
-            </div>
+        <div className={selectedTemplate === 'define-intervention' ? 'max-w-7xl mx-auto p-4' : ''}>
+          {selectedTemplate === 'define-intervention' && (
+            <DefineInterventionTab onComplete={handleDefineInterventionComplete} />
+          )}
+          
+          {selectedTemplate === 'snapshot' && completedConfig && (
+            <SnapshotView
+              data={completedConfig.filteredRows}
+              idField={completedConfig.idField}
+              latField={completedConfig.latitudeField}
+              lngField={completedConfig.longitudeField}
+              dateField={completedConfig.dateField}
+              csvData={completedConfig.csvData}
+              columnTypes={completedConfig.columnTypes}
+              selectedValue={completedConfig.selectedValue}
+            />
+          )}
+          
+          {selectedTemplate === 'time-series' && completedConfig && (
+            <TimeSeriesView
+              data={completedConfig.filteredRows}
+              allData={completedConfig.csvData}
+              idField={completedConfig.idField}
+              dateField={completedConfig.dateField}
+              columnTypes={completedConfig.columnTypes}
+              selectedValue={completedConfig.selectedValue}
+            />
           )}
         </div>
 
@@ -108,3 +109,4 @@ const NewCMProject = () => {
 };
 
 export default NewCMProject;
+
