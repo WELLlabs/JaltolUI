@@ -1,28 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import { isMapboxTokenConfigured, getMapboxToken } from '../../config/mapbox';
 import { Mountain, Earth } from 'lucide-react';
-import L from 'leaflet';
 import PropTypes from 'prop-types';
-import 'leaflet/dist/leaflet.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Fix for default marker icons in Leaflet with webpack/vite
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-// Component to fit map bounds to data
-const FitBounds = ({ bounds }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (bounds && bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [map, bounds]);
-  return null;
-};
+// Custom attribution control removed as Mapbox handles it
 
 // Map Sidebar Component (simplified version of LandscapeView's MapSidebar)
 const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpanded, basemapType, setBasemapType, hasData }) => {
@@ -68,10 +51,10 @@ const MapSidebar = ({ layerVisibility, setLayerVisibility, isExpanded, setIsExpa
         <span className="inline-block w-4 h-4 rounded-sm border-2 border-black border-dashed" />
       )
     },
-    {
+      {
       key: 'drainageLines',
       label: 'Drainage Lines',
-      available: false,
+      available: true,
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" className="text-blue-600">
           <line x1="2" y1="8" x2="14" y2="8" stroke="currentColor" strokeWidth="2" strokeDasharray="4,2" />
@@ -268,6 +251,10 @@ DetailsPanel.propTypes = {
 
 // Main SnapshotView Component
 const SnapshotView = ({ data, idField, latField, lngField, dateField, csvData, columnTypes, selectedValue }) => {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const [mapReady, setMapReady] = useState(false);
+
   const [layerVisibility, setLayerVisibility] = useState({
     markers: true,
     villageBoundary: false,
@@ -279,13 +266,14 @@ const SnapshotView = ({ data, idField, latField, lngField, dateField, csvData, c
   
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [basemapType, setBasemapType] = useState('terrain');
+  const [basemapType, setBasemapType] = useState('satellite');
+  const currentBasemapRef = useRef('satellite');
 
-  // Parse data points from CSV data
-  const dataPoints = useMemo(() => {
-    if (!data || !latField || !lngField) return [];
+  // Parse data points for Mapbox GeoJSON source
+  const geojsonPoints = useMemo(() => {
+    if (!data || !latField || !lngField) return { type: 'FeatureCollection', features: [] };
     
-    return data
+    const features = data
       .map((row, index) => {
         const lat = parseFloat(row[latField]);
         const lng = parseFloat(row[lngField]);
@@ -294,32 +282,209 @@ const SnapshotView = ({ data, idField, latField, lngField, dateField, csvData, c
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
         
         return {
-          id: idField ? row[idField] : `point-${index}`,
-          lat,
-          lng,
-          data: row
+          type: 'Feature',
+          id: idField ? row[idField] : index,
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+          properties: { ...row, originalId: idField ? row[idField] : index }
         };
       })
       .filter(Boolean);
+
+    return { type: 'FeatureCollection', features };
   }, [data, latField, lngField, idField]);
 
-  // Calculate bounds for the map
-  const bounds = useMemo(() => {
-    if (dataPoints.length === 0) return null;
+  // Initial Mapbox setup
+  useEffect(() => {
+    if (!isMapboxTokenConfigured()) {
+      console.error('[SnapshotView] Mapbox token is not configured. Map will not load.');
+      return;
+    }
+    if (!mapContainerRef.current) return;
+
+    mapboxgl.accessToken = getMapboxToken();
+    console.log('[SnapshotView] Initializing Mapbox map...');
     
-    const latLngs = dataPoints.map(p => [p.lat, p.lng]);
-    return L.latLngBounds(latLngs);
-  }, [dataPoints]);
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/satellite-streets-v12',
+      center: [78.9629, 20.5937],
+      zoom: 5,
+      attributionControl: true
+    });
 
-  // Default center if no data
-  const defaultCenter = [20.5937, 78.9629]; // India center
-  const defaultZoom = 5;
+    mapRef.current = map;
 
-  const handleMarkerClick = (item) => {
-    setSelectedItem(item.data);
-  };
+    map.on('error', (e) => {
+      console.error('[SnapshotView] Mapbox error:', e.error?.message || e);
+    });
 
-  const hasData = dataPoints.length > 0;
+    map.on('load', () => {
+      console.log('[SnapshotView] map load');
+      // Add source for data points
+      map.addSource('data-points', {
+        type: 'geojson',
+        data: geojsonPoints
+      });
+
+      // Add circle layer for data points
+      map.addLayer({
+        id: 'markers-layer',
+        type: 'circle',
+        source: 'data-points',
+        layout: {
+          'visibility': layerVisibility.markers ? 'visible' : 'none'
+        },
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#3b82f6',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+
+      // Add Drainage Source (Placeholders)
+      map.addSource('drainage-source', {
+        type: 'vector',
+        url: 'mapbox://jaltol.Hy-Riv-IN-8' // REPLACE_WITH_MAPBOX_URL
+      });
+
+      // Add Drainage Layer
+      map.addLayer({
+        id: 'drainage-layer',
+        type: 'line',
+        source: 'drainage-source',
+        'source-layer': 'hydrorivers', // REPLACE_WITH_SOURCE_LAYER
+        layout: {
+          'visibility': layerVisibility.drainageLines ? 'visible' : 'none',
+          'line-cap': 'round',
+          'line-join': 'round'
+        },
+        paint: {
+          'line-color': '#60a5fa',
+          'line-dasharray': [4, 2],
+          'line-width': [
+            'interpolate',
+            ['linear'],
+            ['coalesce', ['get', 'ORD_STRA'], 0],
+            1, 1,
+            6, 4
+          ],
+          'line-opacity': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            8, ['step', ['coalesce', ['get', 'ORD_STRA'], 0], 0, 4, 1], // Only high order at low zoom
+            12, 1 // Everything visible at high zoom
+          ]
+        }
+      });
+
+      // Handle marker clicks
+      map.on('click', 'markers-layer', (e) => {
+        if (e.features.length > 0) {
+          setSelectedItem(e.features[0].properties);
+        }
+      });
+
+      // Change cursor on hover
+      map.on('mouseenter', 'markers-layer', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'markers-layer', () => {
+        map.getCanvas().style.cursor = '';
+      });
+
+      // Fit bounds to data
+      if (geojsonPoints.features.length > 0) {
+        const bounds = new mapboxgl.LngLatBounds();
+        geojsonPoints.features.forEach(feature => {
+          bounds.extend(feature.geometry.coordinates);
+        });
+        map.fitBounds(bounds, { padding: 50, animate: false });
+      }
+
+      setMapReady(true);
+    });
+
+    return () => map.remove();
+  }, []); // Only run on mount
+
+  // Sync layer visibility
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+    
+    const map = mapRef.current;
+    if (map.getLayer('markers-layer')) {
+      map.setLayoutProperty('markers-layer', 'visibility', layerVisibility.markers ? 'visible' : 'none');
+    }
+    if (map.getLayer('drainage-layer')) {
+      map.setLayoutProperty('drainage-layer', 'visibility', layerVisibility.drainageLines ? 'visible' : 'none');
+    }
+  }, [layerVisibility, mapReady]);
+
+  // Sync basemap type
+  useEffect(() => {
+    if (!mapRef.current || !mapReady) return;
+    
+    // Skip if basemap hasn't actually changed to avoid redundant layer wipes
+    if (currentBasemapRef.current === basemapType) return;
+    
+    console.log(`[SnapshotView] Basemap type changed to: ${basemapType}`);
+    currentBasemapRef.current = basemapType;
+
+    const style = basemapType === 'satellite' 
+      ? 'mapbox://styles/mapbox/satellite-streets-v12'
+      : 'mapbox://styles/mapbox/streets-v12'; // Or a better terrain style
+      
+    mapRef.current.setStyle(style);
+    
+    const handleStyleLoad = () => {
+        // Re-add sources and layers after style change
+        if (!mapRef.current) return;
+        const map = mapRef.current;
+        
+        // Data points
+        if (!map.getSource('data-points')) {
+            map.addSource('data-points', { type: 'geojson', data: geojsonPoints });
+            map.addLayer({
+                id: 'markers-layer',
+                type: 'circle',
+                source: 'data-points',
+                paint: { 'circle-radius': 6, 'circle-color': '#3b82f6', 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' }
+            });
+        }
+        
+        // Drainage
+        if (!map.getSource('drainage-source')) {
+            map.addSource('drainage-source', { type: 'vector', url: 'mapbox://jaltol.Hy-Riv-IN-8' });
+            map.addLayer({
+                id: 'drainage-layer',
+                type: 'line',
+                source: 'drainage-source',
+                'source-layer': 'hydrorivers',
+                layout: { 'line-cap': 'round', 'line-join': 'round' },
+                paint: {
+                    'line-color': '#60a5fa',
+                    'line-dasharray': [4, 2],
+                    'line-width': ['interpolate', ['linear'], ['coalesce', ['get', 'ORD_STRA'], 0], 1, 1, 6, 4],
+                    'line-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        8, ['step', ['coalesce', ['get', 'ORD_STRA'], 0], 0, 4, 1],
+                        12, 1
+                    ]
+                }
+            });
+        }
+        
+        // Re-set visibility
+        map.setLayoutProperty('markers-layer', 'visibility', layerVisibility.markers ? 'visible' : 'none');
+        map.setLayoutProperty('drainage-layer', 'visibility', layerVisibility.drainageLines ? 'visible' : 'none');
+    };
+
+    mapRef.current.once('style.load', handleStyleLoad);
+  }, [basemapType, mapReady]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 p-4 bg-gray-100 min-h-[600px]">
@@ -332,54 +497,13 @@ const SnapshotView = ({ data, idField, latField, lngField, dateField, csvData, c
           setIsExpanded={setIsSidebarExpanded}
           basemapType={basemapType}
           setBasemapType={setBasemapType}
-          hasData={hasData}
+          hasData={geojsonPoints.features.length > 0}
         />
       </div>
 
       {/* Map Container */}
-      <div className="flex-1 lg:order-2 min-h-[400px] lg:min-h-[600px] rounded-lg overflow-hidden shadow-lg">
-        <MapContainer
-          center={defaultCenter}
-          zoom={defaultZoom}
-          className="h-full w-full"
-          style={{ minHeight: '400px' }}
-        >
-          {/* Basemap */}
-          {basemapType === 'satellite' ? (
-            <TileLayer
-              attribution='&copy; Esri'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            />
-          ) : (
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-          )}
-
-          {/* Fit bounds to data */}
-          {bounds && <FitBounds bounds={bounds} />}
-
-          {/* Data point markers */}
-          {layerVisibility.markers && dataPoints.map((point, index) => (
-            <Marker
-              key={point.id || index}
-              position={[point.lat, point.lng]}
-              eventHandlers={{
-                click: () => handleMarkerClick(point)
-              }}
-            >
-              <Popup>
-                <div className="text-sm">
-                  <strong>{idField ? point.data[idField] : `Point ${index + 1}`}</strong>
-                  {dateField && point.data[dateField] && (
-                    <div className="text-gray-600">{point.data[dateField]}</div>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+      <div className="flex-1 lg:order-2 min-h-[400px] lg:min-h-[600px] rounded-lg overflow-hidden shadow-lg relative">
+        <div ref={mapContainerRef} className="absolute inset-0" />
       </div>
 
       {/* Details Panel */}
@@ -390,7 +514,7 @@ const SnapshotView = ({ data, idField, latField, lngField, dateField, csvData, c
               <span className="font-medium">Viewing:</span> {selectedValue}
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              {dataPoints.length} data points loaded
+              {geojsonPoints.features.length} data points loaded
             </p>
           </div>
         </div>
